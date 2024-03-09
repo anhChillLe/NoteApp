@@ -12,8 +12,10 @@
 		13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.mm */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
+		455C7F8F2FDC47B08309985B /* FlatIcon.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 687F3592FA424067A9DADB12 /* FlatIcon.ttf */; };
 		7699B88040F8A987B510C191 /* libPods-NoteApp-NoteAppTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 19F6CBCC0A4E27FBF8BF4A61 /* libPods-NoteApp-NoteAppTests.a */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
+		E06589242B9B6D34002790A4 /* FlatIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E06589232B9B6D34002790A4 /* FlatIcons.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -41,8 +43,11 @@
 		5709B34CF0A7D63546082F79 /* Pods-NoteApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NoteApp.release.xcconfig"; path = "Target Support Files/Pods-NoteApp/Pods-NoteApp.release.xcconfig"; sourceTree = "<group>"; };
 		5B7EB9410499542E8C5724F5 /* Pods-NoteApp-NoteAppTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NoteApp-NoteAppTests.debug.xcconfig"; path = "Target Support Files/Pods-NoteApp-NoteAppTests/Pods-NoteApp-NoteAppTests.debug.xcconfig"; sourceTree = "<group>"; };
 		5DCACB8F33CDC322A6C60F78 /* libPods-NoteApp.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-NoteApp.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		687F3592FA424067A9DADB12 /* FlatIcon.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = FlatIcon.ttf; path = ../src/assets/fonts/FlatIcon.ttf; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = NoteApp/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		89C6BE57DB24E9ADA2F236DE /* Pods-NoteApp-NoteAppTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NoteApp-NoteAppTests.release.xcconfig"; path = "Target Support Files/Pods-NoteApp-NoteAppTests/Pods-NoteApp-NoteAppTests.release.xcconfig"; sourceTree = "<group>"; };
+		E06589232B9B6D34002790A4 /* FlatIcons.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = FlatIcons.ttf; sourceTree = "<group>"; };
+		E06589272B9B70E0002790A4 /* MaterialCommunityIcons.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = MaterialCommunityIcons.ttf; path = ../../../Downloads/icomoon/fonts/MaterialCommunityIcons.ttf; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -86,6 +91,7 @@
 		13B07FAE1A68108700A75B9A /* NoteApp */ = {
 			isa = PBXGroup;
 			children = (
+				E06589252B9B6F9E002790A4 /* Fonts */,
 				13B07FAF1A68108700A75B9A /* AppDelegate.h */,
 				13B07FB01A68108700A75B9A /* AppDelegate.mm */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
@@ -106,6 +112,15 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		35BBC3EFEBA14817A823994F /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				687F3592FA424067A9DADB12 /* FlatIcon.ttf */,
+			);
+			name = Resources;
+			path = "";
+			sourceTree = "<group>";
+		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
 			isa = PBXGroup;
 			children = (
@@ -122,6 +137,7 @@
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
 				BBD78D7AC51CEA395F1C20DB /* Pods */,
+				35BBC3EFEBA14817A823994F /* Resources */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -146,6 +162,15 @@
 				89C6BE57DB24E9ADA2F236DE /* Pods-NoteApp-NoteAppTests.release.xcconfig */,
 			);
 			path = Pods;
+			sourceTree = "<group>";
+		};
+		E06589252B9B6F9E002790A4 /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				E06589272B9B70E0002790A4 /* MaterialCommunityIcons.ttf */,
+				E06589232B9B6D34002790A4 /* FlatIcons.ttf */,
+			);
+			name = Fonts;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -241,8 +266,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E06589242B9B6D34002790A4 /* FlatIcons.ttf in Resources */,
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
+				455C7F8F2FDC47B08309985B /* FlatIcon.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -480,8 +507,11 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.chillle.note;
 				PRODUCT_NAME = NoteApp;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Debug;
@@ -506,7 +536,10 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.chillle.note;
 				PRODUCT_NAME = NoteApp;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
 				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = Release;
