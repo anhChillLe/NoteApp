@@ -1,47 +1,37 @@
-import { FC, ReactElement } from 'react'
+import React, { FC, ReactElement, useEffect, useMemo } from 'react'
+import { useColorScheme } from 'react-native'
 import { PaperProvider } from 'react-native-paper'
-import {
-  IconProps
-} from 'react-native-paper/lib/typescript/components/MaterialCommunityIcon'
 import { Settings } from 'react-native-paper/lib/typescript/core/settings'
-import { FlatIcons } from '~/assets/icons/FlatIcons'
+import { SystemBarController } from '~/modules'
+import { yellowTheme } from '~/styles/material3'
+import { FlatIcon } from './FlatIcons'
 
 interface Props {
   children: ReactElement
 }
 
 const AppThemeProvider: FC<Props> = ({ children }) => {
-  return <PaperProvider settings={settings}>{children}</PaperProvider>
+  const colorScheme = useColorScheme() ?? 'light'
+  const theme = useMemo(() => yellowTheme[colorScheme], [colorScheme])
+
+  useEffect(() => {
+    const color = theme.colors?.background
+    if (color) {
+      SystemBarController.setNavigationBarColor(color)
+      SystemBarController.setStatusBarColor(color)
+    }
+  }, [theme])
+
+  return (
+    <PaperProvider settings={settings} theme={theme}>
+      {children}
+    </PaperProvider>
+  )
 }
 
-const flatIcon = ({
-  name,
-  color,
-  size,
-  direction,
-  allowFontScaling,
-  testID,
-}: IconProps) => (
-  <FlatIcons
-    allowFontScaling={allowFontScaling}
-    name={name}
-    color={color}
-    size={size}
-    style={{
-      transform: [{ scaleX: direction === 'rtl' ? -1 : 1 }],
-      lineHeight: size,
-      backgroundColor: 'transparent',
-    }}
-    selectable={false}
-    testID={testID}
-    accessibilityElementsHidden={true}
-    importantForAccessibility="no-hide-descendants"
-  />
-)
-
 const settings: Settings = {
-  icon: flatIcon,
-  rippleEffectEnabled: true
+  icon: FlatIcon,
+  rippleEffectEnabled: true,
 }
 
 export default AppThemeProvider
