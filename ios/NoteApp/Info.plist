@@ -6,7 +6,8 @@
 	<array>
 		<string>MaterialCommunityIcons.ttf</string>
 		<string>FlatIcons.ttf</string>
-		<string>FlatIcon.ttf</string>
+		<string>Nunito-Italic-VariableFont_wght.ttf</string>
+		<string>Nunito-VariableFont_wght.ttf</string>
 	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>

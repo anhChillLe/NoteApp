@@ -12,10 +12,12 @@
 		13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.mm */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
-		455C7F8F2FDC47B08309985B /* FlatIcon.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 687F3592FA424067A9DADB12 /* FlatIcon.ttf */; };
+		29D2759583DB4FBFBB528780 /* Nunito-Italic-VariableFont_wght.ttf in Resources */ = {isa = PBXBuildFile; fileRef = EC0DF29C290F4514AB22424B /* Nunito-Italic-VariableFont_wght.ttf */; };
 		7699B88040F8A987B510C191 /* libPods-NoteApp-NoteAppTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 19F6CBCC0A4E27FBF8BF4A61 /* libPods-NoteApp-NoteAppTests.a */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
-		E06589242B9B6D34002790A4 /* FlatIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E06589232B9B6D34002790A4 /* FlatIcons.ttf */; };
+		8BED053CF1584ADD9F2746B0 /* Nunito-VariableFont_wght.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 53E14439CE1B40DB98497211 /* Nunito-VariableFont_wght.ttf */; };
+		A80DB5B4173B46D3879FADAB /* FlatIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 417072827C21487BB2EF591B /* FlatIcons.ttf */; };
+		E018D5B02BA5BD71004EFA71 /* MaterialCommunityIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E018D5AF2BA5BC05004EFA71 /* MaterialCommunityIcons.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -40,14 +42,17 @@
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = NoteApp/main.m; sourceTree = "<group>"; };
 		19F6CBCC0A4E27FBF8BF4A61 /* libPods-NoteApp-NoteAppTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-NoteApp-NoteAppTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B4392A12AC88292D35C810B /* Pods-NoteApp.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NoteApp.debug.xcconfig"; path = "Target Support Files/Pods-NoteApp/Pods-NoteApp.debug.xcconfig"; sourceTree = "<group>"; };
+		417072827C21487BB2EF591B /* FlatIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FlatIcons.ttf; path = ../src/assets/fonts/FlatIcons.ttf; sourceTree = "<group>"; };
+		53E14439CE1B40DB98497211 /* Nunito-VariableFont_wght.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Nunito-VariableFont_wght.ttf"; path = "../src/assets/fonts/Nunito-VariableFont_wght.ttf"; sourceTree = "<group>"; };
 		5709B34CF0A7D63546082F79 /* Pods-NoteApp.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NoteApp.release.xcconfig"; path = "Target Support Files/Pods-NoteApp/Pods-NoteApp.release.xcconfig"; sourceTree = "<group>"; };
 		5B7EB9410499542E8C5724F5 /* Pods-NoteApp-NoteAppTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NoteApp-NoteAppTests.debug.xcconfig"; path = "Target Support Files/Pods-NoteApp-NoteAppTests/Pods-NoteApp-NoteAppTests.debug.xcconfig"; sourceTree = "<group>"; };
 		5DCACB8F33CDC322A6C60F78 /* libPods-NoteApp.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-NoteApp.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		687F3592FA424067A9DADB12 /* FlatIcon.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = undefined; includeInIndex = 0; lastKnownFileType = unknown; name = FlatIcon.ttf; path = ../src/assets/fonts/FlatIcon.ttf; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = NoteApp/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		89C6BE57DB24E9ADA2F236DE /* Pods-NoteApp-NoteAppTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NoteApp-NoteAppTests.release.xcconfig"; path = "Target Support Files/Pods-NoteApp-NoteAppTests/Pods-NoteApp-NoteAppTests.release.xcconfig"; sourceTree = "<group>"; };
+		E018D5AF2BA5BC05004EFA71 /* MaterialCommunityIcons.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = MaterialCommunityIcons.ttf; sourceTree = "<group>"; };
 		E06589232B9B6D34002790A4 /* FlatIcons.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = FlatIcons.ttf; sourceTree = "<group>"; };
-		E06589272B9B70E0002790A4 /* MaterialCommunityIcons.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = MaterialCommunityIcons.ttf; path = ../../../Downloads/icomoon/fonts/MaterialCommunityIcons.ttf; sourceTree = "<group>"; };
+		E08C4A912BA15C1C003A7FC9 /* bundle.realm */ = {isa = PBXFileReference; lastKnownFileType = file; name = bundle.realm; path = ../src/services/database/bundle/bundle.realm; sourceTree = "<group>"; };
+		EC0DF29C290F4514AB22424B /* Nunito-Italic-VariableFont_wght.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Nunito-Italic-VariableFont_wght.ttf"; path = "../src/assets/fonts/Nunito-Italic-VariableFont_wght.ttf"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
@@ -115,10 +120,11 @@
 		35BBC3EFEBA14817A823994F /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				687F3592FA424067A9DADB12 /* FlatIcon.ttf */,
+				417072827C21487BB2EF591B /* FlatIcons.ttf */,
+				EC0DF29C290F4514AB22424B /* Nunito-Italic-VariableFont_wght.ttf */,
+				53E14439CE1B40DB98497211 /* Nunito-VariableFont_wght.ttf */,
 			);
 			name = Resources;
-			path = "";
 			sourceTree = "<group>";
 		};
 		832341AE1AAA6A7D00B99B32 /* Libraries */ = {
@@ -131,6 +137,7 @@
 		83CBB9F61A601CBA00E9B192 = {
 			isa = PBXGroup;
 			children = (
+				E08C4A912BA15C1C003A7FC9 /* bundle.realm */,
 				13B07FAE1A68108700A75B9A /* NoteApp */,
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				00E356EF1AD99517003FC87E /* NoteAppTests */,
@@ -167,7 +174,7 @@
 		E06589252B9B6F9E002790A4 /* Fonts */ = {
 			isa = PBXGroup;
 			children = (
-				E06589272B9B70E0002790A4 /* MaterialCommunityIcons.ttf */,
+				E018D5AF2BA5BC05004EFA71 /* MaterialCommunityIcons.ttf */,
 				E06589232B9B6D34002790A4 /* FlatIcons.ttf */,
 			);
 			name = Fonts;
@@ -266,10 +273,12 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E06589242B9B6D34002790A4 /* FlatIcons.ttf in Resources */,
+				E018D5B02BA5BD71004EFA71 /* MaterialCommunityIcons.ttf in Resources */,
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
-				455C7F8F2FDC47B08309985B /* FlatIcon.ttf in Resources */,
+				A80DB5B4173B46D3879FADAB /* FlatIcons.ttf in Resources */,
+				29D2759583DB4FBFBB528780 /* Nunito-Italic-VariableFont_wght.ttf in Resources */,
+				8BED053CF1584ADD9F2746B0 /* Nunito-VariableFont_wght.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
