@@ -15,7 +15,7 @@ export class Style extends Object<Style> {
     updateAt: 'date',
   }
 
-  static schema: ObjectSchema = {
+  static readonly schema: ObjectSchema = {
     name: 'Style',
     primaryKey: '_id',
     properties: this.properties,
@@ -35,5 +35,18 @@ export class Style extends Object<Style> {
       createAt: new Date(),
       updateAt: new Date(),
     }
+  }
+
+  get data() {
+    return {
+      background: this.background,
+      onBackground: this.onBackground,
+      createAt: this.createAt,
+      updateAt: this.updateAt,
+    }
+  }
+
+  get id() {
+    return this._id.toString()
   }
 }

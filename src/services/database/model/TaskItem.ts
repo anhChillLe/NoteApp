@@ -1,36 +1,50 @@
 import { Object, ObjectSchema, PropertiesTypes } from 'realm'
 
 export class TaskItem extends Object<TaskItem> {
-  title!: string
-  isSelected!: boolean
-  createAt!: Date
-  updateAt!: Date
+  label!: string
+  status!: TaskItemStatus
 
   private static properties: PropertiesTypes = {
-    title: { type: 'string', indexed: 'full-text' },
-    isSelected: 'bool',
-    createAt: 'date',
-    updateAt: 'date',
+    label: { type: 'string', indexed: 'full-text' },
+    status: 'string',
   }
 
-  static schema: ObjectSchema = {
+  static readonly schema: ObjectSchema = {
     name: 'TaskItem',
     embedded: true,
     properties: this.properties,
   }
 
   static generate({
-    title,
-    isSelected = false,
+    label,
+    status = 'unchecked',
   }: {
-    title: string
-    isSelected?: boolean
+    label: string
+    status?: TaskItemStatus
   }) {
     return {
-      title,
-      isSelected,
-      createAt: new Date(),
-      updateAt: new Date(),
+      label,
+      status,
+    }
+  }
+
+  get data() {
+    return {
+      label: this.label,
+      status: this.status,
+    }
+  }
+
+  changeStatus() {
+    switch (this.status) {
+      case 'checked':
+        this.status = 'unchecked'
+        break
+      case 'unchecked':
+        this.status = 'checked'
+        break
+      case 'indeterminate':
+        return
     }
   }
 }
