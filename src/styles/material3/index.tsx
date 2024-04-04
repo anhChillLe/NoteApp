@@ -9,6 +9,7 @@ type Theme = {
 
 const base: Partial<MD3Theme> = {
   isV3: true,
+  roundness: 3,
   fonts: NunitoFont,
 }
 
