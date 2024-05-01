@@ -1,4 +1,5 @@
 import { FC, ReactElement } from 'react'
+import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import AppNavigationContainer from '~/app/providers/navigation'
 import AppThemeProvider from '~/app/providers/paper'
@@ -10,15 +11,15 @@ interface Props {
 
 const AppProviders: FC<Props> = ({ children }) => {
   return (
-    <SafeAreaProvider>
-      <AppThemeProvider>
-        <DBProvider>
-          <AppNavigationContainer>
-            {children}
-          </AppNavigationContainer>
-        </DBProvider>
-      </AppThemeProvider>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <AppThemeProvider>
+          <DBProvider>
+            <AppNavigationContainer>{children}</AppNavigationContainer>
+          </DBProvider>
+        </AppThemeProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   )
 }
 
