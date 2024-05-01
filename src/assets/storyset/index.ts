@@ -3,6 +3,7 @@ import Notification from './Notifications.svg'
 import Sync from './Sync.svg'
 import AddNote from './AddNote.svg'
 import NoteTag from './NoteTag.svg'
+import TagEmpty from './TagEmpty.svg'
 
 export const StorySet = {
   Note,
@@ -10,4 +11,5 @@ export const StorySet = {
   Sync,
   AddNote,
   NoteTag,
+  TagEmpty,
 }

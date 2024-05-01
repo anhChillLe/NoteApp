@@ -1,37 +1,49 @@
 import { FC } from 'react'
-import { ViewProps } from 'react-native'
+import { StyleSheet, ViewProps } from 'react-native'
 import { IconButton, Text } from 'react-native-paper'
+import Animated, { AnimatedProps } from 'react-native-reanimated'
 import { Column, Fill, Row } from '~/components/atoms'
 
 export type HomeHeaderAction = {
   onSettingPress: () => void
-  onNotificationPress: () => void
+  onFolderPress: () => void
   onSearchPress: () => void
 }
 
-type Props = ViewProps & HomeHeaderAction
+type Props = AnimatedProps<ViewProps> & HomeHeaderAction
 
 export const HomeHeader: FC<Props> = ({
-  style,
   onSearchPress,
-  onNotificationPress,
+  onFolderPress,
   onSettingPress,
+  style,
   ...props
 }) => {
   return (
-    <Row style={[{ alignItems: 'center' }, style]} {...props}>
+    <Animated.View style={[styles.container, style]} {...props}>
       <Column>
         <Text variant="labelSmall">{new Date().toDateString()}</Text>
         <Text variant="titleLarge" style={{ fontWeight: '500' }}>
-          Chill note
+          {strings.appName}
         </Text>
       </Column>
       <Fill />
       <Row>
         <IconButton icon="search" onPress={onSearchPress} />
-        <IconButton icon="bell" onPress={onNotificationPress} />
+        <IconButton icon="folder" onPress={onFolderPress} />
         <IconButton icon="settings" onPress={onSettingPress} />
       </Row>
-    </Row>
+    </Animated.View>
   )
 }
+
+const strings = {
+  appName: 'Chill note',
+}
+
+const styles = StyleSheet.create({
+  container: {
+    alignItems: 'center',
+    flexDirection: 'row',
+  },
+})

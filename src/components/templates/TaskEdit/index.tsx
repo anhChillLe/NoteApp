@@ -4,22 +4,28 @@ import { ScrollView, StyleSheet, View } from 'react-native'
 import { Divider, IconButton, Text } from 'react-native-paper'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Fill, Row } from '~/components/atoms'
-import { Editor, ImportantLevelMenu, TagMenu } from '~/components/molecules'
+import { Editor, TagMenu } from '~/components/molecules'
 import { useDebounceWatch } from '~/hooks/debounce_watch'
-import { Tag, Task } from '~/services/database/model'
+import { Note, Tag } from '~/services/database/model'
 
+type Item = { label: string; status: TaskItemStatus }
 export interface TaskForm {
   title: string
-  items: { label: string; status: TaskItemStatus }[]
-  importantLevel: ImportantLevel
-  tag: Tag | null
+  taskList: Item[]
+  tags: Tag[]
 }
 
 interface Props {
-  task?: Task | null
+  task?: Note | null
   tags: Tag[]
   onChange: (data: TaskForm) => void
   onBackPress: () => void
+}
+
+const defaultValues: TaskForm = {
+  title: '',
+  taskList: [],
+  tags: [],
 }
 
 export const TaskEditLayout: FC<Props> = ({
@@ -32,19 +38,22 @@ export const TaskEditLayout: FC<Props> = ({
     control,
     formState: { isDirty },
   } = useForm<TaskForm>({
-    defaultValues: task?.data,
+    defaultValues: {
+      ...defaultValues,
+      ...task?.data,
+    },
   })
 
-  const [items, title, importantLevel, tag] = useDebounceWatch({
+  const [taskList, title, itemTags] = useDebounceWatch({
     control,
-    name: ['items', 'title', 'importantLevel', 'tag'],
+    name: ['taskList', 'title', 'tags'],
     delay: 300,
   })
 
   useEffect(() => {
     if (!isDirty) return
-    onChange({ items, title, importantLevel, tag })
-  }, [items, title, importantLevel, tag, isDirty, onChange])
+    onChange({ taskList, title, tags: itemTags })
+  }, [taskList, title, itemTags, isDirty, onChange])
 
   return (
     <SafeAreaView style={styles.container}>
@@ -54,26 +63,14 @@ export const TaskEditLayout: FC<Props> = ({
         <IconButton icon="bookmark" />
         <Row style={styles.tag_container}>
           <Controller
-            name="importantLevel"
-            control={control}
-            render={({ field: { onChange, value } }) => {
-              return (
-                <ImportantLevelMenu
-                  currentLevel={value}
-                  onImportantLevelChange={onChange}
-                />
-              )
-            }}
-          />
-          <Controller
-            name="tag"
+            name="tags"
             control={control}
             render={({ field: { onChange, value } }) => {
               return (
                 <TagMenu
                   tags={tags.map(it => it)}
-                  currentTag={value}
-                  onTagPress={onChange}
+                  currents={value}
+                  onChange={onChange}
                 />
               )
             }}
@@ -88,8 +85,7 @@ export const TaskEditLayout: FC<Props> = ({
           render={({ field: { value, onChange } }) => {
             return (
               <Editor.Text
-                mode="bold"
-                size="h2"
+                style={styles.title}
                 placeholder="Title"
                 value={value}
                 onChangeText={onChange}
@@ -100,7 +96,7 @@ export const TaskEditLayout: FC<Props> = ({
         <Row style={styles.divider_container}>
           <Divider style={styles.divider} />
           <Text variant="labelSmall" style={styles.time}>
-            {task?.updateAt.toLocaleString()}
+            {task?.updateAt.toLocaleString() ?? new Date().toLocaleString()}
           </Text>
         </Row>
         <ScrollView
@@ -110,43 +106,52 @@ export const TaskEditLayout: FC<Props> = ({
           keyboardDismissMode="interactive"
         >
           <Controller
-            name="items"
+            name="taskList"
             control={control}
             render={({ field: { value, onChange } }) => {
+              const onCheckPress = (item: Item) => {
+                switch (item.status) {
+                  case 'checked':
+                    item.status = 'unchecked'
+                    break
+                  case 'unchecked':
+                    item.status = 'checked'
+                    break
+                  case 'indeterminate':
+                    break
+                }
+                onChange([...value])
+              }
+
+              const onDeletePress = (item: Item, index: number) => {
+                value.splice(index, 1)
+                onChange([...value])
+              }
+
+              const onDisablePress = (item: Item) => {
+                item.status =
+                  item.status == 'indeterminate' ? 'unchecked' : 'indeterminate'
+                onChange([...value])
+              }
+
+              const onLabelChange = (item: Item, label: string) => {
+                item.label = label
+                onChange([...value])
+              }
+
+              const onNewItem = (label: string) => {
+                value.push({ label, status: 'unchecked' })
+                onChange([...value])
+              }
+
               return (
                 <Editor.TaskListItem
-                  items={value ?? []}
-                  onCheckPress={item => {
-                    switch (item.status) {
-                      case 'checked':
-                        item.status = 'unchecked'
-                        break
-                      case 'unchecked':
-                        item.status = 'checked'
-                        break
-                      case 'indeterminate':
-                        break
-                    }
-                    onChange([...value])
-                  }}
-                  onDeletePress={(_, index) => {
-                    value.splice(index, 1)
-                    onChange([...value])
-                  }}
-                  onDisablePress={item => {
-                    item.status =
-                      item.status == 'indeterminate'
-                        ? 'unchecked'
-                        : 'indeterminate'
-                    onChange([...value])
-                  }}
-                  onLabelChange={(item, label) => {
-                    item.label = label
-                    onChange([...value])
-                  }}
-                  onNewItem={label => {
-                    onChange([...(value ?? []), { label, status: 'unchecked' }])
-                  }}
+                  items={value}
+                  onCheckPress={onCheckPress}
+                  onDeletePress={onDeletePress}
+                  onDisablePress={onDisablePress}
+                  onLabelChange={onLabelChange}
+                  onNewItem={onNewItem}
                 />
               )
             }}
@@ -181,9 +186,9 @@ const styles = StyleSheet.create({
   time: {
     fontWeight: '500',
   },
-  content: {
-    flex: 1,
-    textAlignVertical: 'top',
+  title: {
+    fontWeight: '600',
+    fontSize: 24,
   },
   toolbar: {
     paddingHorizontal: 8,

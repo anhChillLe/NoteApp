@@ -1,10 +1,20 @@
-import { FC, useMemo } from 'react'
-import { ScrollView, StyleProp, View, ViewProps, ViewStyle } from 'react-native'
-import { Button, useTheme } from 'react-native-paper'
+import React, { FC } from 'react'
+import {
+  ScrollView,
+  StyleProp,
+  StyleSheet,
+  View,
+  ViewProps,
+  ViewStyle,
+} from 'react-native'
+import { OrderedCollection } from 'realm'
+import { TagItem } from '~/components/molecules'
 import { Tag } from '~/services/database/model'
+import { useHome } from '../Provider'
+import { DragableTagItem } from './DragableItem'
 
 export type HomeTagListData = {
-  tags: Tag[]
+  tags: Tag[] | OrderedCollection<Tag>
   tag?: Tag
   onTagPress: (tag?: Tag) => void
   onTagManagerPress: () => void
@@ -23,60 +33,73 @@ export const HomeTagList: FC<Props> = ({
   contentContainerStyle,
   ...props
 }) => {
-  const theme = useTheme()
-  const isEmpty = useMemo(() => tags.length === 0, [tags.length])
+  const isEmpty = tags.length === 0
+  const { currentTag: dragingTag, setCurrentTag: setDragingTag } = useHome()
 
   return (
     <View {...props}>
       <ScrollView
         horizontal
+        style={styles.container}
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={contentContainerStyle}
+        contentContainerStyle={[styles.contentContainer, contentContainerStyle]}
       >
         {isEmpty ? (
-          <Button
-            mode="contained-tonal"
+          <TagItem
             icon="plus-small"
+            label="Create tag"
+            isSelected
             onPress={onTagManagerPress}
-          >
-            Create tag
-          </Button>
+          />
         ) : (
           <>
-            <Button
-              mode={!!currentTag ? 'contained-tonal' : 'contained'}
-              style={{ borderRadius: theme.roundness * 2 }}
+            <TagItem
+              label="All"
+              isSelected={!currentTag}
               onPress={() => onTagPress(undefined)}
-            >
-              All
-            </Button>
+            />
 
             {tags.map(tag => {
-              const isCurrent = currentTag
-                ? tag._id.equals(currentTag._id)
-                : false
+              const isCurrent = currentTag ? tag.id === currentTag.id : false
+              const onPress = () => onTagPress(tag)
+              const isDraging = dragingTag?.id === tag.id
+              const onDragStart = () => {
+                setDragingTag(tag)
+              }
               return (
-                <Button
+                <DragableTagItem
                   key={tag.id}
-                  mode={isCurrent ? 'contained' : 'contained-tonal'}
-                  style={{ borderRadius: theme.roundness * 2 }}
-                  onPress={() => onTagPress(tag)}
-                >
-                  {tag.name}
-                </Button>
+                  label={tag.name}
+                  style={styles.item}
+                  isDraging={isDraging}
+                  onDragStart={onDragStart}
+                  isPinned={tag.isPinned}
+                  isSelected={isCurrent}
+                  onPress={onPress}
+                />
               )
             })}
-            <Button
-              mode="contained-tonal"
+
+            <TagItem
+              label="Manager"
               icon="folder"
               onPress={onTagManagerPress}
-              style={{ borderRadius: theme.roundness * 2 }}
-            >
-              Manager
-            </Button>
+            />
           </>
         )}
       </ScrollView>
     </View>
   )
 }
+
+const styles = StyleSheet.create({
+  container: {
+    overflow: 'visible',
+  },
+  contentContainer: {
+    gap: 8,
+  },
+  item: {
+    zIndex: 1,
+  },
+})

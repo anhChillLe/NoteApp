@@ -4,15 +4,14 @@ import { StyleSheet, View } from 'react-native'
 import { Divider, IconButton, Text } from 'react-native-paper'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Fill, Row } from '~/components/atoms'
-import { Editor, ImportantLevelMenu, TagMenu } from '~/components/molecules'
+import { Editor, TagMenu } from '~/components/molecules'
 import { useDebounceWatch } from '~/hooks/debounce_watch'
 import { Note, Tag } from '~/services/database/model'
 
 export interface NoteForm {
   title: string
   content: string
-  importantLevel: ImportantLevel
-  tag: Tag | null
+  tags: Tag[]
 }
 
 interface Props {
@@ -20,10 +19,18 @@ interface Props {
   tags: Tag[]
   onChange: (data: NoteForm) => void
   onBackPress: () => void
+  onNewTagSubmit: (text: string) => void
+}
+
+const defaultValues: NoteForm = {
+  title: '',
+  content: '',
+  tags: [],
 }
 
 export const NoteEditLayout: FC<Props> = ({
   onBackPress,
+  onNewTagSubmit,
   onChange,
   tags,
   note,
@@ -32,19 +39,22 @@ export const NoteEditLayout: FC<Props> = ({
     control,
     formState: { isDirty },
   } = useForm<NoteForm>({
-    defaultValues: note?.data,
+    defaultValues: {
+      ...defaultValues,
+      ...note?.data,
+    },
   })
 
-  const [title, content, importantLevel, tag] = useDebounceWatch({
+  const [title, content, itemTags] = useDebounceWatch({
     control,
-    name: ['title', 'content', 'importantLevel', 'tag'],
+    name: ['title', 'content', 'tags'],
     delay: 300,
   })
 
   useEffect(() => {
     if (!isDirty) return
-    onChange({ title, content, importantLevel, tag })
-  }, [title, content, importantLevel, tag, isDirty, onChange])
+    onChange({ title, content, tags: itemTags })
+  }, [title, content, itemTags, isDirty, onChange])
 
   return (
     <SafeAreaView style={styles.container}>
@@ -54,26 +64,15 @@ export const NoteEditLayout: FC<Props> = ({
         <IconButton icon="bookmark" />
         <Row style={styles.tag_container}>
           <Controller
-            name="importantLevel"
-            control={control}
-            render={({ field: { onChange, value } }) => {
-              return (
-                <ImportantLevelMenu
-                  currentLevel={value}
-                  onImportantLevelChange={onChange}
-                />
-              )
-            }}
-          />
-          <Controller
-            name="tag"
+            name="tags"
             control={control}
             render={({ field: { onChange, value } }) => {
               return (
                 <TagMenu
-                  tags={tags.map(it => it)}
-                  currentTag={value}
-                  onTagPress={onChange}
+                  tags={tags}
+                  currents={value}
+                  onChange={onChange}
+                  onNewTagSubmit={onNewTagSubmit}
                 />
               )
             }}
@@ -88,12 +87,11 @@ export const NoteEditLayout: FC<Props> = ({
           render={({ field: { value, onChange, onBlur, ref } }) => {
             return (
               <Editor.Text
-                value={value}
                 ref={ref}
+                style={styles.title}
+                value={value}
                 onChangeText={onChange}
                 onBlur={onBlur}
-                mode="bold"
-                size="h2"
                 multiline
                 numberOfLines={2}
                 placeholder="Title"
@@ -104,7 +102,7 @@ export const NoteEditLayout: FC<Props> = ({
         <Row style={styles.divider_container}>
           <Divider style={styles.divider} />
           <Text variant="labelSmall" style={styles.time}>
-            {note?.updateAt.toLocaleString()}
+            {(note?.updateAt ?? new Date()).toLocaleString()}
           </Text>
         </Row>
         <Controller
@@ -118,11 +116,8 @@ export const NoteEditLayout: FC<Props> = ({
                 onChangeText={onChange}
                 onBlur={onBlur}
                 style={styles.content}
-                onLayout={e => e.currentTarget.focus()}
                 autoCapitalize="sentences"
                 multiline
-                mode="default"
-                size="content"
                 placeholder="Content for note"
               />
             )
@@ -137,6 +132,7 @@ export const NoteEditLayout: FC<Props> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    gap: 8,
   },
   content_container: {
     flex: 1,
@@ -155,6 +151,10 @@ const styles = StyleSheet.create({
   },
   time: {
     fontWeight: '500',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '600',
   },
   content: {
     flex: 1,

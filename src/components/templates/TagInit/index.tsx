@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native'
 import { Button, Text } from 'react-native-paper'
 import Animated, { LinearTransition } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { AnimatedPaper } from '~/components/atoms'
+import { TagItem } from '~/components/molecules'
 
 type TagData = { name: string; isSelected: boolean }
 interface Props {
@@ -13,70 +13,69 @@ interface Props {
 
 export const TagInitLayout: FC<Props> = ({ onSubmit, onSkip }) => {
   const [tags, setTags] = useState(tagsEng)
+
+  const handleItemPress = (item: TagData) => {
+    item.isSelected = !item.isSelected
+    setTags(tags => [...tags])
+  }
+
   return (
-    <SafeAreaView style={styles.contentContainer}>
-      <View style={{ flexDirection: 'row-reverse' }}>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.appbar}>
         <Button
           icon="angle-small-right"
           onPress={onSkip}
-          contentStyle={{ flexDirection: 'row-reverse' }}
+          contentStyle={styles.skip}
         >
           {strings.skip}
         </Button>
       </View>
-      <Animated.View style={styles.title_container} layout={transition}>
-        <Text variant="headlineMedium" style={styles.title}>
-          {strings.title}
-        </Text>
-        <Text variant="bodyLarge" style={styles.desc}>
-          {strings.description}
-        </Text>
-      </Animated.View>
-      <Text variant="titleMedium" style={styles.helper}>
-        {strings.helper}
-      </Text>
+
       <Animated.ScrollView contentContainerStyle={styles.tag_group}>
+        <Animated.View style={styles.title_container}>
+          <Text variant="headlineMedium" style={styles.title}>
+            {strings.title}
+          </Text>
+          <Text variant="bodyLarge" style={styles.desc}>
+            {strings.description}
+          </Text>
+          <Text variant="titleMedium" style={styles.helper}>
+            {strings.helper}
+          </Text>
+        </Animated.View>
+
         {tags.map((tag, index) => {
           const { isSelected, name } = tag
+          const onPress = () => handleItemPress(tag)
           return (
-            <AnimatedPaper.Button
+            <TagItem
               key={index}
-              layout={transition}
-              mode={isSelected ? 'contained' : 'contained-tonal'}
-              icon={isSelected ? 'check' : undefined}
-              onPress={e => {
-                tag.isSelected = !tag.isSelected
-                setTags(tags => [...tags])
-              }}
-            >
-              {name}
-            </AnimatedPaper.Button>
+              layout={LinearTransition}
+              isSelected={isSelected}
+              icon={isSelected ? 'check' : 'plus'}
+              onPress={onPress}
+              label={name}
+            />
           )
         })}
       </Animated.ScrollView>
-      <View style={styles.action_container}>
-        <Button
-          mode="contained"
-          onPress={() => onSubmit(tags)}
-          labelStyle={styles.action_label}
-          contentStyle={styles.action_content}
-        >
-          {strings.start}
-        </Button>
-      </View>
+      <Button
+        mode="contained"
+        onPress={() => onSubmit(tags)}
+        style={styles.action}
+        labelStyle={styles.action_label}
+        contentStyle={styles.action_content}
+      >
+        {strings.start}
+      </Button>
     </SafeAreaView>
   )
 }
 
-const transition = LinearTransition.duration(100)
-
 const styles = StyleSheet.create({
-  contentContainer: {
+  container: {
     flex: 1,
-    paddingHorizontal: 1,
     alignItems: 'stretch',
-    justifyContent: 'center',
-    gap: 16,
   },
   tag_group: {
     flexDirection: 'row',
@@ -87,7 +86,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title_container: {
-    paddingHorizontal: 16,
     gap: 8,
   },
   title: {
@@ -95,19 +93,25 @@ const styles = StyleSheet.create({
   },
   helper: {
     opacity: 0.6,
-    paddingHorizontal: 16,
   },
   desc: {
     opacity: 0.85,
-  },
-  action_container: {
-    paddingHorizontal: 24,
   },
   action_content: {
     padding: 6,
   },
   action_label: {
     fontSize: 16,
+  },
+  action: {
+    marginHorizontal: 24,
+    marginBottom: 16,
+  },
+  skip: {
+    flexDirection: 'row-reverse',
+  },
+  appbar: {
+    flexDirection: 'row-reverse',
   },
 })
 

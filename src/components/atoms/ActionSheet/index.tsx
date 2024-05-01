@@ -8,20 +8,20 @@ import {
 import {
   Keyboard,
   KeyboardAvoidingView,
+  LayoutChangeEvent,
   Modal,
   ModalProps,
-  Platform,
   StyleSheet,
 } from 'react-native'
 import { useTheme } from 'react-native-paper'
-import {
+import Animated, {
   interpolate,
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
-  withTiming,
 } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useProgress } from '~/hooks'
 import { AnimatedPressable } from '../Animated'
 
 interface Props extends ModalProps {
@@ -31,26 +31,16 @@ interface Props extends ModalProps {
   safeArea?: boolean
 }
 
+type TransitionCallback = () => void
+
 interface ActionSheet {
-  show: () => void
-  hide: () => void
+  show: (onCompleteTransition?: TransitionCallback) => void
+  hide: (onCompleteTransition?: TransitionCallback) => void
 }
 
 export function useActionSheetRef() {
   const defaultRef = { show: () => {}, hide: () => {} }
-  return useRef(defaultRef)
-}
-
-function useProgress() {
-  const progress = useSharedValue(0)
-  const start = (duration: number, onFinish?: () => void) => {
-    progress.value = withTiming(1, { duration }, onFinish)
-  }
-  const end = (duration: number, onFinish?: () => void) => {
-    progress.value = withTiming(0, { duration }, onFinish)
-  }
-
-  return { progress, start, end }
+  return useRef<ActionSheet>(defaultRef)
 }
 
 export const ActionSheet = forwardRef<ActionSheet, Props>(
@@ -71,22 +61,37 @@ export const ActionSheet = forwardRef<ActionSheet, Props>(
     const [visible, setVisible] = useState(false)
     const { progress, start, end } = useProgress()
 
-    const show = useCallback(() => {
-      runOnJS(setVisible)(true)
-      start(enteringDuration)
-    }, [setVisible])
+    const show = useCallback(
+      (onCompleteTransition?: TransitionCallback) => {
+        setVisible(true)
+        const callback = onCompleteTransition
+          ? runOnJS(onCompleteTransition)
+          : undefined
+        start(enteringDuration, callback)
+      },
+      [setVisible],
+    )
 
-    const hide = useCallback(() => {
-      Keyboard.dismiss()
-      end(enteringDuration, () => {
-        'worklet'
-        runOnJS(setVisible)(false)
-      })
-    }, [setVisible])
+    const hide = useCallback(
+      (onCompleteTransition?: TransitionCallback) => {
+        Keyboard.dismiss()
+        const onComplete = () => {
+          'worklet'
+          runOnJS(setVisible)(false)
+          onCompleteTransition && runOnJS(onCompleteTransition)()
+        }
+        end(enteringDuration, onComplete)
+      },
+      [setVisible],
+    )
 
-    useImperativeHandle(ref, () => ({ show, hide }), [show, hide])
+    useImperativeHandle<ActionSheet, ActionSheet>(ref, () => ({ show, hide }), [
+      show,
+      hide,
+    ])
 
     const contentHeight = useSharedValue(0)
+
     const contentStyle = useAnimatedStyle(() => {
       const translateY = interpolate(
         progress.value,
@@ -99,27 +104,29 @@ export const ActionSheet = forwardRef<ActionSheet, Props>(
       }
     }, [progress, contentHeight])
 
+    const onContentLayout = (e: LayoutChangeEvent) => {
+      contentHeight.value = e.nativeEvent.layout.height
+    }
+
     return (
       <Modal
         visible={visible}
-        onRequestClose={hide}
+        onRequestClose={() => hide()}
         statusBarTranslucent={false}
         transparent
         {...props}
       >
-        <KeyboardAvoidingView style={styles.container} behavior="padding">
+        <KeyboardAvoidingView style={[styles.container]} behavior="padding">
           <AnimatedPressable
-            onPress={dissmisable ? hide : undefined}
+            onPress={dissmisable ? () => hide() : undefined}
             style={[
               { opacity: progress },
               { backgroundColor: colors.backdrop },
               styles.backdrop,
             ]}
           />
-          <AnimatedPressable
-            onLayout={e => {
-              contentHeight.value = e.nativeEvent.layout.height
-            }}
+          <Animated.View
+            onLayout={onContentLayout}
             style={[
               safeArea && { bottom, left, right },
               { backgroundColor: colors.background },
@@ -128,7 +135,7 @@ export const ActionSheet = forwardRef<ActionSheet, Props>(
             ]}
           >
             {children}
-          </AnimatedPressable>
+          </Animated.View>
         </KeyboardAvoidingView>
       </Modal>
     )

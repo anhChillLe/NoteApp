@@ -1,19 +1,33 @@
-import React, { FC, useMemo } from 'react'
-import { StyleSheet, View } from 'react-native'
-import { FAB } from 'react-native-paper'
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
-import { TaskNoteList } from '~/components/molecules'
+import { useFocusEffect } from '@react-navigation/native'
+import React, { FC, useCallback } from 'react'
+import { BackHandler, StyleSheet, View } from 'react-native'
+import {
+  FadeInDown,
+  FadeInUp,
+  FadeOutDown,
+  FadeOutUp,
+} from 'react-native-reanimated'
+import { SafeAreaView } from 'react-native-safe-area-context'
+import { OrderedCollection } from 'realm'
 import { Home, HomeHeaderAction, HomeTagListData } from '~/components/organisms'
-import { Note, Task, TaskItem } from '~/services/database/model'
+import { HomeProvider } from '~/components/organisms/Home/Provider'
+import { useSelection } from '~/hooks'
+import { Note, Tag, TaskItem } from '~/services/database/model'
 
 type HomeDataListProps = {
-  data: (Note | Task)[]
-  onItemPress: (note: Note | Task) => void
+  data: Note[] | OrderedCollection<Note>
+  onItemPress: (item: Note) => void
   onTaskItemPress: (item: TaskItem) => void
-  onNewItem: () => void
+  onNewTask: () => void
+  onNewNote: () => void
+  onPin: (...items: Note[]) => void
+  onDelete: (...items: Note[]) => void
+  onAddTagToItem: (tag: Tag, item: Note) => void
 }
 
 type Props = HomeHeaderAction & HomeTagListData & HomeDataListProps
+
+const compareItem = (item1: Note, item2: Note) => item1.id === item2.id
 
 export const HomeScreenLayout: FC<Props> = ({
   tags,
@@ -22,58 +36,118 @@ export const HomeScreenLayout: FC<Props> = ({
   onTagPress,
   onItemPress,
   onTaskItemPress,
-  onNewItem,
+  onNewTask,
+  onNewNote,
   onSearchPress,
   onSettingPress,
-  onNotificationPress,
-  onTagManagerPress: onNewTagPress,
+  onFolderPress,
+  onTagManagerPress,
+  onAddTagToItem,
+  onPin,
+  onDelete,
 }) => {
-  const { bottom } = useSafeAreaInsets()
-  const isEmpty = data.length == 0
+  const [isInSelect, selecteds, controller] = useSelection(compareItem)
+
+  const handleCheckAll = useCallback(() => {
+    const isAllChecked = selecteds.length === data.length
+    controller.set(isAllChecked ? [] : data.map(it => it))
+  }, [controller, data, selecteds])
+
+  const handlePin = useCallback(() => {
+    onPin(...selecteds)
+  }, [onPin, selecteds])
+
+  const handleDelete = useCallback(() => {
+    onDelete(...selecteds)
+    controller.disable()
+  }, [onDelete, selecteds, controller])
+
+  const handleItemLongPress = useCallback(
+    (item: Note) => {
+      controller.enable()
+      controller.select(item)
+    },
+    [controller],
+  )
+
+  useFocusEffect(() => {
+    const handler = () => {
+      isInSelect && controller.disable()
+      return isInSelect
+    }
+    const listener = BackHandler.addEventListener('hardwareBackPress', handler)
+    return listener.remove
+  })
+
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.container}>
-        <Home.Header
-          style={styles.header}
-          onNotificationPress={onNotificationPress}
-          onSettingPress={onSettingPress}
-          onSearchPress={onSearchPress}
-        />
-        <Home.TagList
-          tags={tags}
-          tag={tag}
-          onTagManagerPress={onNewTagPress}
-          contentContainerStyle={[styles.contentContainerStyle]}
-          onTagPress={onTagPress}
-        />
-        {isEmpty ? (
-          <Home.Empty onNewItem={onNewItem} style={styles.empty} />
-        ) : (
-          <>
-            <TaskNoteList
-              data={data}
-              onItemPress={onItemPress}
-              onTaskItemPress={onTaskItemPress}
-              numColumns={2}
-              contentContainerStyle={{ ...styles.list, paddingBottom: bottom }}
+    <HomeProvider>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.container}>
+          {isInSelect ? (
+            <Home.SelectionAppbar
+              onClosePress={controller.disable}
+              onCheckAllPress={handleCheckAll}
+              numOfItem={selecteds.length}
+              entering={FadeInUp}
+              exiting={FadeOutUp}
+              style={styles.header}
             />
-            <View style={[styles.fab_container, { bottom: bottom + 32 }]}>
-              <FAB size="medium" icon="plus" mode="flat" onPress={onNewItem} />
-            </View>
-          </>
-        )}
-      </View>
-    </SafeAreaView>
+          ) : (
+            <Home.Header
+              style={styles.header}
+              entering={FadeInUp}
+              exiting={FadeOutUp}
+              onFolderPress={onFolderPress}
+              onSettingPress={onSettingPress}
+              onSearchPress={onSearchPress}
+            />
+          )}
+
+          <Home.TagList
+            tags={tags}
+            tag={tag}
+            style={styles.tags}
+            onTagManagerPress={onTagManagerPress}
+            contentContainerStyle={[styles.taglist_container]}
+            onTagPress={onTagPress}
+          />
+
+          <Home.ContentList
+            data={data}
+            selecteds={selecteds}
+            contentContainerStyle={styles.list}
+            isInSelect={isInSelect}
+            onItemPress={onItemPress}
+            onItemLongPress={handleItemLongPress}
+            onItemSelect={controller.select}
+            onTaskItemPress={onTaskItemPress}
+            onTagToItem={onAddTagToItem}
+          />
+
+          {isInSelect ? (
+            <Home.Actionbar
+              entering={FadeInDown}
+              exiting={FadeOutDown}
+              onPinPress={handlePin}
+              onDeletePress={handleDelete}
+            />
+          ) : (
+            <Home.BottomAppbar
+              entering={FadeInDown}
+              exiting={FadeOutDown}
+              onNewNotePress={onNewNote}
+              onNewTaskPress={onNewTask}
+            />
+          )}
+        </View>
+      </SafeAreaView>
+    </HomeProvider>
   )
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  fab_container: {
-    position: 'absolute',
-    right: 32,
   },
   header: {
     paddingStart: 16,
@@ -86,8 +160,10 @@ const styles = StyleSheet.create({
   list: {
     paddingHorizontal: 16,
   },
-  contentContainerStyle: {
-    gap: 8,
+  tags: {
+    zIndex: 1,
+  },
+  taglist_container: {
     padding: 16,
   },
 })

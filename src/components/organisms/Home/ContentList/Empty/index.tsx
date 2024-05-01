@@ -1,29 +1,30 @@
 import { FC } from 'react'
-import { ViewProps, View, StyleSheet } from 'react-native'
-import { Button, Text } from 'react-native-paper'
+import { StyleSheet, View, ViewProps } from 'react-native'
+import { Text } from 'react-native-paper'
+import Animated, { AnimatedProps } from 'react-native-reanimated'
 import { StorySet } from '~/assets/storyset'
 
-interface Props extends ViewProps {
-  onNewItem: () => void
-}
+interface Props extends AnimatedProps<ViewProps> {}
 
-export const HomeEmpty: FC<Props> = ({ style, onNewItem, ...props }) => {
+export const HomeEmpty: FC<Props> = ({ style, ...props }) => {
   return (
-    <View style={[styles.container, style]} {...props}>
+    <Animated.View style={[styles.container, style]} {...props}>
       <StorySet.AddNote style={styles.icon} />
       <View style={styles.title_container}>
         <Text variant="titleLarge" style={styles.title}>
-          There are no notes
+          {strings.title}
         </Text>
         <Text variant="bodySmall" style={styles.description}>
-          You haven't created any notes yet!
+          {strings.description}
         </Text>
       </View>
-      <Button mode="contained" icon="plus-small" onPress={onNewItem}>
-        Create now
-      </Button>
-    </View>
+    </Animated.View>
   )
+}
+
+const strings = {
+  title: 'There are no notes',
+  description: "You haven't created any notes yet!",
 }
 
 const styles = StyleSheet.create({

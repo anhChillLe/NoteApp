@@ -1,16 +1,26 @@
-import { View, ViewProps, ViewStyle } from 'react-native'
+import { FC, useCallback } from 'react'
+import {
+  NativeSyntheticEvent,
+  StyleProp,
+  StyleSheet,
+  TextInputSubmitEditingEventData,
+  TextStyle,
+  View,
+  ViewProps,
+  ViewStyle,
+} from 'react-native'
 import { Checkbox, IconButton } from 'react-native-paper'
+import Animated, { FadeInDown, FadeOutUp } from 'react-native-reanimated'
 import { Row } from '~/components/atoms'
 import { Editor } from '..'
-import { TaskItem } from '~/services/database/model'
-import { FC } from 'react'
 import { TextEditor } from '../Text'
-import { StyleProp } from 'react-native'
 
 interface Item {
   label: string
   status: TaskItemStatus
 }
+type SubmitEvent = NativeSyntheticEvent<TextInputSubmitEditingEventData>
+type SubmitCallback = (e: SubmitEvent) => void
 interface Props extends ViewProps {
   items: Item[]
   onCheckPress: (item: Item) => void
@@ -32,56 +42,55 @@ export const TaskListItemEditor: FC<Props> = ({
   itemStyle,
   ...props
 }) => {
+  const handleSubmit = useCallback<SubmitCallback>(e => {
+    const label = e.nativeEvent.text
+    if (!label) return
+    e.currentTarget.setNativeProps({ text: '' })
+    onNewItem(label)
+  }, [])
+
   return (
-    <View style={[{ gap: 8 }, style]} {...props}>
+    <View style={[styles.container, style]} {...props}>
       {items.map((item, index) => {
         const isDisable = item.status == 'indeterminate'
+        const handleCheckPress = () => {
+          onCheckPress(item)
+        }
+        const handleChangeText = (label: string) => {
+          onLabelChange(item, label)
+        }
+        const handleDisablePress = () => onDisablePress(item)
+
+        const handleDeletePress = () => onDeletePress(item, index)
+
+        const icon = isDisable ? 'plus' : 'minus'
+
+        const containerStyle: ViewStyle = {
+          opacity: isDisable ? 0.6 : 1,
+        }
+
+        const editorStyle: TextStyle = {
+          textDecorationLine: isDisable ? 'line-through' : undefined,
+        }
 
         return (
-          <View
+          <Animated.View
             key={index}
-            style={[
-              {
-                alignItems: 'center',
-                flexDirection: 'row',
-                opacity: isDisable ? 0.6 : 1,
-              },
-              itemStyle,
-            ]}
+            entering={FadeInDown}
+            exiting={FadeOutUp}
+            style={[styles.item_container, containerStyle, itemStyle]}
           >
-            <Checkbox.Android
-              status={item.status}
-              onPress={() => {
-                onCheckPress(item)
-              }}
-            />
+            <Checkbox.Android status={item.status} onPress={handleCheckPress} />
             <TextEditor
               value={item.label}
-              style={{
-                flex: 1,
-                textDecorationLine: isDisable ? 'line-through' : undefined,
-              }}
+              style={[styles.editor, editorStyle]}
               multiline
               editable={!isDisable}
-              onChangeText={label => {
-                onLabelChange(item, label)
-              }}
+              onChangeText={handleChangeText}
             />
-            <IconButton
-              icon={isDisable ? 'plus' : 'minus'}
-              size={14}
-              onPress={() => {
-                onDisablePress(item)
-              }}
-            />
-            <IconButton
-              icon="cross"
-              size={14}
-              onPress={() => {
-                onDeletePress(item, index)
-              }}
-            />
-          </View>
+            <IconButton icon={icon} size={14} onPress={handleDisablePress} />
+            <IconButton icon="cross" size={14} onPress={handleDeletePress} />
+          </Animated.View>
         )
       })}
       <Row style={{ alignItems: 'center' }}>
@@ -89,14 +98,23 @@ export const TaskListItemEditor: FC<Props> = ({
         <Editor.Text
           placeholder="Add a new item"
           blurOnSubmit={false}
-          style={{ flex: 1 }}
-          onSubmitEditing={e => {
-            const label = e.nativeEvent.text
-            e.currentTarget.setNativeProps({ text: '' })
-            onNewItem(label)
-          }}
+          style={styles.editor}
+          onSubmitEditing={handleSubmit}
         />
       </Row>
     </View>
   )
 }
+
+const styles = StyleSheet.create({
+  container: {
+    gap: 8,
+  },
+  item_container: {
+    alignItems: 'center',
+    flexDirection: 'row',
+  },
+  editor: {
+    flex: 1,
+  },
+})

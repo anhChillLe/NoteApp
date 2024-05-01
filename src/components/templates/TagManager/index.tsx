@@ -1,16 +1,16 @@
-import React, { ComponentProps, FC, useCallback, useState } from 'react'
-import { ListRenderItem, StyleSheet } from 'react-native'
+import { useFocusEffect } from '@react-navigation/native'
+import React, { FC, useCallback } from 'react'
+import { BackHandler, ListRenderItem, StyleSheet } from 'react-native'
 import Animated, {
   LinearTransition,
   ZoomOutLeft,
 } from 'react-native-reanimated'
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { Results } from 'realm'
-import { TagItem } from '~/components/molecules'
+import { TagItemFull } from '~/components/molecules'
 import { TagManager, useInputActionSheet } from '~/components/organisms'
-import { useQuery } from '~/services/database'
-import { Note, Tag, Task } from '~/services/database/model'
-import { queryByTag } from '~/services/database/query'
+import { useSelection } from '~/hooks'
+import { Tag } from '~/services/database/model'
 
 interface Props {
   tags: Results<Tag>
@@ -22,6 +22,8 @@ interface Props {
   onDeleteTag: (...tags: Tag[]) => void
 }
 
+const compairTag = (t1: Tag, t2: Tag) => t1.id === t2.id
+
 export const TagManagerLayout: FC<Props> = ({
   tags,
   onNewTag,
@@ -31,27 +33,22 @@ export const TagManagerLayout: FC<Props> = ({
   onDeleteTag,
   onTagPress,
 }) => {
-  const { bottom, top } = useSafeAreaInsets()
   const actionSheet = useInputActionSheet()
-  const [selecteds, setSelecteds] = useState<Tag[]>([])
-  const [isInSelect, setIsInSelect] = useState(false)
+  const [isInSelect, selecteds, controller] = useSelection(compairTag)
+
   const isAllChecked = selecteds.length === tags.length
+
   const isShowEdit = selecteds.length === 1
 
-  const handleClose = useCallback(() => {
-    setIsInSelect(false)
-    setSelecteds([])
-  }, [setIsInSelect, setSelecteds])
+  const isEmpty = tags.length === 0
 
   const handleCheckAll = useCallback(() => {
     if (selecteds.length === tags.length) {
-      setSelecteds([])
+      controller.set([])
     } else {
-      setSelecteds(tags.map(it => it))
+      controller.set(tags.map(it => it))
     }
-  }, [setSelecteds, selecteds, tags])
-
-  console.log(selecteds.length)
+  }, [controller, selecteds, tags])
 
   const showInput = useCallback(() => {
     actionSheet.current?.show()
@@ -62,11 +59,9 @@ export const TagManagerLayout: FC<Props> = ({
   }, [actionSheet, selecteds])
 
   const handleDeleteTags = useCallback(() => {
-    setSelecteds(selectedTags => {
-      onDeleteTag(...selectedTags)
-      return []
-    })
-  }, [setSelecteds, onDeleteTag])
+    onDeleteTag(...selecteds)
+    controller.set([])
+  }, [controller, onDeleteTag, selecteds])
 
   const handleInputSubmit = useCallback(
     (text: string) => {
@@ -83,28 +78,17 @@ export const TagManagerLayout: FC<Props> = ({
     ({ item }) => {
       const index = selecteds.findIndex(it => it.id === item.id)
 
-      const selectTag = () => {
-        setSelecteds(selecteds => {
-          if (index === -1) {
-            return [...selecteds, item]
-          } else {
-            selecteds.splice(index, 1)
-            return [...selecteds]
-          }
-        })
-      }
+      const isSelected = index !== -1
 
       const onPress = () => {
-        if (isInSelect) selectTag()
+        if (isInSelect) controller.select(item)
         else onTagPress(item)
       }
 
       const onLongPress = () => {
-        setIsInSelect(true)
-        selectTag()
+        controller.enable()
+        controller.select(item)
       }
-
-      const isSelected = index !== -1
 
       return (
         <TagItemWithCount
@@ -118,21 +102,35 @@ export const TagManagerLayout: FC<Props> = ({
         />
       )
     },
-    [onTagPress, setIsInSelect, selecteds, isInSelect],
+    [onTagPress, controller, selecteds, isInSelect],
   )
+
+  const ListEmpty = useCallback<FC>(
+    () => <TagManager.Empty onNewTagPress={showInput} />,
+    [showInput],
+  )
+
+  useFocusEffect(() => {
+    const handler = () => {
+      isInSelect && controller.disable()
+      return isInSelect
+    }
+    const listener = BackHandler.addEventListener('hardwareBackPress', handler)
+    return listener.remove
+  })
 
   return (
     <>
-      <SafeAreaView style={styles.container} edges={['left', 'right', 'top']}>
+      <SafeAreaView style={styles.container}>
         {isInSelect ? (
-          <TagManager.AppBar.Selection
-            onClosePress={handleClose}
+          <TagManager.SelectionAppbar
+            onClosePress={controller.disable}
             onCheckAllPress={handleCheckAll}
             isAllChecked={isAllChecked}
             count={selecteds.length}
           />
         ) : (
-          <TagManager.AppBar.Default
+          <TagManager.DefaultAppbar
             onBackPress={onBackPress}
             onNewTagPress={showInput}
           />
@@ -141,19 +139,21 @@ export const TagManagerLayout: FC<Props> = ({
           data={tags}
           renderItem={renderTag}
           itemLayoutAnimation={LinearTransition}
+          ListEmptyComponent={ListEmpty}
           keyExtractor={item => item.id}
+          style={styles.tag_list}
           contentContainerStyle={[
             styles.tag_content_container,
-            { paddingBottom: bottom },
+            isEmpty && { flexGrow: 1 },
           ]}
         />
         {isInSelect && (
-          <TagManager.BottomMenuBar
+          <TagManager.BottomMenubar
             onDeletePress={handleDeleteTags}
             onPinPress={handlePinTag}
             onEditPress={showInputForUpdate}
             showEdit={isShowEdit}
-            style={[styles.bottom_menu, { marginBottom: bottom }]}
+            style={styles.bottom_menu}
           />
         )}
       </SafeAreaView>
@@ -166,14 +166,8 @@ export const TagManagerLayout: FC<Props> = ({
   )
 }
 
-const TagItemWithCount: typeof TagItem = props => {
-  const totalNote = useQuery(Note, notes =>
-    queryByTag(notes, props.data),
-  ).length
-  const totalTask = useQuery(Task, tasks =>
-    queryByTag(tasks, props.data),
-  ).length
-  return <TagItem totalNote={totalNote} totalTask={totalTask} {...props} />
+const TagItemWithCount: typeof TagItemFull = props => {
+  return <TagItemFull {...props} />
 }
 
 const styles = StyleSheet.create({
@@ -181,11 +175,12 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 8,
   },
+  tag_list: {
+    flex: 1,
+  },
   tag_content_container: {
-    paddingHorizontal: 16,
-    flexDirection: 'column',
-    alignItems: 'stretch',
     gap: 8,
+    paddingHorizontal: 16,
   },
   tag_column_wrapper: {
     gap: 8,

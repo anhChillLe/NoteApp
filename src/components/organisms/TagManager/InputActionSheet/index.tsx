@@ -40,7 +40,6 @@ export const InputActionSheet = forwardRef<InputSheet, DialogProps>(
         ref={actionSheet}
         dissmisable
         style={[styles.container, style]}
-        safeArea={false}
       >
         <Text variant="titleLarge" style={styles.title}>
           {title}

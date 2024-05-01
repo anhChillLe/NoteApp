@@ -1,6 +1,6 @@
 import { FC } from 'react'
 import { PressableProps, StyleSheet } from 'react-native'
-import { useTheme } from 'react-native-paper'
+import { Text, useTheme } from 'react-native-paper'
 import {
   AnimatedProps,
   LinearTransition,
@@ -19,7 +19,7 @@ interface Props extends AnimatedProps<PressableProps> {
   isSelected?: boolean
 }
 
-export const TagItem: FC<Props> = ({
+export const TagItemFull: FC<Props> = ({
   data,
   selectable,
   isSelected,
@@ -52,13 +52,15 @@ export const TagItem: FC<Props> = ({
           layout={LinearTransition}
         />
       )}
+
       <AnimatedPaper.Text
         variant="titleMedium"
         layout={LinearTransition}
-        style={{ flex: 1 }}
+        style={styles.name}
       >
         {data.name}
       </AnimatedPaper.Text>
+
       {data.isPinned && (
         <AnimatedPaper.Icon
           source="thumbtack"
@@ -80,5 +82,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     gap: 16,
+  },
+  name: {
+    flex: 1,
   },
 })
