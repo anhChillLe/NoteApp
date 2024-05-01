@@ -10,7 +10,6 @@
     "test": "jest"
   },
   "dependencies": {
-    "@gorhom/bottom-sheet": "^4",
     "@react-navigation/native": "^6.1.9",
     "@react-navigation/native-stack": "^6.9.17",
     "@realm/react": "^0.6.2",
@@ -21,6 +20,7 @@
     "react-native": "0.73.6",
     "react-native-gesture-handler": "^2.15.0",
     "react-native-get-random-values": "^1.10.0",
+    "react-native-haptic-feedback": "^2.2.0",
     "react-native-mmkv": "^2.12.1",
     "react-native-pager-view": "^6.2.3",
     "react-native-paper": "^5.12.3",
