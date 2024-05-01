@@ -6,10 +6,9 @@ import { Tag } from '~/services/database/model'
 
 export const TagManagerScreen: FC = () => {
   const reaml = useRealm()
-  const tags = useQuery(Tag, tags => {
-    return tags.sorted('isPinned', true)
-  })
   const navigation = useNavigation()
+
+  const tags = useQuery(Tag, tags => tags.sorted('isPinned', true))
 
   const handleDeleteTag = useCallback(
     (...tags: Tag[]) => {
@@ -40,11 +39,7 @@ export const TagManagerScreen: FC = () => {
     (...tags: Tag[]) => {
       reaml.write(() => {
         const hasPinned = tags.some(tag => tag.isPinned)
-        if (hasPinned) {
-          tags.forEach(tag => (tag.isPinned = false))
-        } else {
-          tags.forEach(tag => (tag.isPinned = true))
-        }
+        tags.forEach(tag => (tag.isPinned = !hasPinned))
       })
     },
     [reaml],
