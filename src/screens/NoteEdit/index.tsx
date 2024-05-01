@@ -23,7 +23,7 @@ export const NoteEditScreen: FC = () => {
         if (note != null) {
           note.update(data)
         } else {
-          const { _id } = realm.create(Note, Note.generate(data))
+          const { _id } = realm.create(Note, Note.generateNote(data))
           setId(_id)
         }
       })
@@ -31,12 +31,19 @@ export const NoteEditScreen: FC = () => {
     [id],
   )
 
+  const handleNewTag = useCallback((text: string) => {
+    realm.write(() => {
+      if (!!text) realm.create(Tag, Tag.generate({ name: text }))
+    })
+  }, [])
+
   return (
     <NoteEditLayout
       tags={tags.map(it => it)}
       note={note}
       onChange={handleDataChange}
       onBackPress={navigation.goBack}
+      onNewTagSubmit={handleNewTag}
     />
   )
 }
