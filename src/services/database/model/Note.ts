@@ -1,25 +1,33 @@
 import { BSON, Object, ObjectSchema, PropertiesTypes } from 'realm'
-import { Style, Tag } from '~/services/database/model'
+import { Style, Tag, TaskItem } from '~/services/database/model'
 
 export class Note extends Object<Note> {
   _id!: BSON.UUID
   title!: string
+  type!: NoteType
   content!: string
-  importantLevel!: ImportantLevel
+  taskList!: TaskItem[]
   createAt!: Date
   updateAt!: Date
-  tag: Tag | null = null
+  isPinned!: boolean
+  isPrivate!: boolean
+  isDeleted!: boolean
+  tags: Tag[] = []
   style: Style | null = null
 
   private static properties: PropertiesTypes = {
     _id: 'uuid',
-    title: { type: 'string', indexed: 'full-text' },
-    content: { type: 'string', indexed: 'full-text' },
-    importantLevel: 'string',
+    title: { type: 'string', indexed: 'full-text', default: '' },
+    isPinned: { type: 'bool', indexed: true },
+    isPrivate: { type: 'bool', default: false },
+    isDeleted: { type: 'bool', default: false },
     createAt: 'date',
     updateAt: 'date',
-    tag: 'Tag?',
+    tags: 'Tag[]',
     style: 'Style?',
+    type: { type: 'string', default: 'note' },
+    content: { type: 'string', indexed: 'full-text', default: '' },
+    taskList: 'TaskItem[]',
   }
 
   static readonly schema: ObjectSchema = {
@@ -28,27 +36,54 @@ export class Note extends Object<Note> {
     properties: this.properties,
   }
 
-  static generate({
+  static generateNote({
     title,
-    content,
-    importantLevel = 'default',
-    tag,
+    content = '',
+    isPinned = false,
+    tags,
     style,
   }: {
     title: string
-    content: string
-    importantLevel?: ImportantLevel
-    tag?: Tag | null
+    content?: string
+    isPinned?: boolean
+    tags: Tag[]
     style?: Style | null
   }) {
     return {
       _id: new BSON.UUID(),
       title,
       content,
-      importantLevel,
+      isPinned,
+      type: 'note' as NoteType,
       createAt: new Date(),
       updateAt: new Date(),
-      tag,
+      tags,
+      style,
+    }
+  }
+
+  static generateTask({
+    title,
+    isPinned = false,
+    taskList = [],
+    tags,
+    style,
+  }: {
+    title: string
+    taskList?: { label: string; status: TaskItemStatus }[]
+    isPinned?: boolean
+    tags: Tag[]
+    style?: Style | null
+  }) {
+    return {
+      _id: new BSON.UUID(),
+      title,
+      type: 'task' as NoteType,
+      taskList: taskList as TaskItem[],
+      isPinned,
+      createAt: new Date(),
+      updateAt: new Date(),
+      tags,
       style,
     }
   }
@@ -56,14 +91,16 @@ export class Note extends Object<Note> {
   update({
     title,
     content,
-    importantLevel,
-    tag,
+    taskList,
+    tags,
+    isPrivate,
     style,
   }: {
     title?: string
     content?: string
-    importantLevel?: ImportantLevel
-    tag?: Tag | null
+    isPrivate?: boolean
+    taskList?: { label: string; status: TaskItemStatus }[]
+    tags?: Tag[]
     style?: Style | null
   }) {
     if (title !== undefined) {
@@ -72,11 +109,14 @@ export class Note extends Object<Note> {
     if (content !== undefined) {
       this.content = content
     }
-    if (importantLevel !== undefined) {
-      this.importantLevel = importantLevel
+    if (taskList !== undefined) {
+      this.taskList = taskList as TaskItem[]
     }
-    if (tag !== undefined) {
-      this.tag = tag
+    if (isPrivate !== undefined) {
+      this.isPrivate = isPrivate
+    }
+    if (tags !== undefined) {
+      this.tags = tags
     }
     if (style !== undefined) {
       this.style = style
@@ -88,10 +128,10 @@ export class Note extends Object<Note> {
     return {
       title: this.title,
       content: this.content,
-      importantLevel: this.importantLevel,
       createAt: this.createAt,
       updateAt: this.updateAt,
-      tag: this.tag,
+      tags: this.tags,
+      taskList: this.taskList.map(it => it.data),
       style: this.style,
     }
   }

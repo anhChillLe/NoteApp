@@ -1,5 +1,4 @@
 export { Note } from './Note'
 export { Style } from './Style'
 export { Tag } from './Tag'
-export { Task } from './Task'
 export { TaskItem } from './TaskItem'

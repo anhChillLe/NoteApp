@@ -1,6 +1,6 @@
 import React, { FC, ReactElement } from 'react'
 import { RealmProvider } from '~/services/database'
-import { Note, Style, Tag, Task, TaskItem } from '~/services/database/model'
+import { Note, Style, Tag, TaskItem } from '~/services/database/model'
 
 interface Props {
   children: ReactElement
@@ -8,7 +8,7 @@ interface Props {
 
 export const DBProvider: FC<Props> = ({ children }) => {
   return (
-    <RealmProvider schema={[Note, Task, TaskItem, Style, Tag]}>
+    <RealmProvider schema={[Note, TaskItem, Style, Tag]}>
       {children}
     </RealmProvider>
   )
