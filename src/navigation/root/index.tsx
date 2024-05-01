@@ -30,16 +30,8 @@ const RootStack: FC = () => {
       ) : (
         <Stack.Group>
           <Stack.Screen name="home" component={HomeScreen} />
-          <Stack.Screen
-            name="note_edit"
-            component={NoteEditScreen}
-            // options={{ animation: 'none' }}
-          />
-          <Stack.Screen
-            name="task_edit"
-            component={TaskEditScreen}
-            // options={{ animation: 'none' }}
-          />
+          <Stack.Screen name="note_edit" component={NoteEditScreen} />
+          <Stack.Screen name="task_edit" component={TaskEditScreen} />
           <Stack.Screen name="tag_manager" component={TagManagerScreen} />
         </Stack.Group>
       )}
@@ -50,7 +42,7 @@ const RootStack: FC = () => {
 const screenOptions: NativeStackNavigationOptions = {
   headerShown: false,
   animationDuration: 350,
-  animation: 'default',
+  animation: 'slide_from_right',
 }
 
 export { RootStack }
