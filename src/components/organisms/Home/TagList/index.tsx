@@ -1,93 +1,100 @@
-import React, { FC } from 'react'
-import {
-  ScrollView,
-  StyleProp,
-  StyleSheet,
-  View,
-  ViewProps,
-  ViewStyle,
-} from 'react-native'
-import { OrderedCollection } from 'realm'
+import { FlashList, FlashListProps, ListRenderItem } from '@shopify/flash-list'
+import React, { FC, useCallback } from 'react'
+import { StyleSheet, View } from 'react-native'
 import { TagItem } from '~/components/molecules'
 import { Tag } from '~/services/database/model'
 import { useHome } from '../Provider'
 import { DragableTagItem } from './DragableItem'
+import { DragItem } from './DragItem'
 
-export type HomeTagListData = {
-  tags: Tag[] | OrderedCollection<Tag>
-  tag?: Tag
+type ListProps = Omit<FlashListProps<Tag>, 'renderItem'>
+
+interface Props extends ListProps {
+  currentTag?: Tag
   onTagPress: (tag?: Tag) => void
   onTagManagerPress: () => void
 }
 
-type Props = ViewProps &
-  HomeTagListData & {
-    contentContainerStyle?: StyleProp<ViewStyle>
-  }
-
 export const HomeTagList: FC<Props> = ({
-  tags,
-  tag: currentTag,
+  currentTag,
   onTagPress,
   onTagManagerPress,
+  style,
   contentContainerStyle,
   ...props
 }) => {
-  const isEmpty = tags.length === 0
   const { currentTag: dragingTag, setCurrentTag: setDragingTag } = useHome()
 
+  const Header = useCallback<FC>(
+    () => (
+      <TagItem
+        label="All"
+        isSelected={!currentTag}
+        style={styles.header}
+        onPress={() => onTagPress(undefined)}
+      />
+    ),
+    [onTagPress, currentTag],
+  )
+
+  const Footer = useCallback<FC>(
+    () => <TagItem label="Manager" icon="folder" onPress={onTagManagerPress} />,
+    [onTagManagerPress],
+  )
+
+  const Empty = useCallback<FC>(
+    () => (
+      <TagItem
+        icon="plus-small"
+        label="Create tag"
+        isSelected
+        onPress={onTagManagerPress}
+      />
+    ),
+    [onTagManagerPress],
+  )
+
+  const renderItem: ListRenderItem<Tag> = ({ item }) => {
+    const { id, name, isPinned } = item
+    const isCurrent = currentTag?.id === id
+    const isDraging = dragingTag?.id === id
+    const onPress = () => onTagPress(item)
+    const onDragStart = () => setDragingTag(item)
+    const onDragEnd = () => setDragingTag(undefined)
+    return (
+      <DragableTagItem
+        key={id}
+        label={name}
+        style={styles.item}
+        isDraging={isDraging}
+        isPinned={isPinned}
+        isSelected={isCurrent}
+        onDragStart={onDragStart}
+        onDragEnd={onDragEnd}
+        onPress={onPress}
+      />
+    )
+  }
+
+  const keyExtractor = (item: Tag, index: number) => item.id
+
   return (
-    <View {...props}>
-      <ScrollView
+    <View style={styles.container}>
+      {!!dragingTag && (
+        <DragItem label={dragingTag.name} style={styles.drag_item} />
+      )}
+      <FlashList
         horizontal
-        style={styles.container}
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={[styles.contentContainer, contentContainerStyle]}
-      >
-        {isEmpty ? (
-          <TagItem
-            icon="plus-small"
-            label="Create tag"
-            isSelected
-            onPress={onTagManagerPress}
-          />
-        ) : (
-          <>
-            <TagItem
-              label="All"
-              isSelected={!currentTag}
-              onPress={() => onTagPress(undefined)}
-            />
-
-            {tags.map(tag => {
-              const isCurrent = currentTag ? tag.id === currentTag.id : false
-              const onPress = () => onTagPress(tag)
-              const isDraging = dragingTag?.id === tag.id
-              const onDragStart = () => {
-                setDragingTag(tag)
-              }
-              return (
-                <DragableTagItem
-                  key={tag.id}
-                  label={tag.name}
-                  style={styles.item}
-                  isDraging={isDraging}
-                  onDragStart={onDragStart}
-                  isPinned={tag.isPinned}
-                  isSelected={isCurrent}
-                  onPress={onPress}
-                />
-              )
-            })}
-
-            <TagItem
-              label="Manager"
-              icon="folder"
-              onPress={onTagManagerPress}
-            />
-          </>
-        )}
-      </ScrollView>
+        estimatedItemSize={92}
+        contentContainerStyle={contentContainerStyle}
+        keyExtractor={keyExtractor}
+        ListEmptyComponent={Empty}
+        ListHeaderComponent={Header}
+        ListFooterComponent={Footer}
+        renderItem={renderItem}
+        {...props}
+      />
     </View>
   )
 }
@@ -95,11 +102,18 @@ export const HomeTagList: FC<Props> = ({
 const styles = StyleSheet.create({
   container: {
     overflow: 'visible',
+    zIndex: 1,
+  },
+  header: {
+    marginEnd: 8,
   },
   contentContainer: {
     gap: 8,
   },
-  item: {
+  drag_item: {
     zIndex: 1,
+  },
+  item: {
+    marginRight: 8,
   },
 })

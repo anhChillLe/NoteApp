@@ -42,7 +42,7 @@ const RootStack: FC = () => {
 const screenOptions: NativeStackNavigationOptions = {
   headerShown: false,
   animationDuration: 350,
-  animation: 'slide_from_right',
+  animation: 'ios',
 }
 
 export { RootStack }

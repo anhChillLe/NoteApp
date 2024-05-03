@@ -4,9 +4,10 @@ import {
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
+  withTiming,
 } from 'react-native-reanimated'
 import { TagItem } from '~/components/molecules'
-import { Offset, useHome } from '../../Provider'
+import { useHome } from '../..'
 
 interface Props extends React.ComponentProps<typeof TagItem> {
   isDraging: boolean
@@ -21,47 +22,32 @@ export const DragableTagItem: FC<Props> = ({
   ...props
 }) => {
   const isPressed = useSharedValue(false)
-  const relativeOffset = useSharedValue<Offset>({ x: 0, y: 0 })
-  const { offset, lastOffset } = useHome()
+  const { gesturePayload } = useHome()
 
   const gesture = Gesture.Pan()
     .activateAfterLongPress(200)
-    .onBegin(() => {
+    .onBegin(e => {
       isPressed.value = true
     })
-    .onStart(() => {
+    .onStart(e => {
+      gesturePayload.value = e
       onDragStart && runOnJS(onDragStart)()
     })
     .onUpdate(e => {
-      relativeOffset.value = {
-        x: e.translationX,
-        y: e.translationY,
-      }
-      offset.value = {
-        x: e.absoluteX,
-        y: e.absoluteY,
-      }
+      gesturePayload.value = e
     })
     .onEnd(e => {
       onDragEnd && runOnJS(onDragEnd)()
     })
     .onFinalize(e => {
-      relativeOffset.value = { x: 0, y: 0 }
       isPressed.value = false
-      offset.value = undefined
-      lastOffset.value = {
-        x: e.absoluteX,
-        y: e.absoluteY,
-      }
+      gesturePayload.value = undefined
     })
 
   const itemStyle = useAnimatedStyle(() => {
     return {
-      transform: [
-        { scale: isPressed.value ? 0.9 : 1 },
-        { translateX: relativeOffset.value.x },
-        { translateY: relativeOffset.value.y },
-      ],
+      opacity: withTiming(isPressed.value ? 0.75 : 1),
+      transform: [{ scale: withTiming(isPressed.value ? 0.9 : 1) }],
     }
   })
 

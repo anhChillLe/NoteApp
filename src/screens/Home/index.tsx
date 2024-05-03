@@ -11,9 +11,7 @@ export const HomeScreen: FC = () => {
 
   const [currentTag, setCurrentTag] = useState<Tag>()
 
-  const tags = useQuery(Tag, tags => {
-    return tags.sorted('isPinned', true)
-  })
+  const tags = useQuery(Tag, createTagQuery())
 
   const data = useQuery(Note, createNoteQuery(currentTag), [currentTag])
 
@@ -28,11 +26,8 @@ export const HomeScreen: FC = () => {
 
   const handleItemPress = useCallback(
     (item: Note) => {
-      if (item.type === 'note') {
-        navigation.navigate('note_edit', { id: item.id })
-      } else {
-        navigation.navigate('task_edit', { id: item.id })
-      }
+      const des = item.type === 'note' ? 'note_edit' : 'task_edit'
+      navigation.navigate(des, { id: item.id })
     },
     [navigation],
   )
@@ -76,8 +71,8 @@ export const HomeScreen: FC = () => {
 
   return (
     <HomeScreenLayout
-      tags={tags}
-      tag={currentTag}
+      tags={tags.map(it => it)}
+      currentTag={currentTag}
       data={data}
       onAddTagToItem={handleAddTag}
       onTagManagerPress={handleNewTag}
@@ -111,5 +106,11 @@ function createNoteQuery(tag?: Tag) {
     } else {
       return result
     }
+  }
+}
+
+function createTagQuery() {
+  return (collection: Realm.Results<Tag>) => {
+    return collection.sorted('isPinned', true)
   }
 }

@@ -9,13 +9,15 @@ import {
 } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { OrderedCollection } from 'realm'
-import { Home, HomeHeaderAction, HomeTagListData } from '~/components/organisms'
+import { Home, HomeHeaderAction } from '~/components/organisms'
 import { HomeProvider } from '~/components/organisms/Home/Provider'
 import { useSelection } from '~/hooks'
 import { Note, Tag, TaskItem } from '~/services/database/model'
 
 type HomeDataListProps = {
   data: Note[] | OrderedCollection<Note>
+  tags: Tag[]
+  currentTag?: Tag
   onItemPress: (item: Note) => void
   onTaskItemPress: (item: TaskItem) => void
   onNewTask: () => void
@@ -23,15 +25,15 @@ type HomeDataListProps = {
   onPin: (...items: Note[]) => void
   onDelete: (...items: Note[]) => void
   onAddTagToItem: (tag: Tag, item: Note) => void
+  onTagPress: (tag?: Tag) => void
+  onTagManagerPress: () => void
 }
 
-type Props = HomeHeaderAction & HomeTagListData & HomeDataListProps
-
-const compareItem = (item1: Note, item2: Note) => item1.id === item2.id
+type Props = HomeHeaderAction & HomeDataListProps
 
 export const HomeScreenLayout: FC<Props> = ({
   tags,
-  tag,
+  currentTag,
   data,
   onTagPress,
   onItemPress,
@@ -46,7 +48,7 @@ export const HomeScreenLayout: FC<Props> = ({
   onPin,
   onDelete,
 }) => {
-  const [isInSelect, selecteds, controller] = useSelection(compareItem)
+  const [isInSelect, selecteds, controller] = useSelection(compareNote)
 
   const handleCheckAll = useCallback(() => {
     const isAllChecked = selecteds.length === data.length
@@ -104,11 +106,10 @@ export const HomeScreenLayout: FC<Props> = ({
           )}
 
           <Home.TagList
-            tags={tags}
-            tag={tag}
-            style={styles.tags}
+            data={tags}
+            currentTag={currentTag}
             onTagManagerPress={onTagManagerPress}
-            contentContainerStyle={[styles.taglist_container]}
+            contentContainerStyle={styles.taglist_container}
             onTagPress={onTagPress}
           />
 
@@ -160,10 +161,9 @@ const styles = StyleSheet.create({
   list: {
     paddingHorizontal: 16,
   },
-  tags: {
-    zIndex: 1,
-  },
   taglist_container: {
     padding: 16,
   },
 })
+
+const compareNote = (item1: Note, item2: Note) => item1.id === item2.id
