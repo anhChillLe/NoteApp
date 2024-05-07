@@ -9,6 +9,7 @@ import {
   HomeScreen,
   NoteEditScreen,
   OnboardingScreen,
+  SettingScreen,
   TagManagerScreen,
   TagSelectScreen,
   TaskEditScreen,
@@ -33,6 +34,7 @@ const RootStack: FC = () => {
           <Stack.Screen name="note_edit" component={NoteEditScreen} />
           <Stack.Screen name="task_edit" component={TaskEditScreen} />
           <Stack.Screen name="tag_manager" component={TagManagerScreen} />
+          <Stack.Screen name="setting" component={SettingScreen} />
         </Stack.Group>
       )}
     </Stack.Navigator>

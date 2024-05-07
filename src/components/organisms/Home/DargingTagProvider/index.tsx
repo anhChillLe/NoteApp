@@ -12,17 +12,17 @@ import {
   PanGestureHandlerEventPayload,
 } from 'react-native-gesture-handler'
 import {
+  MeasuredDimensions,
   SharedValue,
-  runOnJS,
-  useAnimatedReaction,
   useSharedValue,
 } from 'react-native-reanimated'
 import { Tag } from '~/services/database/model'
 
 export type GesturePayload = GestureUpdateEvent<PanGestureHandlerEventPayload>
 interface HomeSharedData {
-  currentTag: Tag | undefined
-  setCurrentTag: Dispatch<SetStateAction<Tag | undefined>>
+  target: SharedValue<MeasuredDimensions | null | undefined>
+  dragingTag: Tag | undefined
+  setDragingTag: Dispatch<SetStateAction<Tag | undefined>>
   gesturePayload: SharedValue<GesturePayload | undefined>
 }
 
@@ -30,17 +30,21 @@ const defaultData: HomeSharedData = {} as HomeSharedData
 
 const HomeContext = createContext<HomeSharedData>(defaultData)
 
-const useHome = () => useContext(HomeContext)
+const useDragingHome = () => useContext(HomeContext)
 
-const HomeProvider: FC<PropsWithChildren> = ({ children }) => {
+const HomeDragingTagProvider: FC<PropsWithChildren> = ({ children }) => {
   const gesturePayload = useSharedValue<GesturePayload | undefined>(undefined)
-  const [currentTag, setCurrentTag] = useState<Tag>()
+  const target = useSharedValue<MeasuredDimensions | null | undefined>(
+    undefined,
+  )
+  const [dragingTag, setDragingTag] = useState<Tag>()
 
   return (
     <HomeContext.Provider
       value={{
-        currentTag,
-        setCurrentTag,
+        target,
+        dragingTag,
+        setDragingTag,
         gesturePayload,
       }}
       children={children}
@@ -48,4 +52,4 @@ const HomeProvider: FC<PropsWithChildren> = ({ children }) => {
   )
 }
 
-export { HomeProvider, useHome }
+export { HomeDragingTagProvider, useDragingHome }

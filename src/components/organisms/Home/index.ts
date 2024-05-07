@@ -5,7 +5,8 @@ import { HomeContentList } from './ContentList'
 import { HomeHeader } from './Header'
 import { HomeSelectionAppbar } from './SelectionAppbar'
 import { HomeTagList } from './TagList'
-import { HomeProvider, useHome } from './Provider'
+import { HomeDragingTagProvider, useDragingHome } from './DargingTagProvider'
+import { HomeProvider } from './Provider'
 
 export namespace Home {
   export const Header = memo(HomeHeader)
@@ -14,7 +15,8 @@ export namespace Home {
   export const ContentList = memo(HomeContentList)
   export const Actionbar = memo(HomeActionBar)
   export const BottomAppbar = memo(HomeBottomAppbar)
+  export const DragingTagProvider = HomeDragingTagProvider
   export const Provider = HomeProvider
 }
 
-export { useHome }
+export { useDragingHome }

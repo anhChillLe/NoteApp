@@ -3,35 +3,28 @@ import { StyleSheet, ViewProps } from 'react-native'
 import { IconButton, Text } from 'react-native-paper'
 import Animated, { AnimatedProps } from 'react-native-reanimated'
 import { Column, Fill, Row } from '~/components/atoms'
+import { useHome } from '../Provider'
 
-export type HomeHeaderAction = {
-  onSettingPress: () => void
-  onFolderPress: () => void
-  onSearchPress: () => void
-}
+interface Props extends AnimatedProps<ViewProps> {}
 
-type Props = AnimatedProps<ViewProps> & HomeHeaderAction
+export const HomeHeader: FC<Props> = ({ style, ...props }) => {
+  const openSetting = useHome(state => state.openSetting)
+  const openTagManager = useHome(state => state.openTagManager)
+  const openSearch = useHome(state => state.openSearch)
 
-export const HomeHeader: FC<Props> = ({
-  onSearchPress,
-  onFolderPress,
-  onSettingPress,
-  style,
-  ...props
-}) => {
   return (
     <Animated.View style={[styles.container, style]} {...props}>
       <Column>
         <Text variant="labelSmall">{new Date().toDateString()}</Text>
-        <Text variant="titleLarge" style={{ fontWeight: '500' }}>
+        <Text variant="titleLarge" style={styles.title}>
           {strings.appName}
         </Text>
       </Column>
       <Fill />
       <Row>
-        <IconButton icon="search" onPress={onSearchPress} />
-        <IconButton icon="folder" onPress={onFolderPress} />
-        <IconButton icon="settings" onPress={onSettingPress} />
+        <IconButton icon="search" onPress={openSearch} />
+        <IconButton icon="folder" onPress={openTagManager} />
+        <IconButton icon="settings" onPress={openSetting} />
       </Row>
     </Animated.View>
   )
@@ -45,5 +38,8 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     flexDirection: 'row',
+  },
+  title: {
+    fontWeight: '500',
   },
 })

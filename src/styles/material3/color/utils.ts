@@ -69,7 +69,7 @@ function hexToRgb(hex: string) {
   return { r, g, b }
 }
 
-function convertToSolidColor(
+export function convertToSolidColor(
   primary: string,
   background: string,
   alpha: number,
@@ -86,4 +86,8 @@ function convertToSolidColor(
   const newB = Math.round(inputB * alpha + backgroundB * (1 - alpha))
 
   return `rgb(${newR}, ${newG}, ${newB})`
+}
+
+export function toHex(color: string): string {
+  return Color(color).hex()
 }

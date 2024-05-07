@@ -2,6 +2,7 @@ import {
   FC,
   forwardRef,
   useCallback,
+  useEffect,
   useImperativeHandle,
   useRef,
   useState,
@@ -18,6 +19,8 @@ import { useTheme } from 'react-native-paper'
 import { AnimatedProps, runOnJS } from 'react-native-reanimated'
 import { useProgress } from '~/hooks'
 import { AnimatedPressable } from '../Animated'
+import { SystemBarController } from '~/modules'
+import { convertToSolidColor, toHex } from '~/styles/material3/color/utils'
 
 interface Props extends ModalProps {
   dissmisable?: boolean
@@ -118,7 +121,26 @@ const AnimatedModal = forwardRef<ModalActions, Props>(
 interface BackdropProps extends AnimatedProps<PressableProps> {}
 
 const ModalBackdrop: FC<BackdropProps> = ({ style, ...props }) => {
+  const navBackGround = useRef<string | null>(null)
   const { colors } = useTheme()
+
+  useEffect(() => {
+    navBackGround.current = SystemBarController.getNavigationBarColor()
+
+    const c = convertToSolidColor(
+      colors.inverseSurface,
+      colors.background,
+      0.38,
+    )
+
+    SystemBarController.setNavigationBarColor(toHex(c))
+
+    return () => {
+      if (navBackGround.current) {
+        SystemBarController.setNavigationBarColor(navBackGround.current)
+      }
+    }
+  }, [colors])
 
   return (
     <AnimatedPressable

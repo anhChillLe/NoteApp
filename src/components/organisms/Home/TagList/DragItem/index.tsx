@@ -1,64 +1,41 @@
-import { FC, useCallback, useState } from 'react'
-import {
-  LayoutChangeEvent,
-  LayoutRectangle,
-  Modal,
-  StyleSheet,
-  View,
-  ViewStyle,
-} from 'react-native'
+import { FC, useState } from 'react'
+import { Modal, StyleSheet, View } from 'react-native'
 import Animated, {
-  LinearTransition,
   runOnJS,
   useAnimatedReaction,
   useAnimatedStyle,
 } from 'react-native-reanimated'
 import { TagItem } from '~/components/molecules'
-import { useHome } from '../../Provider'
+import { useDragingHome } from '../../DargingTagProvider'
 
 interface Props extends React.ComponentProps<typeof TagItem> {}
 
 export const DragItem: FC<Props> = props => {
-  const [layout, setLayout] = useState<LayoutRectangle>()
-  const { gesturePayload: payload } = useHome()
-
-  const itemStyle = useAnimatedStyle<ViewStyle>(() => {
-    if (!payload.value) return {}
-    const { height = 0, width = 0 } = layout || {}
-    return {
-      top: -height,
-      left: -width,
-      transform: [
-        { translateX: payload.value.absoluteX },
-        { translateY: payload.value.absoluteY },
-      ],
-    }
-  })
-
+  const { gesturePayload, target } = useDragingHome()
   const [visible, setVisible] = useState(false)
 
   useAnimatedReaction(
-    () => payload.value,
+    () => target.value,
     value => {
       runOnJS(setVisible)(!!value)
     },
   )
 
-  const handleLayout = useCallback(
-    (e: LayoutChangeEvent) => {
-      setLayout(e.nativeEvent.layout)
-    },
-    [setLayout],
-  )
+  const itemStyle = useAnimatedStyle(() => {
+    const { translationX = 0, translationY = 0 } = gesturePayload.value || {}
+
+    return {
+      opacity: target.value ? 1 : 0,
+      top: target.value?.pageY,
+      left: target.value?.pageX,
+      transform: [{ translateX: translationX }, { translateY: translationY }],
+    }
+  })
 
   return (
     <Modal visible={visible} transparent>
       <View style={styles.container}>
-        <Animated.View
-          style={[styles.item_wrapper, itemStyle]}
-          layout={LinearTransition}
-          onLayout={handleLayout}
-        >
+        <Animated.View style={[styles.item_wrapper, itemStyle]}>
           <TagItem {...props} />
         </Animated.View>
       </View>

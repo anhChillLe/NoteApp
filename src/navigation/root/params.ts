@@ -7,6 +7,7 @@ export type RootStackParamList = {
   task_edit: { readonly id: string } | undefined
   tag_init: undefined
   tag_manager: undefined
+  setting: undefined
 }
 
 export type RootKeys = keyof RootStackParamList

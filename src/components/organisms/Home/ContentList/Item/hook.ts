@@ -9,10 +9,10 @@ import {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated'
-import { GesturePayload, useHome } from '../../Provider'
+import { GesturePayload, useDragingHome } from '../../DargingTagProvider'
 
 export const useHomeTagDetector = (onDragIn: () => void) => {
-  const { gesturePayload } = useHome()
+  const { gesturePayload } = useDragingHome()
   const ref = useAnimatedRef<View>()
   const isDragIn = useSharedValue(false)
 

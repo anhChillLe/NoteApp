@@ -3,27 +3,24 @@ import React, { FC, useCallback } from 'react'
 import { StyleSheet, View } from 'react-native'
 import { TagItem } from '~/components/molecules'
 import { Tag } from '~/services/database/model'
-import { useHome } from '../Provider'
-import { DragableTagItem } from './DragableItem'
+import { useDragingHome } from '../DargingTagProvider'
 import { DragItem } from './DragItem'
+import { DragableTagItem } from './DragableItem'
+import { useHome } from '../Provider'
 
-type ListProps = Omit<FlashListProps<Tag>, 'renderItem'>
+type ListProps = Omit<FlashListProps<Tag>, 'renderItem' | 'data'>
 
-interface Props extends ListProps {
-  currentTag?: Tag
-  onTagPress: (tag?: Tag) => void
-  onTagManagerPress: () => void
-}
+interface Props extends ListProps {}
 
 export const HomeTagList: FC<Props> = ({
-  currentTag,
-  onTagPress,
-  onTagManagerPress,
   style,
   contentContainerStyle,
   ...props
 }) => {
-  const { currentTag: dragingTag, setCurrentTag: setDragingTag } = useHome()
+  const { dragingTag, setDragingTag } = useDragingHome()
+  const tags = useHome(state => state.tags)
+  const currentTag = useHome(state => state.currentTag)
+  const changeCurrentTag = useHome(state => state.changeCurrentTag)
 
   const Header = useCallback<FC>(
     () => (
@@ -31,34 +28,16 @@ export const HomeTagList: FC<Props> = ({
         label="All"
         isSelected={!currentTag}
         style={styles.header}
-        onPress={() => onTagPress(undefined)}
+        onPress={() => changeCurrentTag(null)}
       />
     ),
-    [onTagPress, currentTag],
-  )
-
-  const Footer = useCallback<FC>(
-    () => <TagItem label="Manager" icon="folder" onPress={onTagManagerPress} />,
-    [onTagManagerPress],
-  )
-
-  const Empty = useCallback<FC>(
-    () => (
-      <TagItem
-        icon="plus-small"
-        label="Create tag"
-        isSelected
-        onPress={onTagManagerPress}
-      />
-    ),
-    [onTagManagerPress],
+    [changeCurrentTag, currentTag],
   )
 
   const renderItem: ListRenderItem<Tag> = ({ item }) => {
     const { id, name, isPinned } = item
     const isCurrent = currentTag?.id === id
-    const isDraging = dragingTag?.id === id
-    const onPress = () => onTagPress(item)
+    const onPress = () => changeCurrentTag(item)
     const onDragStart = () => setDragingTag(item)
     const onDragEnd = () => setDragingTag(undefined)
     return (
@@ -66,7 +45,6 @@ export const HomeTagList: FC<Props> = ({
         key={id}
         label={name}
         style={styles.item}
-        isDraging={isDraging}
         isPinned={isPinned}
         isSelected={isCurrent}
         onDragStart={onDragStart}
@@ -81,14 +59,21 @@ export const HomeTagList: FC<Props> = ({
   return (
     <View style={styles.container}>
       {!!dragingTag && (
-        <DragItem label={dragingTag.name} style={styles.drag_item} />
+        <DragItem
+          label={dragingTag.name}
+          style={styles.drag_item}
+          isPinned={dragingTag.isPinned}
+          isSelected={currentTag?.id === dragingTag.id}
+        />
       )}
       <FlashList
+        data={tags}
         horizontal
         showsHorizontalScrollIndicator={false}
         estimatedItemSize={92}
         contentContainerStyle={contentContainerStyle}
         keyExtractor={keyExtractor}
+        extraData={currentTag}
         ListEmptyComponent={Empty}
         ListHeaderComponent={Header}
         ListFooterComponent={Footer}
@@ -99,6 +84,30 @@ export const HomeTagList: FC<Props> = ({
   )
 }
 
+const Footer: FC = () => {
+  const openTagManager = useHome(state => state.openTagManager)
+  const openDeletedNote = useHome(state => state.openDeletedNote)
+  const openHidedNote = useHome(state => state.openHidedNote)
+  return (
+    <View style={styles.footer}>
+      <TagItem label="Hided" icon="eye" onPress={openTagManager} />
+      <TagItem label="Trash" icon="trash" onPress={openDeletedNote} />
+      <TagItem label="Manager" icon="folder" onPress={openHidedNote} />
+    </View>
+  )
+}
+
+const Empty: FC = () => {
+  const openTagManager = useHome(state => state.openTagManager)
+  return (
+    <TagItem
+      icon="plus-small"
+      label="Create tag"
+      isSelected
+      onPress={openTagManager}
+    />
+  )
+}
 const styles = StyleSheet.create({
   container: {
     overflow: 'visible',
@@ -106,6 +115,10 @@ const styles = StyleSheet.create({
   },
   header: {
     marginEnd: 8,
+  },
+  footer: {
+    flexDirection: 'row',
+    gap: 8,
   },
   contentContainer: {
     gap: 8,

@@ -12,15 +12,17 @@ export class Note extends Object<Note> {
   isPinned!: boolean
   isPrivate!: boolean
   isDeleted!: boolean
+  isHided!: boolean
   tags: Tag[] = []
   style: Style | null = null
 
   private static properties: PropertiesTypes = {
     _id: 'uuid',
     title: { type: 'string', indexed: 'full-text', default: '' },
-    isPinned: { type: 'bool', indexed: true },
-    isPrivate: { type: 'bool', default: false },
-    isDeleted: { type: 'bool', default: false },
+    isPinned: { type: 'bool', indexed: true, default: false },
+    isPrivate: { type: 'bool', indexed: true, default: false },
+    isDeleted: { type: 'bool', indexed: true, default: false },
+    isHided: { type: 'bool', indexed: true, default: false },
     createAt: 'date',
     updateAt: 'date',
     tags: 'Tag[]',

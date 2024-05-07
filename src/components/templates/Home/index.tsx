@@ -8,63 +8,41 @@ import {
   FadeOutUp,
 } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { OrderedCollection } from 'realm'
-import { Home, HomeHeaderAction } from '~/components/organisms'
-import { HomeProvider } from '~/components/organisms/Home/Provider'
+import { Home } from '~/components/organisms'
+import { useHome } from '~/components/organisms/Home/Provider'
 import { useSelection } from '~/hooks'
-import { Note, Tag, TaskItem } from '~/services/database/model'
+import { Note } from '~/services/database/model'
 
-type HomeDataListProps = {
-  data: Note[] | OrderedCollection<Note>
-  tags: Tag[]
-  currentTag?: Tag
-  onItemPress: (item: Note) => void
-  onTaskItemPress: (item: TaskItem) => void
-  onNewTask: () => void
-  onNewNote: () => void
-  onPin: (...items: Note[]) => void
-  onDelete: (...items: Note[]) => void
-  onAddTagToItem: (tag: Tag, item: Note) => void
-  onTagPress: (tag?: Tag) => void
-  onTagManagerPress: () => void
-}
+type Props = {}
 
-type Props = HomeHeaderAction & HomeDataListProps
-
-export const HomeScreenLayout: FC<Props> = ({
-  tags,
-  currentTag,
-  data,
-  onTagPress,
-  onItemPress,
-  onTaskItemPress,
-  onNewTask,
-  onNewNote,
-  onSearchPress,
-  onSettingPress,
-  onFolderPress,
-  onTagManagerPress,
-  onAddTagToItem,
-  onPin,
-  onDelete,
-}) => {
+export const HomeScreenLayout: FC<Props> = () => {
   const [isInSelect, selecteds, controller] = useSelection(compareNote)
+  const notes = useHome(state => state.notes)
+  const pinNotes = useHome(state => state.pinNotes)
+  const deleteNotes = useHome(state => state.deleteNotes)
+  const hideNotes = useHome(state => state.hideNotes)
 
-  const handleCheckAll = useCallback(() => {
-    const isAllChecked = selecteds.length === data.length
-    controller.set(isAllChecked ? [] : data.map(it => it))
-  }, [controller, data, selecteds])
+  const checkAll = useCallback(() => {
+    const isAllChecked = selecteds.length === notes.length
+    controller.set(isAllChecked ? [] : notes.map(it => it))
+  }, [controller, notes, selecteds])
 
   const handlePin = useCallback(() => {
-    onPin(...selecteds)
-  }, [onPin, selecteds])
+    pinNotes(...selecteds)
+    controller.disable()
+  }, [pinNotes, selecteds])
+
+  const handleHide = useCallback(() => {
+    hideNotes(...selecteds)
+    controller.disable()
+  }, [hideNotes, selecteds])
 
   const handleDelete = useCallback(() => {
-    onDelete(...selecteds)
+    deleteNotes(...selecteds)
     controller.disable()
-  }, [onDelete, selecteds, controller])
+  }, [deleteNotes, selecteds, controller])
 
-  const handleItemLongPress = useCallback(
+  const enableSelectionMode = useCallback(
     (item: Note) => {
       controller.enable()
       controller.select(item)
@@ -82,67 +60,50 @@ export const HomeScreenLayout: FC<Props> = ({
   })
 
   return (
-    <HomeProvider>
+    <Home.DragingTagProvider>
       <SafeAreaView style={styles.container}>
         <View style={styles.container}>
           {isInSelect ? (
             <Home.SelectionAppbar
               onClosePress={controller.disable}
-              onCheckAllPress={handleCheckAll}
+              onCheckAllPress={checkAll}
               numOfItem={selecteds.length}
+              style={styles.header}
               entering={FadeInUp}
               exiting={FadeOutUp}
-              style={styles.header}
             />
           ) : (
             <Home.Header
               style={styles.header}
               entering={FadeInUp}
               exiting={FadeOutUp}
-              onFolderPress={onFolderPress}
-              onSettingPress={onSettingPress}
-              onSearchPress={onSearchPress}
             />
           )}
 
-          <Home.TagList
-            data={tags}
-            currentTag={currentTag}
-            onTagManagerPress={onTagManagerPress}
-            contentContainerStyle={styles.taglist_container}
-            onTagPress={onTagPress}
-          />
+          <Home.TagList contentContainerStyle={styles.taglist_container} />
 
           <Home.ContentList
-            data={data}
             selecteds={selecteds}
             contentContainerStyle={styles.list}
             isInSelect={isInSelect}
-            onItemPress={onItemPress}
-            onItemLongPress={handleItemLongPress}
+            onItemLongPress={enableSelectionMode}
             onItemSelect={controller.select}
-            onTaskItemPress={onTaskItemPress}
-            onTagToItem={onAddTagToItem}
           />
 
           {isInSelect ? (
             <Home.Actionbar
-              entering={FadeInDown}
-              exiting={FadeOutDown}
               onPinPress={handlePin}
               onDeletePress={handleDelete}
-            />
-          ) : (
-            <Home.BottomAppbar
+              onHidePress={handleHide}
               entering={FadeInDown}
               exiting={FadeOutDown}
-              onNewNotePress={onNewNote}
-              onNewTaskPress={onNewTask}
             />
+          ) : (
+            <Home.BottomAppbar entering={FadeInDown} exiting={FadeOutDown} />
           )}
         </View>
       </SafeAreaView>
-    </HomeProvider>
+    </Home.DragingTagProvider>
   )
 }
 

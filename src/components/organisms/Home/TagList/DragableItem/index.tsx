@@ -1,59 +1,56 @@
 import { FC } from 'react'
 import { Gesture, GestureDetector } from 'react-native-gesture-handler'
 import {
+  measure,
   runOnJS,
+  useAnimatedRef,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated'
 import { TagItem } from '~/components/molecules'
-import { useHome } from '../..'
+import { useDragingHome } from '../..'
+import { trigger } from 'react-native-haptic-feedback'
+import { View } from 'react-native'
 
 interface Props extends React.ComponentProps<typeof TagItem> {
-  isDraging: boolean
   onDragStart?: () => void
   onDragEnd?: () => void
 }
 export const DragableTagItem: FC<Props> = ({
-  isDraging,
   onDragStart,
   onDragEnd,
-  style,
   ...props
 }) => {
+  const ref = useAnimatedRef<View>()
   const isPressed = useSharedValue(false)
-  const { gesturePayload } = useHome()
+  const { gesturePayload, target } = useDragingHome()
 
   const gesture = Gesture.Pan()
-    .activateAfterLongPress(200)
+    .activateAfterLongPress(250)
     .onBegin(e => {
-      isPressed.value = true
+      target.value = measure(ref)
     })
     .onStart(e => {
       gesturePayload.value = e
       onDragStart && runOnJS(onDragStart)()
+      runOnJS(trigger)('impactLight')
     })
     .onUpdate(e => {
       gesturePayload.value = e
     })
     .onEnd(e => {
       onDragEnd && runOnJS(onDragEnd)()
+      gesturePayload.value = undefined
     })
     .onFinalize(e => {
       isPressed.value = false
-      gesturePayload.value = undefined
+      target.value = undefined
     })
-
-  const itemStyle = useAnimatedStyle(() => {
-    return {
-      opacity: withTiming(isPressed.value ? 0.75 : 1),
-      transform: [{ scale: withTiming(isPressed.value ? 0.9 : 1) }],
-    }
-  })
 
   return (
     <GestureDetector gesture={gesture}>
-      <TagItem style={[style, itemStyle]} {...props} />
+      <TagItem delayLongPress={250} ref={ref} {...props} />
     </GestureDetector>
   )
 }

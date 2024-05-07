@@ -1,6 +1,7 @@
 import { useNavigation } from '@react-navigation/native'
 import React, { FC, useCallback, useState } from 'react'
 import { SortDescriptor } from 'realm'
+import { Home } from '~/components/organisms'
 import { HomeScreenLayout } from '~/components/templates'
 import { useQuery, useRealm } from '~/services/database'
 import { Note, Tag, TaskItem } from '~/services/database/model'
@@ -9,13 +10,52 @@ export const HomeScreen: FC = () => {
   const navigation = useNavigation()
   const realm = useRealm()
 
-  const [currentTag, setCurrentTag] = useState<Tag>()
+  const [currentTag, changeCurrentTag] = useState<Tag | null>(null)
 
   const tags = useQuery(Tag, createTagQuery())
 
-  const data = useQuery(Note, createNoteQuery(currentTag), [currentTag])
+  const notes = useQuery(Note, createNoteQuery(currentTag), [currentTag])
 
-  const handleTaskItemPress = useCallback(
+  const openEditor = useCallback((data: Note) => {
+    const des = data?.type === 'task' ? 'task_edit' : 'note_edit'
+    navigation.navigate(des, { id: data.id })
+  }, [])
+
+  const openDeletedNote = useCallback(() => {}, [])
+
+  const openHidedNote = useCallback(() => {}, [])
+
+  const openSearch = useCallback(() => {}, [])
+
+  const openTagManager = useCallback(() => {
+    navigation.navigate('tag_manager')
+  }, [navigation])
+
+  const openSetting = useCallback(() => {
+    navigation.navigate('setting')
+  }, [navigation])
+
+  const openNewNoteEditor = useCallback(() => {
+    navigation.navigate('note_edit')
+  }, [navigation])
+
+  const openNewTaskEditor = useCallback(() => {
+    navigation.navigate('task_edit')
+  }, [navigation])
+
+  const openNewRecordEditor = useCallback(() => {
+    navigation.navigate('task_edit')
+  }, [navigation])
+
+  const openNewImageEditor = useCallback(() => {
+    navigation.navigate('task_edit')
+  }, [navigation])
+
+  const openNewPaintEditor = useCallback(() => {
+    navigation.navigate('task_edit')
+  }, [navigation])
+
+  const changeTaskItemStatus = useCallback(
     (item: TaskItem) => {
       realm.write(() => {
         item.changeStatus()
@@ -24,73 +64,80 @@ export const HomeScreen: FC = () => {
     [realm],
   )
 
-  const handleItemPress = useCallback(
-    (item: Note) => {
-      const des = item.type === 'note' ? 'note_edit' : 'task_edit'
-      navigation.navigate(des, { id: item.id })
+  const addTagToNote = useCallback(
+    (note: Note, tag: Tag) => {
+      realm.write(() => {
+        if (note.tags.includes(tag)) return
+        note.tags.push(tag)
+      })
     },
-    [navigation],
+    [realm],
   )
 
-  const handleNewTag = useCallback(() => {
-    navigation.navigate('tag_manager')
-  }, [navigation])
-
-  const handleNewTask = useCallback(() => {
-    navigation.navigate('task_edit')
-  }, [navigation])
-
-  const handleNewNote = useCallback(() => {
-    navigation.navigate('note_edit')
-  }, [navigation])
-
-  const handleSettingPress = useCallback(() => {}, [])
-
-  const handleSearchPress = useCallback(() => {}, [])
-
-  const handlePin = useCallback((...items: Note[]) => {
-    realm.write(() => {
-      items.forEach(item => {
-        item.isPinned = !item.isPinned
+  const pinNotes = useCallback(
+    (...items: Note[]) => {
+      realm.write(() => {
+        items.forEach(item => {
+          item.isPinned = !item.isPinned
+        })
       })
-    })
-  }, [])
+    },
+    [realm],
+  )
 
-  const handleDelete = useCallback((...items: Note[]) => {
-    realm.write(() => {
-      realm.delete(items)
-    })
-  }, [])
+  const deleteNotes = useCallback(
+    (...items: Note[]) => {
+      realm.write(() => {
+        items.forEach(item => {
+          item.isDeleted = true
+        })
+      })
+    },
+    [realm],
+  )
 
-  const handleAddTag = useCallback((tag: Tag, item: Note) => {
-    realm.write(() => {
-      if (item.tags.includes(tag)) return
-      item.tags.push(tag)
-    })
-  }, [])
+  const hideNotes = useCallback(
+    (...items: Note[]) => {
+      realm.write(() => {
+        items.forEach(item => {
+          item.isHided = true
+        })
+      })
+    },
+    [realm],
+  )
 
   return (
-    <HomeScreenLayout
-      tags={tags.map(it => it)}
-      currentTag={currentTag}
-      data={data}
-      onAddTagToItem={handleAddTag}
-      onTagManagerPress={handleNewTag}
-      onTagPress={setCurrentTag}
-      onTaskItemPress={handleTaskItemPress}
-      onItemPress={handleItemPress}
-      onNewTask={handleNewTask}
-      onNewNote={handleNewNote}
-      onSettingPress={handleSettingPress}
-      onFolderPress={handleNewTag}
-      onSearchPress={handleSearchPress}
-      onPin={handlePin}
-      onDelete={handleDelete}
-    />
+    <Home.Provider
+      value={{
+        notes,
+        tags,
+        currentTag,
+        changeCurrentTag,
+        openEditor,
+        openDeletedNote,
+        openHidedNote,
+        openTagManager,
+        openSetting,
+        openSearch,
+        openNewNoteEditor,
+        openNewTaskEditor,
+        openNewImageEditor,
+        openNewRecordEditor,
+        openNewPaintEditor,
+        changeTaskItemStatus,
+        addTagToNote,
+        pinNotes,
+        hideNotes,
+        deleteNotes,
+      }}
+    >
+      <HomeScreenLayout />
+    </Home.Provider>
   )
 }
 
-function createNoteQuery(tag?: Tag) {
+function createNoteQuery(tag?: Tag | null) {
   return (collection: Realm.Results<Note>) => {
     const sortDescriptor: SortDescriptor[] = [
       ['isPinned', true],
@@ -98,7 +145,9 @@ function createNoteQuery(tag?: Tag) {
     ]
 
     const result = collection
-      .filtered('isDeleted == false AND isPrivate == false')
+      .filtered(
+        'isDeleted == false AND isPrivate == false AND isHided == false',
+      )
       .sorted(sortDescriptor)
 
     if (tag) {

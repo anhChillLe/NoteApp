@@ -6,13 +6,14 @@ import {
 import React, { FC, useMemo, useState } from 'react'
 import { LayoutChangeEvent, ViewStyle } from 'react-native'
 import { trigger } from 'react-native-haptic-feedback'
-import { Note, Tag, TaskItem } from '~/services/database/model'
+import { Note } from '~/services/database/model'
+import { useDragingHome } from '../DargingTagProvider'
 import { useHome } from '../Provider'
 import { AnimatedCell } from './AnimatedCell'
 import { HomeEmpty } from './Empty'
 import { DetectTagNoteListItem } from './Item'
 
-type ListProps = Omit<MasonryFlashListProps<Note>, 'renderItem'>
+type ListProps = Omit<MasonryFlashListProps<Note>, 'renderItem' | 'data'>
 
 type RenderItem = MasonryListRenderItem<Note>
 
@@ -21,37 +22,33 @@ interface Props extends ListProps {
   selecteds?: Note[]
   space?: number
   onItemSelect: (item: Note) => void
-  onItemPress: (item: Note) => void
   onItemLongPress: (item: Note) => void
-  onTaskItemPress: (item: TaskItem) => void
-  onTagToItem: (tag: Tag, item: Note) => void
 }
 
 export const HomeContentList: FC<Props> = ({
-  data,
   numColumns = 2,
   space = 8,
   isInSelect,
   selecteds = [],
-  onItemPress,
   onItemSelect,
   onItemLongPress,
-  onTaskItemPress,
-  onTagToItem,
   ...props
 }) => {
-  const { currentTag } = useHome()
+  const { dragingTag } = useDragingHome()
   const [height, setHeight] = useState(0)
 
-  const extraData = useMemo(() => {
-    return []
-  }, [currentTag, selecteds])
+  const extraData = useMemo(() => [], [dragingTag, selecteds])
 
   const ListEmpty: FC = () => <HomeEmpty style={{ height }} />
 
   const onLayout = (e: LayoutChangeEvent) => {
     setHeight(e.nativeEvent.layout.height)
   }
+
+  const notes = useHome(state => state.notes)
+  const openEditor = useHome(state => state.openEditor)
+  const changeTaskItemStatus = useHome(state => state.changeTaskItemStatus)
+  const addTagToNote = useHome(state => state.addTagToNote)
 
   const renderItem: RenderItem = ({ item, columnIndex, index }) => {
     const style: ViewStyle = {
@@ -63,7 +60,7 @@ export const HomeContentList: FC<Props> = ({
       if (isInSelect) {
         trigger('effectTick')
         onItemSelect(item)
-      } else onItemPress(item)
+      } else openEditor(item)
     }
 
     const onLongPress = () => {
@@ -72,9 +69,7 @@ export const HomeContentList: FC<Props> = ({
     }
 
     const onDragIn = () => {
-      if (currentTag !== undefined) {
-        onTagToItem(currentTag, item)
-      }
+      dragingTag && addTagToNote(item, dragingTag)
     }
 
     const isSelected = selecteds.some(it => it.id === item.id)
@@ -89,7 +84,7 @@ export const HomeContentList: FC<Props> = ({
         maxLineOfTitle={1}
         onPress={onPress}
         onLongPress={onLongPress}
-        onTaskItemPress={onTaskItemPress}
+        onTaskItemPress={changeTaskItemStatus}
         onDragIn={onDragIn}
       />
     )
@@ -97,7 +92,7 @@ export const HomeContentList: FC<Props> = ({
 
   return (
     <MasonryFlashList
-      data={data}
+      data={notes}
       renderItem={renderItem}
       keyExtractor={keyExtractor}
       onLayout={onLayout}
