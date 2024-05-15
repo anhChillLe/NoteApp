@@ -62,12 +62,12 @@ export const NoteListItem = forwardRef<View, Props>(
     useAnimatedReaction(
       () => isPressed.value,
       () => {
-        scale.value = withTiming(isPressed.value ? 0.9 : 1, { duration: 200 })
+        scale.value = withTiming(isPressed.value ? 0.95 : 1, { duration: 100 })
       },
     )
 
     useEffect(() => {
-      progress.value = withTiming(isSelected ? 1 : 0, { duration: 200 })
+      progress.value = withTiming(isSelected ? 1 : 0, { duration: 100 })
     }, [isSelected])
 
     const containerStyle = useAnimatedStyle(() => {

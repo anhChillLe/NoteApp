@@ -12,6 +12,7 @@ import {
   KeyboardAvoidingView,
   Modal,
   ModalProps,
+  Platform,
   PressableProps,
   StyleSheet,
 } from 'react-native'
@@ -124,23 +125,24 @@ const ModalBackdrop: FC<BackdropProps> = ({ style, ...props }) => {
   const navBackGround = useRef<string | null>(null)
   const { colors } = useTheme()
 
-  useEffect(() => {
-    navBackGround.current = SystemBarController.getNavigationBarColor()
+  Platform.OS === 'android' &&
+    useEffect(() => {
+      navBackGround.current = SystemBarController.getNavigationBarColor()
 
-    const c = convertToSolidColor(
-      colors.inverseSurface,
-      colors.background,
-      0.38,
-    )
+      const c = convertToSolidColor(
+        colors.inverseSurface,
+        colors.background,
+        0.38,
+      )
 
-    SystemBarController.setNavigationBarColor(toHex(c))
+      SystemBarController.setNavigationBarColor(toHex(c))
 
-    return () => {
-      if (navBackGround.current) {
-        SystemBarController.setNavigationBarColor(navBackGround.current)
+      return () => {
+        if (navBackGround.current) {
+          SystemBarController.setNavigationBarColor(navBackGround.current)
+        }
       }
-    }
-  }, [colors])
+    }, [colors])
 
   return (
     <AnimatedPressable

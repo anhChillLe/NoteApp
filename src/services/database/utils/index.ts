@@ -1,13 +1,14 @@
-export function autoTimestamp(){
-  return function(target: any, propertyKey: string, descriptor: PropertyDescriptor){
-    const original = descriptor.value
-    descriptor.value = function(...args: []){
-      const result = original.apply(this, args)
-      if(result != null && typeof result == 'object'){
-        result.createAt = new Date()
-        result.updateAt = null
-      }
-      return result
-    }
+import { Results } from 'realm'
+
+type Query<T> = (collection: Results<T>) => Results<T>
+
+function combineQuery<T>(...queries: Query<T>[]) {
+  return (collection: Results<T>) => {
+    return queries.reduce((accumulation, query) => {
+      return query(accumulation)
+    }, collection)
   }
 }
+
+export type { Query }
+export { combineQuery }

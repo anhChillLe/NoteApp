@@ -13,6 +13,8 @@ import {
 } from 'react-native-paper'
 import Animated from 'react-native-reanimated'
 import { withAnimated } from './utils'
+import { Input } from '../Input'
+import { NavigationBar } from '../NavigationBar'
 
 const AnimatedSurface = withAnimated(Surface)
 const AnimatedButton = Animated.createAnimatedComponent(Button)
@@ -39,3 +41,4 @@ export namespace AnimatedPaper {
 
 export const AnimatedPagerView = Animated.createAnimatedComponent(PagerView)
 export const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
+export const AnimatedInput = Animated.createAnimatedComponent(Input)

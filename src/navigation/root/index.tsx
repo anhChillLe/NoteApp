@@ -6,9 +6,13 @@ import { FC } from 'react'
 import { useMMKVBoolean } from 'react-native-mmkv'
 import { RootStackParamList } from '~/navigation/root/params'
 import {
+  DeletedNoteScreen,
+  HidedNoteScreen,
   HomeScreen,
   NoteEditScreen,
   OnboardingScreen,
+  PrivateNoteScreen,
+  SearchScreen,
   SettingScreen,
   TagManagerScreen,
   TagSelectScreen,
@@ -35,6 +39,10 @@ const RootStack: FC = () => {
           <Stack.Screen name="task_edit" component={TaskEditScreen} />
           <Stack.Screen name="tag_manager" component={TagManagerScreen} />
           <Stack.Screen name="setting" component={SettingScreen} />
+          <Stack.Screen name="search" component={SearchScreen} />
+          <Stack.Screen name="deleted" component={DeletedNoteScreen} />
+          <Stack.Screen name="hided" component={HidedNoteScreen} />
+          <Stack.Screen name="private" component={PrivateNoteScreen} />
         </Stack.Group>
       )}
     </Stack.Navigator>

@@ -13,6 +13,7 @@ interface HomeData {
   changeCurrentTag: (tag: Tag | null) => void
   openHidedNote: () => void
   openDeletedNote: () => void
+  openPrivateNote: () => void
   openTagManager: () => void
   openSearch: () => void
   openEditor: (data: Note) => void
@@ -24,9 +25,9 @@ interface HomeData {
   openSetting: () => void
   changeTaskItemStatus: (taskItem: TaskItem) => void
   addTagToNote: (note: Note, tag: Tag) => void
-  hideNotes: (...notes: Note[]) => void
-  deleteNotes: (...notes: Note[]) => void
-  pinNotes: (...notes: Note[]) => void
+  hideNotes: () => void
+  deleteNotes: () => void
+  pinNotes: () => void
 }
 
 const HomeContext = createContext<HomeData>({} as never)

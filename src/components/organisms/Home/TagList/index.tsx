@@ -22,18 +22,6 @@ export const HomeTagList: FC<Props> = ({
   const currentTag = useHome(state => state.currentTag)
   const changeCurrentTag = useHome(state => state.changeCurrentTag)
 
-  const Header = useCallback<FC>(
-    () => (
-      <TagItem
-        label="All"
-        isSelected={!currentTag}
-        style={styles.header}
-        onPress={() => changeCurrentTag(null)}
-      />
-    ),
-    [changeCurrentTag, currentTag],
-  )
-
   const renderItem: ListRenderItem<Tag> = ({ item }) => {
     const { id, name, isPinned } = item
     const isCurrent = currentTag?.id === id
@@ -53,8 +41,6 @@ export const HomeTagList: FC<Props> = ({
       />
     )
   }
-
-  const keyExtractor = (item: Tag, index: number) => item.id
 
   return (
     <View style={styles.container}>
@@ -84,15 +70,32 @@ export const HomeTagList: FC<Props> = ({
   )
 }
 
+const keyExtractor = (item: Tag, index: number) => item.id
+
+const Header: FC = () => {
+  const tags = useHome(state => state.tags)
+  const currentTag = useHome(state => state.currentTag)
+  const changeCurrentTag = useHome(state => state.changeCurrentTag)
+  if (tags.isEmpty()) return null
+  else
+    return (
+      <TagItem
+        label="All"
+        isSelected={!currentTag}
+        style={styles.header}
+        onPress={() => changeCurrentTag(null)}
+      />
+    )
+}
 const Footer: FC = () => {
   const openTagManager = useHome(state => state.openTagManager)
   const openDeletedNote = useHome(state => state.openDeletedNote)
   const openHidedNote = useHome(state => state.openHidedNote)
   return (
     <View style={styles.footer}>
-      <TagItem label="Hided" icon="eye" onPress={openTagManager} />
+      <TagItem label="Hided" icon="eye" onPress={openHidedNote} />
       <TagItem label="Trash" icon="trash" onPress={openDeletedNote} />
-      <TagItem label="Manager" icon="folder" onPress={openHidedNote} />
+      <TagItem label="Manager" icon="folder" onPress={openTagManager} />
     </View>
   )
 }
@@ -100,12 +103,14 @@ const Footer: FC = () => {
 const Empty: FC = () => {
   const openTagManager = useHome(state => state.openTagManager)
   return (
-    <TagItem
-      icon="plus-small"
-      label="Create tag"
-      isSelected
-      onPress={openTagManager}
-    />
+    <View style={styles.empty}>
+      <TagItem
+        icon="plus-small"
+        label="Create tag"
+        isSelected
+        onPress={openTagManager}
+      />
+    </View>
   )
 }
 const styles = StyleSheet.create({
@@ -128,5 +133,9 @@ const styles = StyleSheet.create({
   },
   item: {
     marginRight: 8,
+  },
+  empty: {
+    alignItems: 'flex-start',
+    marginEnd: 8,
   },
 })

@@ -5,19 +5,9 @@ import Animated, { AnimatedProps } from 'react-native-reanimated'
 import { Fill } from '~/components/atoms'
 import { useHome } from '../Provider'
 
-interface Props extends AnimatedProps<ViewProps> {
-  onNewRecordPress?: () => void
-  onNewImagePress?: () => void
-  onNewPaintPress?: () => void
-}
+interface Props extends AnimatedProps<ViewProps> {}
 
-export const HomeBottomAppbar: FC<Props> = ({
-  onNewImagePress,
-  onNewPaintPress,
-  onNewRecordPress,
-  style,
-  ...props
-}) => {
+export const HomeBottomAppbar: FC<Props> = ({ style, ...props }) => {
   const openNewNoteEditor = useHome(state => state.openNewNoteEditor)
   const openNewTaskEditor = useHome(state => state.openNewTaskEditor)
 
@@ -28,21 +18,9 @@ export const HomeBottomAppbar: FC<Props> = ({
         disabled={!openNewTaskEditor}
         onPress={openNewTaskEditor}
       />
-      <IconButton
-        icon="microphone"
-        disabled={!onNewRecordPress}
-        onPress={onNewRecordPress}
-      />
-      <IconButton
-        icon="picture"
-        disabled={!onNewImagePress}
-        onPress={onNewImagePress}
-      />
-      <IconButton
-        icon="paint-brush"
-        disabled={!onNewPaintPress}
-        onPress={onNewPaintPress}
-      />
+      <IconButton icon="microphone" disabled />
+      <IconButton icon="picture" disabled />
+      <IconButton icon="paint-brush" disabled />
       <Fill />
       <IconButton
         icon="plus-small"

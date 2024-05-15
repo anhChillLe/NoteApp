@@ -1,5 +1,5 @@
 import { useFocusEffect } from '@react-navigation/native'
-import React, { FC, useCallback } from 'react'
+import React, { FC } from 'react'
 import { BackHandler, StyleSheet, View } from 'react-native'
 import {
   FadeInDown,
@@ -9,51 +9,21 @@ import {
 } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Home } from '~/components/organisms'
-import { useHome } from '~/components/organisms/Home/Provider'
-import { useSelection } from '~/hooks'
-import { Note } from '~/services/database/model'
+import { useHomeSearch, useHomeSelect } from '~/store/home'
 
 type Props = {}
 
 export const HomeScreenLayout: FC<Props> = () => {
-  const [isInSelect, selecteds, controller] = useSelection(compareNote)
-  const notes = useHome(state => state.notes)
-  const pinNotes = useHome(state => state.pinNotes)
-  const deleteNotes = useHome(state => state.deleteNotes)
-  const hideNotes = useHome(state => state.hideNotes)
-
-  const checkAll = useCallback(() => {
-    const isAllChecked = selecteds.length === notes.length
-    controller.set(isAllChecked ? [] : notes.map(it => it))
-  }, [controller, notes, selecteds])
-
-  const handlePin = useCallback(() => {
-    pinNotes(...selecteds)
-    controller.disable()
-  }, [pinNotes, selecteds])
-
-  const handleHide = useCallback(() => {
-    hideNotes(...selecteds)
-    controller.disable()
-  }, [hideNotes, selecteds])
-
-  const handleDelete = useCallback(() => {
-    deleteNotes(...selecteds)
-    controller.disable()
-  }, [deleteNotes, selecteds, controller])
-
-  const enableSelectionMode = useCallback(
-    (item: Note) => {
-      controller.enable()
-      controller.select(item)
-    },
-    [controller],
-  )
+  const isInSelectMode = useHomeSelect(state => state.isInSelectMode)
+  const disableSelectMode = useHomeSelect(state => state.disable)
+  const isInSearchMode = useHomeSearch(state => state.isInSearchMode)
+  const disableSearchMode = useHomeSearch(state => state.disable)
 
   useFocusEffect(() => {
     const handler = () => {
-      isInSelect && controller.disable()
-      return isInSelect
+      isInSearchMode && disableSearchMode()
+      isInSelectMode && disableSelectMode()
+      return isInSelectMode || isInSearchMode
     }
     const listener = BackHandler.addEventListener('hardwareBackPress', handler)
     return listener.remove
@@ -63,44 +33,40 @@ export const HomeScreenLayout: FC<Props> = () => {
     <Home.DragingTagProvider>
       <SafeAreaView style={styles.container}>
         <View style={styles.container}>
-          {isInSelect ? (
+          {isInSelectMode ? (
             <Home.SelectionAppbar
-              onClosePress={controller.disable}
-              onCheckAllPress={checkAll}
-              numOfItem={selecteds.length}
               style={styles.header}
-              entering={FadeInUp}
-              exiting={FadeOutUp}
+              entering={FadeInUp.duration(200)}
+              exiting={FadeOutUp.duration(200)}
             />
           ) : (
             <Home.Header
               style={styles.header}
-              entering={FadeInUp}
-              exiting={FadeOutUp}
+              entering={FadeInUp.duration(200)}
+              exiting={FadeOutUp.duration(200)}
             />
           )}
 
           <Home.TagList contentContainerStyle={styles.taglist_container} />
 
           <Home.ContentList
-            selecteds={selecteds}
-            contentContainerStyle={styles.list}
-            isInSelect={isInSelect}
-            onItemLongPress={enableSelectionMode}
-            onItemSelect={controller.select}
+            style={styles.list}
+            contentContainerStyle={styles.list_content}
+            bounces={true}
           />
 
-          {isInSelect ? (
-            <Home.Actionbar
-              onPinPress={handlePin}
-              onDeletePress={handleDelete}
-              onHidePress={handleHide}
-              entering={FadeInDown}
-              exiting={FadeOutDown}
-            />
-          ) : (
-            <Home.BottomAppbar entering={FadeInDown} exiting={FadeOutDown} />
-          )}
+          {!isInSearchMode &&
+            (isInSelectMode ? (
+              <Home.Actionbar
+                entering={FadeInDown.duration(200)}
+                exiting={FadeOutDown.duration(200)}
+              />
+            ) : (
+              <Home.BottomAppbar
+                entering={FadeInDown.duration(200)}
+                exiting={FadeOutDown.duration(200)}
+              />
+            ))}
         </View>
       </SafeAreaView>
     </Home.DragingTagProvider>
@@ -112,19 +78,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingStart: 16,
-    paddingEnd: 4,
-    paddingVertical: 4,
+    paddingHorizontal: 16,
   },
   empty: {
     flex: 1,
   },
   list: {
+    flex: 1,
+  },
+  list_content: {
     paddingHorizontal: 16,
+    flexGrow: 1,
   },
   taglist_container: {
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
   },
 })
-
-const compareNote = (item1: Note, item2: Note) => item1.id === item2.id

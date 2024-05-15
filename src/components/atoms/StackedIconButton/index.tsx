@@ -1,10 +1,10 @@
 import { FC } from 'react'
-import { PressableProps, StyleSheet } from 'react-native'
-import { Icon, Text } from 'react-native-paper'
+import { StyleSheet, View } from 'react-native'
+import { Icon, Text, TouchableRippleProps, useTheme } from 'react-native-paper'
 import { AnimatedProps } from 'react-native-reanimated'
-import { AnimatedPressable } from '../Animated'
+import { AnimatedPaper } from '../Animated'
 
-interface Props extends AnimatedProps<PressableProps> {
+interface Props extends AnimatedProps<Omit<TouchableRippleProps, 'children'>> {
   icon: string
   label: string
 }
@@ -15,11 +15,22 @@ export const StackedIconButton: FC<Props> = ({
   style,
   ...props
 }) => {
+  const { roundness } = useTheme()
+
   return (
-    <AnimatedPressable style={[styles.container, style]} {...props}>
-      <Icon source={icon} size={24} />
-      <Text>{label}</Text>
-    </AnimatedPressable>
+    <AnimatedPaper.TouchableRipple
+      style={[
+        { borderRadius: roundness * 3, opacity: props.disabled ? 0.5 : 1 },
+        style,
+      ]}
+      borderless
+      {...props}
+    >
+      <View style={styles.container}>
+        <Icon source={icon} size={24} />
+        <Text>{label}</Text>
+      </View>
+    </AnimatedPaper.TouchableRipple>
   )
 }
 
@@ -28,5 +39,6 @@ const styles = StyleSheet.create({
     gap: 8,
     alignItems: 'center',
     padding: 8,
+    aspectRatio: 1,
   },
 })

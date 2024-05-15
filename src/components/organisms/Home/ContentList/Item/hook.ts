@@ -1,5 +1,6 @@
 import { View } from 'react-native'
 import {
+  Easing,
   MeasuredDimensions,
   measure,
   runOnJS,
@@ -19,7 +20,17 @@ export const useHomeTagDetector = (onDragIn: () => void) => {
   useAnimatedReaction(
     () => gesturePayload.value,
     value => {
+      if (!value) {
+        isDragIn.value = false
+        return
+      }
+
       const measurement = measure(ref)
+      if (!measurement) {
+        isDragIn.value = false
+        return
+      }
+
       isDragIn.value = isInRec(value, measurement)
     },
   )
@@ -34,7 +45,10 @@ export const useHomeTagDetector = (onDragIn: () => void) => {
   )
 
   const itemStyle = useAnimatedStyle(() => {
-    const scaleValue = withTiming(isDragIn.value ? 0.9 : 1, { duration: 200 })
+    const scaleValue = withTiming(isDragIn.value ? 0.95 : 1, {
+      duration: 150,
+      easing: Easing.cubic,
+    })
     return {
       transform: [{ scale: scaleValue }],
       opacity: scaleValue,

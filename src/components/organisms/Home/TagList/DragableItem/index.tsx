@@ -1,17 +1,15 @@
 import { FC } from 'react'
+import { View } from 'react-native'
 import { Gesture, GestureDetector } from 'react-native-gesture-handler'
+import { trigger } from 'react-native-haptic-feedback'
 import {
   measure,
   runOnJS,
   useAnimatedRef,
-  useAnimatedStyle,
   useSharedValue,
-  withTiming,
 } from 'react-native-reanimated'
 import { TagItem } from '~/components/molecules'
 import { useDragingHome } from '../..'
-import { trigger } from 'react-native-haptic-feedback'
-import { View } from 'react-native'
 
 interface Props extends React.ComponentProps<typeof TagItem> {
   onDragStart?: () => void
@@ -34,7 +32,7 @@ export const DragableTagItem: FC<Props> = ({
     .onStart(e => {
       gesturePayload.value = e
       onDragStart && runOnJS(onDragStart)()
-      runOnJS(trigger)('impactLight')
+      runOnJS(trigger)('effectTick')
     })
     .onUpdate(e => {
       gesturePayload.value = e
