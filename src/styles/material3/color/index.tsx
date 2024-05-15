@@ -1,2 +1,5 @@
 export { yellowColors } from './yellow'
 export { greenColors } from './green'
+export { blueColors } from './blue'
+export { redColors } from './red'
+export { violetColors } from './violet'
