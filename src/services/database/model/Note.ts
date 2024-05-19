@@ -12,7 +12,6 @@ export class Note extends Object<Note> {
   isPinned!: boolean
   isPrivate!: boolean
   isDeleted!: boolean
-  isHided!: boolean
   tags: Tag[] = []
   style: Style | null = null
 
@@ -22,7 +21,6 @@ export class Note extends Object<Note> {
     isPinned: { type: 'bool', indexed: true, default: false },
     isPrivate: { type: 'bool', indexed: true, default: false },
     isDeleted: { type: 'bool', indexed: true, default: false },
-    isHided: { type: 'bool', indexed: true, default: false },
     createAt: 'date',
     updateAt: 'date',
     tags: 'Tag[]',
