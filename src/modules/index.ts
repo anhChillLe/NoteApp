@@ -1,1 +1,1 @@
-export { default as SystemBarController } from './SystemBarController'
+export { default as SystemBar } from './SystemBarController'

@@ -2,13 +2,15 @@ package com.chillle.note.module
 
 import android.graphics.Color
 import android.os.Build
-import android.util.Log
 import android.view.Window
 import androidx.annotation.ColorInt
 import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.toColor
+import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import com.chillle.note.module.SystemBarController.Companion.isDark
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
@@ -16,12 +18,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
-import okhttp3.internal.toHexString
 
 class SystemBarController(private val reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {
 
     private val scope by lazy { CoroutineScope(Dispatchers.Main + SupervisorJob()) }
+
     companion object {
         private fun String.toIntColor(): Int {
             return Color.parseColor(this)
@@ -41,21 +43,26 @@ class SystemBarController(private val reactContext: ReactApplicationContext) :
         return "SystemBarController"
     }
 
-    private val window: Window?
+    private val window: Window
         get() {
-            val activity = reactContext.currentActivity ?: return null
+            val activity =
+                reactContext.currentActivity ?: throw Exception("Current activity not found")
             return activity.window
         }
-    private val wic: WindowInsetsControllerCompat?
-        get() {
-            return window?.let { WindowCompat.getInsetsController(it, it.decorView) }
-        }
+    private val wic: WindowInsetsControllerCompat
+        get() = WindowCompat.getInsetsController(window, window.decorView)
 
 
     @ReactMethod(isBlockingSynchronousMethod = false)
     fun setNavigationBarColor(strColor: String) {
         val color = strColor.toIntColor()
         setNavigationBarColor(color)
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    fun getNavigationBarColor(): String {
+        val intColor = window.navigationBarColor
+        return String.format("#%06X", 0xFFFFFF and intColor)
     }
 
     @ReactMethod(isBlockingSynchronousMethod = false)
@@ -65,28 +72,67 @@ class SystemBarController(private val reactContext: ReactApplicationContext) :
     }
 
     @ReactMethod(isBlockingSynchronousMethod = true)
-    fun getStatusBarColor(): String? {
-        val intColor = window?.statusBarColor ?: return null
-        return java.lang.String.format("#%06X", 0xFFFFFF and intColor)
+    fun getStatusBarColor(): String {
+        val intColor = window.statusBarColor
+        return String.format("#%06X", 0xFFFFFF and intColor)
     }
 
     @ReactMethod(isBlockingSynchronousMethod = true)
-    fun getNavigationBarColor(): String? {
-        val intColor = window?.navigationBarColor ?: return null
-        return java.lang.String.format("#%06X", 0xFFFFFF and intColor)
+    fun hideStatusBar() {
+        scope.launch {
+            wic.hide(WindowInsetsCompat.Type.statusBars())
+        }
     }
 
-    private fun setNavigationBarColor(@ColorInt color: Int) {
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    fun showStatusBar() {
         scope.launch {
-            window?.navigationBarColor = color
-            wic?.isAppearanceLightNavigationBars = !color.isDark
+            wic.show(WindowInsetsCompat.Type.statusBars())
+        }
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    fun hideNavigationBar() {
+        scope.launch {
+            wic.hide(WindowInsetsCompat.Type.navigationBars())
+        }
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    fun showNavigationBar() {
+        scope.launch {
+            wic.show(WindowInsetsCompat.Type.navigationBars())
+        }
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    fun showSystemBar() {
+        scope.launch {
+            wic.show(WindowInsetsCompat.Type.systemBars())
+        }
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    fun hideSystemBar() {
+        scope.launch {
+            wic.hide(WindowInsetsCompat.Type.systemBars())
         }
     }
 
     private fun setStatusBarColor(@ColorInt color: Int) {
         scope.launch {
-            window?.statusBarColor = color
-            wic?.isAppearanceLightStatusBars = !color.isDark
+            window.statusBarColor = color
+            wic.isAppearanceLightStatusBars = !color.isDark
+
         }
     }
+
+    private fun setNavigationBarColor(@ColorInt color: Int) {
+        scope.launch {
+            window.navigationBarColor = color
+            wic.isAppearanceLightNavigationBars = !color.isDark
+        }
+    }
+
+
 }
