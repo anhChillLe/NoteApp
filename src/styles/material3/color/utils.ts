@@ -1,9 +1,19 @@
 import { MD3Colors } from 'react-native-paper/lib/typescript/types'
 import Color from 'color'
 
-export function getColorSchemes(jsonTheme: JsonTheme) {
+export interface ColorSchemes {
+  light: MD3Colors
+  lightHighContrast: MD3Colors
+  lightMediumContrast: MD3Colors
+  dark: MD3Colors
+  darkHighContrast: MD3Colors
+  darkMediumContrast: MD3Colors
+}
+
+export function getColorSchemes(jsonTheme: JsonTheme): ColorSchemes {
   const getColors = (key: keyof Schemes) => {
-    return convertToMD3Color(jsonTheme.schemes[key])
+    const scheme = jsonTheme.schemes[key]
+    return createMD3Color(scheme, jsonTheme.palettes)
   }
 
   const light = getColors('light')
@@ -23,25 +33,28 @@ export function getColorSchemes(jsonTheme: JsonTheme) {
   }
 }
 
-export function convertToMD3Color(schemes: ColorScheme): MD3Colors {
+export function createMD3Color(
+  scheme: ColorScheme,
+  palettes: Palettes,
+): MD3Colors {
   return {
-    ...schemes,
-    surfaceDisabled: Color(schemes.onSurface)
+    ...scheme,
+    surfaceDisabled: Color(palettes.neutral[90])
       .alpha(opacity.level2)
       .rgb()
       .string(),
-    onSurfaceDisabled: Color(schemes.onSurface)
+    onSurfaceDisabled: Color(palettes.neutral[90])
       .alpha(opacity.level4)
       .rgb()
       .string(),
-    backdrop: Color(schemes.inverseSurface).alpha(0.4).rgb().string(),
+    backdrop: Color(palettes['neutral-variant'][20]).alpha(0.4).rgb().string(),
     elevation: {
       level0: 'transparent',
-      level1: convertToSolidColor(schemes.primary, schemes.background, 0.05),
-      level2: convertToSolidColor(schemes.primary, schemes.background, 0.08),
-      level3: convertToSolidColor(schemes.primary, schemes.background, 0.11),
-      level4: convertToSolidColor(schemes.primary, schemes.background, 0.12),
-      level5: convertToSolidColor(schemes.primary, schemes.background, 0.14),
+      level1: convertToSolidColor(scheme.primary, scheme.background, 0.05),
+      level2: convertToSolidColor(scheme.primary, scheme.background, 0.08),
+      level3: convertToSolidColor(scheme.primary, scheme.background, 0.11),
+      level4: convertToSolidColor(scheme.primary, scheme.background, 0.12),
+      level5: convertToSolidColor(scheme.primary, scheme.background, 0.14),
     },
   }
 }

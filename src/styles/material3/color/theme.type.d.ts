@@ -81,10 +81,10 @@ type Palettes = {
 
 type Schemes = {
   light: ColorScheme
-  'light-medium-contrast': CollapsedItem
+  'light-medium-contrast': ColorScheme
   'light-high-contrast': ColorScheme
   dark: ColorScheme
-  'dark-medium-contrast': CollapsedItem
+  'dark-medium-contrast': ColorScheme
   'dark-high-contrast': ColorScheme
 }
 
