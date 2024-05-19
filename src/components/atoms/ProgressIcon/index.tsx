@@ -5,13 +5,9 @@ import Animated, {
   AnimatedProps,
   SharedValue,
   useAnimatedProps,
-  useAnimatedStyle,
-  withRepeat,
-  withSequence,
-  withTiming,
 } from 'react-native-reanimated'
 import { Circle, Svg } from 'react-native-svg'
-import { AnimatedPaper } from '~/components/atoms'
+import { AnimatedPaper } from '~/components/Animated'
 import { useLayout } from '~/hooks'
 
 interface Props extends AnimatedProps<ViewProps> {

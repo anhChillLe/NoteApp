@@ -16,8 +16,8 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated'
-import { AnimatedPaper } from '~/components/atoms'
-import { AnimatedPressable } from '~/components/atoms/Animated'
+import { AnimatedPaper } from '~/components/Animated'
+import { AnimatedPressable } from '~/components/Animated'
 import { Note, TaskItem } from '~/services/database/model'
 import { TagItemCompact } from '../TagItem/Compact'
 import { Item } from './TaskItem'
@@ -136,10 +136,8 @@ export const NoteListItem = forwardRef<View, Props>(
                 <Item
                   key={index}
                   data={item}
-                  disabled={selectable}
-                  onPress={() => {
-                    onTaskItemPress?.(item)
-                  }}
+                  disabled={selectable || !onTaskItemPress}
+                  onPress={() => onTaskItemPress?.(item)}
                 />
               ))}
             </View>

@@ -1,8 +1,7 @@
-import { useNavigation } from '@react-navigation/native'
 import Color from 'color'
 import { FC, useEffect } from 'react'
 import { Platform } from 'react-native'
-import { SystemBarController } from '~/modules'
+import { SystemBar } from '~/modules'
 
 interface Props {
   backgroundColor: string
@@ -13,12 +12,12 @@ const NavigationBar: FC<Props> = ({ backgroundColor }) => {
     useEffect(() => {
       const color = Color(backgroundColor).hex()
 
-      const prev = SystemBarController.getNavigationBarColor()
+      const prev = SystemBar.getNavigationBarColor()
 
-      SystemBarController.setNavigationBarColor(color)
+      SystemBar.setNavigationBarColor(color)
 
       return () => {
-        prev && SystemBarController.setNavigationBarColor(Color(prev).hex())
+        prev && SystemBar.setNavigationBarColor(Color(prev).hex())
       }
     }, [backgroundColor])
 

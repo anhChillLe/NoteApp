@@ -8,6 +8,7 @@ import Animated, {
   WithTimingConfig,
   ZoomIn,
   ZoomOut,
+  dispatchCommand,
   interpolate,
   interpolateColor,
   useAnimatedRef,
@@ -15,8 +16,8 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated'
-import { AnimatedPaper, Column, Fill } from '~/components/atoms'
-import { AnimatedInput } from '~/components/atoms/Animated'
+import { AnimatedInput, AnimatedPaper } from '~/components/Animated'
+import { Column, Fill } from '~/components/atoms'
 import { useLayout } from '~/hooks'
 import { useHomeSearch } from '~/store/home'
 import { useHome } from '../Provider'
@@ -27,7 +28,6 @@ export const HomeHeader: FC<Props> = ({ style, ...props }) => {
   const { colors, roundness } = useTheme()
   const openSetting = useHome(state => state.openSetting)
   const openTagManager = useHome(state => state.openTagManager)
-  const openSearch = useHome(state => state.openSearch)
   const { value, setValue, enalble, disable, isInSearchMode } = useHomeSearch()
 
   const [searchButtonLayout, onSearchButtonLayout] = useLayout()
@@ -39,11 +39,12 @@ export const HomeHeader: FC<Props> = ({ style, ...props }) => {
 
   useEffect(() => {
     if (isInSearchMode) {
-      progress.value = withTiming(1, timingConfig)
-      input.current?.focus()
+      progress.value = withTiming(1, timingConfig, () => {
+        dispatchCommand(input, 'focus')
+      })
     } else {
-      progress.value = withTiming(0, timingConfig)
       input.current?.blur()
+      progress.value = withTiming(0, timingConfig)
     }
   }, [isInSearchMode, progress])
 
@@ -118,7 +119,7 @@ export const HomeHeader: FC<Props> = ({ style, ...props }) => {
             <AnimatedPaper.IconButton icon="search" />
           </Animated.View>
           <IconButton icon="folder" onPress={openTagManager} />
-          <IconButton icon="settings" onPress={openSetting} />
+          <IconButton icon="menu-burger" onPress={openSetting} />
         </Animated.View>
 
         <Animated.View style={[styles.search, searchStyle]}>
@@ -165,6 +166,9 @@ const styles = StyleSheet.create({
   title: {
     fontWeight: '500',
   },
+  button: {
+    margin: 0,
+  },
   search_icon: {
     opacity: 0,
   },
@@ -181,12 +185,6 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-  },
-  header: {
-    paddingHorizontal: 16,
-  },
-  tag_list: {
-    paddingHorizontal: 16,
   },
 })
 const duration = 350

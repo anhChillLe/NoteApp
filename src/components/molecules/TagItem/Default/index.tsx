@@ -12,13 +12,12 @@ import {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated'
+import { TouchableScale, TouchableScaleProps } from '~/components/atoms'
 import {
   AnimatedPaper,
+  AnimatedPressable,
   AnimatedTouchableScale,
-  TouchableScale,
-  TouchableScaleProps,
-} from '~/components/atoms'
-import { AnimatedPressable } from '~/components/atoms/Animated'
+} from '~/components/Animated'
 
 interface Props extends AnimatedProps<TouchableScaleProps> {
   label: string

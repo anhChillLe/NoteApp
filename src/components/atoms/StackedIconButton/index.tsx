@@ -2,7 +2,7 @@ import { FC } from 'react'
 import { StyleSheet, View } from 'react-native'
 import { Icon, Text, TouchableRippleProps, useTheme } from 'react-native-paper'
 import { AnimatedProps } from 'react-native-reanimated'
-import { AnimatedPaper } from '../Animated'
+import { AnimatedPaper } from '~/components/Animated'
 
 interface Props extends AnimatedProps<Omit<TouchableRippleProps, 'children'>> {
   icon: string

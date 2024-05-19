@@ -9,7 +9,7 @@ import {
   useSharedValue,
 } from 'react-native-reanimated'
 import { StorySet } from '~/assets/storyset'
-import { AnimatedPagerView } from '~/components/atoms'
+import { AnimatedPagerView } from '~/components/Animated'
 import { PagerIndicator } from '~/components/molecules'
 import { Onboarding } from '~/components/organisms'
 import { useAnimatedPagerScrollHandler } from '~/hooks'

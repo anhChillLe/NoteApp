@@ -90,10 +90,8 @@ const Header: FC = () => {
 const Footer: FC = () => {
   const openTagManager = useHome(state => state.openTagManager)
   const openDeletedNote = useHome(state => state.openDeletedNote)
-  const openHidedNote = useHome(state => state.openHidedNote)
   return (
     <View style={styles.footer}>
-      <TagItem label="Hided" icon="eye" onPress={openHidedNote} />
       <TagItem label="Trash" icon="trash" onPress={openDeletedNote} />
       <TagItem label="Manager" icon="folder" onPress={openTagManager} />
     </View>

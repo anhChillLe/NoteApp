@@ -2,12 +2,8 @@ import { FC, useState } from 'react'
 import { Keyboard, StyleSheet, View, ViewStyle } from 'react-native'
 import { Button, TextInput, useTheme } from 'react-native-paper'
 import { List } from 'realm'
-import {
-  ActionSheet,
-  AnimatedPaper,
-  useActionSheetRef,
-} from '~/components/atoms'
-import { AnimatedPressable } from '~/components/atoms/Animated'
+import { ActionSheet, useActionSheetRef } from '~/components/atoms'
+import { AnimatedPaper, AnimatedPressable } from '~/components/Animated'
 import { Tag } from '~/services/database/model'
 import { TagItem } from '..'
 

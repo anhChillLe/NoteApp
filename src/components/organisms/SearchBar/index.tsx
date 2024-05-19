@@ -11,7 +11,7 @@ import Animated, {
   AnimatedStyle,
   SharedTransition,
 } from 'react-native-reanimated'
-import { AnimatedPaper } from '~/components/atoms'
+import { AnimatedPaper } from '~/components/Animated'
 
 interface Props extends TextInputProps {
   containerStyle?: AnimatedStyle<StyleProp<ViewStyle>>

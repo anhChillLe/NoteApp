@@ -9,37 +9,31 @@ import Animated, {
   useAnimatedStyle,
   useDerivedValue,
 } from 'react-native-reanimated'
-import { AnimatedPaper, ProgressIcon } from '~/components/atoms'
+import { AnimatedPaper } from '~/components/Animated'
+import { ProgressIcon } from '~/components/atoms'
 
 interface Props extends AnimatedProps<ViewProps> {
   offset: SharedValue<number>
-  beginActiveOffset: number
-  submitActiveOffset: number
+  activeRange: [number, number]
 }
 
 export const PrivateActive: FC<Props> = ({
   offset,
-  beginActiveOffset,
-  submitActiveOffset,
+  activeRange,
   style,
   ...props
 }) => {
   const { colors } = useTheme()
 
   const progress = useDerivedValue(() => {
-    return interpolate(
-      offset.value,
-      [beginActiveOffset, submitActiveOffset],
-      [0, 1],
-      Extrapolation.CLAMP,
-    )
-  })
+    return interpolate(-offset.value, activeRange, [0, 1], Extrapolation.CLAMP)
+  }, [])
 
   const containerStyle = useAnimatedStyle(() => {
     return {
-      height: offset.value,
+      height: -offset.value,
     }
-  })
+  }, [])
 
   const contentstyle = useAnimatedStyle(() => {
     const opacity = interpolate(progress.value, [0, 0.25], [0, 1])
@@ -48,7 +42,7 @@ export const PrivateActive: FC<Props> = ({
       opacity,
       transform: [{ scale }],
     }
-  })
+  }, [])
 
   const iconProgress = useDerivedValue(() => {
     return interpolate(progress.value, [0.5, 1], [0, 1], Extrapolation.CLAMP)

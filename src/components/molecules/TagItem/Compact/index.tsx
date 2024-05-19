@@ -5,7 +5,7 @@ import Animated, {
   AnimatedProps,
   useAnimatedStyle,
 } from 'react-native-reanimated'
-import { AnimatedPaper } from '~/components/atoms'
+import { AnimatedPaper } from '~/components/Animated'
 
 interface Props extends AnimatedProps<ViewProps> {
   label: string

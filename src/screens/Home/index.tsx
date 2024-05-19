@@ -1,10 +1,12 @@
 import { useNavigation } from '@react-navigation/native'
 import React, { FC, useCallback, useState } from 'react'
-import { SortDescriptor } from 'realm'
+import { Results, SortDescriptor } from 'realm'
 import { Home } from '~/components/organisms'
 import { HomeScreenLayout } from '~/components/templates'
 import { useQuery, useRealm } from '~/services/database'
 import { Note, Tag, TaskItem } from '~/services/database/model'
+import { combineQuery } from '~/services/database/utils'
+import { useHomeSearch, useHomeSelect } from '~/store/home'
 
 export const HomeScreen: FC = () => {
   const navigation = useNavigation()
@@ -12,20 +14,32 @@ export const HomeScreen: FC = () => {
 
   const [currentTag, changeCurrentTag] = useState<Tag | null>(null)
 
+  const searchValue = useHomeSearch(state => {
+    return state.isInSearchMode ? state.value : null
+  })
+
+  const selecteds = useHomeSelect(state => state.selecteds)
+  const disableSelect = useHomeSelect(state => state.disable)
+
   const tags = useQuery(Tag, createTagQuery())
 
-  const notes = useQuery(Note, createNoteQuery(currentTag), [currentTag])
+  const notes = useQuery(Note, createNoteQuery(currentTag, searchValue), [
+    currentTag,
+    searchValue,
+  ])
 
-  const openEditor = useCallback((data: Note) => {
-    const des = data?.type === 'task' ? 'task_edit' : 'note_edit'
-    navigation.navigate(des, { id: data.id })
+  const openEditor = useCallback((item: Note) => {
+    const destination = item?.type === 'task' ? 'task_edit' : 'note_edit'
+    navigation.navigate(destination, { id: item.id })
   }, [])
 
-  const openDeletedNote = useCallback(() => {}, [])
+  const openDeletedNote = useCallback(() => {
+    navigation.navigate('deleted')
+  }, [navigation])
 
-  const openHidedNote = useCallback(() => {}, [])
-
-  const openSearch = useCallback(() => {}, [])
+  const openPrivateNote = useCallback(() => {
+    navigation.navigate('private')
+  }, [navigation])
 
   const openTagManager = useCallback(() => {
     navigation.navigate('tag_manager')
@@ -74,38 +88,33 @@ export const HomeScreen: FC = () => {
     [realm],
   )
 
-  const pinNotes = useCallback(
-    (...items: Note[]) => {
-      realm.write(() => {
-        items.forEach(item => {
-          item.isPinned = !item.isPinned
-        })
+  const pinNotes = useCallback(() => {
+    realm.write(() => {
+      selecteds.forEach(item => {
+        item.isPinned = !item.isPinned
       })
-    },
-    [realm],
-  )
+      disableSelect()
+    })
+  }, [realm, selecteds])
 
-  const deleteNotes = useCallback(
-    (...items: Note[]) => {
-      realm.write(() => {
-        items.forEach(item => {
-          item.isDeleted = true
-        })
+  const deleteNotes = useCallback(() => {
+    realm.write(() => {
+      selecteds.forEach(item => {
+        item.isDeleted = true
+        console.log('delete', selecteds.length)
       })
-    },
-    [realm],
-  )
+      disableSelect()
+    })
+  }, [realm, selecteds])
 
-  const hideNotes = useCallback(
-    (...items: Note[]) => {
-      realm.write(() => {
-        items.forEach(item => {
-          item.isHided = true
-        })
+  const privateNotes = useCallback(() => {
+    realm.write(() => {
+      selecteds.forEach(item => {
+        item.isPrivate = true
       })
-    },
-    [realm],
-  )
+      disableSelect()
+    })
+  }, [realm, selecteds])
 
   return (
     <Home.Provider
@@ -116,10 +125,9 @@ export const HomeScreen: FC = () => {
         changeCurrentTag,
         openEditor,
         openDeletedNote,
-        openHidedNote,
+        openPrivateNote,
         openTagManager,
         openSetting,
-        openSearch,
         openNewNoteEditor,
         openNewTaskEditor,
         openNewImageEditor,
@@ -128,8 +136,8 @@ export const HomeScreen: FC = () => {
         changeTaskItemStatus,
         addTagToNote,
         pinNotes,
-        hideNotes,
         deleteNotes,
+        privateNotes,
       }}
     >
       <HomeScreenLayout />
@@ -137,24 +145,43 @@ export const HomeScreen: FC = () => {
   )
 }
 
-function createNoteQuery(tag?: Tag | null) {
+function createNoteQuery(tag: Tag | null, searchValue: string | null) {
   return (collection: Realm.Results<Note>) => {
-    const sortDescriptor: SortDescriptor[] = [
-      ['isPinned', true],
-      ['updateAt', true],
-    ]
+    const query = combineQuery(
+      queryDefault(),
+      queryByText(searchValue),
+      queryByTag(tag),
+    )
+    return query(collection)
+  }
+}
 
-    const result = collection
-      .filtered(
-        'isDeleted == false AND isPrivate == false AND isHided == false',
-      )
+const queryDefault = () => {
+  const sortDescriptor: SortDescriptor[] = [
+    ['isPinned', true],
+    ['updateAt', true],
+  ]
+  return (collection: Results<Note>) => {
+    return collection
+      .filtered('isDeleted == false AND isPrivate == false')
       .sorted(sortDescriptor)
+  }
+}
 
-    if (tag) {
-      return result.filtered('$0 IN tags', tag)
-    } else {
-      return result
-    }
+const queryByText = (text: string | null) => {
+  return (collection: Results<Note>) => {
+    if (text === null || text.trim() === '') return collection
+    return collection.filtered(
+      'title TEXT $0 OR content TEXT $0 OR taskList.label TEXT $0',
+      text,
+    )
+  }
+}
+
+const queryByTag = (tag: Tag | null) => {
+  return (collection: Results<Note>) => {
+    if (!tag) return collection
+    return collection.filtered('$0 IN tags', tag)
   }
 }
 

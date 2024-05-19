@@ -1,7 +1,8 @@
 import { FC } from 'react'
 import { StyleProp, StyleSheet, ViewProps, ViewStyle } from 'react-native'
 import Animated, { AnimatedProps } from 'react-native-reanimated'
-import { AnimatedPaper, Fill } from '~/components/atoms'
+import { AnimatedPaper } from '~/components/Animated'
+import { Fill } from '~/components/atoms'
 
 interface Props extends AnimatedProps<ViewProps> {
   backable?: boolean

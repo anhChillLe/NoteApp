@@ -12,19 +12,17 @@ import {
   KeyboardAvoidingView,
   Modal,
   ModalProps,
-  Platform,
   PressableProps,
   StyleSheet,
 } from 'react-native'
 import { useTheme } from 'react-native-paper'
 import { AnimatedProps, runOnJS } from 'react-native-reanimated'
 import { useProgress } from '~/hooks'
-import { AnimatedPressable } from '../Animated'
-import { SystemBarController } from '~/modules'
+import { SystemBar } from '~/modules'
 import { convertToSolidColor, toHex } from '~/styles/material3/color/utils'
+import { AnimatedPressable } from '../../Animated'
 
 interface Props extends ModalProps {
-  dissmisable?: boolean
   enteringDuration?: number
   exitingDuration?: number
 }
@@ -56,20 +54,36 @@ const AnimatedModal = forwardRef<ModalActions, Props>(
     {
       style,
       children,
-      dissmisable,
+      onDismiss,
       enteringDuration = 200,
       exitingDuration = 200,
       ...props
     },
     ref,
   ) => {
+    const { colors } = useTheme()
     const [visible, setVisible] = useState(false)
     const { progress, start, end } = useProgress()
+    const [prevColor, setPrevColor] = useState<string | null>(null)
+
+    const setColor = () => {
+      const color = convertToSolidColor(
+        colors.inverseSurface,
+        colors.background,
+        0.38,
+      )
+      SystemBar.setNavigationBarColor(toHex(color))
+    }
+
+    const clearColor = () => {
+      prevColor && SystemBar.setNavigationBarColor(prevColor)
+    }
 
     const show = useCallback(
       (options?: Partial<Options>) => {
         const { onCompleteTransition, skipAnimation } = options || {}
         setVisible(true)
+        setColor()
         const callback = onCompleteTransition
           ? runOnJS(onCompleteTransition)
           : undefined
@@ -80,38 +94,39 @@ const AnimatedModal = forwardRef<ModalActions, Props>(
 
     const hide = useCallback(
       (options?: Partial<Options>) => {
-        const { onCompleteTransition } = options || {}
-        Keyboard.dismiss()
+        const { onCompleteTransition, skipAnimation } = options || {}
+        clearColor()
         const onComplete = () => {
           'worklet'
           runOnJS(setVisible)(false)
-          if (typeof onCompleteTransition === 'function') {
-            runOnJS(onCompleteTransition)()
-          }
+          onCompleteTransition && runOnJS(onCompleteTransition)()
         }
         end(enteringDuration, onComplete)
       },
-      [setVisible],
+      [setVisible, prevColor],
     )
 
     useImperativeHandle(ref, () => ({ show, hide }), [show, hide])
 
+    useEffect(() => {
+      setPrevColor(SystemBar.getNavigationBarColor())
+      return () => {
+        prevColor && SystemBar.setNavigationBarColor(prevColor)
+      }
+    }, [colors, setPrevColor])
+
     return (
       <Modal
         visible={visible}
-        onRequestClose={() => hide()}
-        statusBarTranslucent={false}
         transparent
+        statusBarTranslucent={true}
         {...props}
       >
         <KeyboardAvoidingView
           style={[styles.container, style]}
           behavior="padding"
         >
-          <ModalBackdrop
-            onPress={dissmisable ? () => hide() : undefined}
-            style={{ opacity: progress }}
-          />
+          <ModalBackdrop onPress={onDismiss} style={{ opacity: progress }} />
           {children}
         </KeyboardAvoidingView>
       </Modal>
@@ -122,27 +137,7 @@ const AnimatedModal = forwardRef<ModalActions, Props>(
 interface BackdropProps extends AnimatedProps<PressableProps> {}
 
 const ModalBackdrop: FC<BackdropProps> = ({ style, ...props }) => {
-  const navBackGround = useRef<string | null>(null)
   const { colors } = useTheme()
-
-  Platform.OS === 'android' &&
-    useEffect(() => {
-      navBackGround.current = SystemBarController.getNavigationBarColor()
-
-      const c = convertToSolidColor(
-        colors.inverseSurface,
-        colors.background,
-        0.38,
-      )
-
-      SystemBarController.setNavigationBarColor(toHex(c))
-
-      return () => {
-        if (navBackGround.current) {
-          SystemBarController.setNavigationBarColor(navBackGround.current)
-        }
-      }
-    }, [colors])
 
   return (
     <AnimatedPressable
@@ -159,5 +154,5 @@ const styles = StyleSheet.create({
   backdrop: StyleSheet.absoluteFillObject,
 })
 
-export { useModal, AnimatedModal }
+export { AnimatedModal, useModal }
 export type { Options as ModalActionOptions, ModalActions }

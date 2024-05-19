@@ -36,7 +36,6 @@ export const HomeBottomAppbar: FC<Props> = ({ style, ...props }) => {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 16,
-    paddingVertical: 8,
     flexDirection: 'row',
     alignItems: 'center',
   },

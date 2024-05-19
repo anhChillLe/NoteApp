@@ -8,7 +8,7 @@ import {
   ZoomOut,
   useAnimatedStyle,
 } from 'react-native-reanimated'
-import { AnimatedPaper, AnimatedPressable } from '~/components/atoms/Animated'
+import { AnimatedPaper, AnimatedPressable } from '~/components/Animated'
 import { Tag } from '~/services/database/model'
 
 interface Props extends AnimatedProps<PressableProps> {
