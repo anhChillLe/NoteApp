@@ -8,8 +8,6 @@ export type RootStackParamList = {
   tag_init: undefined
   tag_manager: undefined
   setting: undefined
-  search: undefined
-  hided: undefined
   deleted: undefined
   private: undefined
 }
