@@ -1,11 +1,5 @@
 import { MD3Theme } from 'react-native-paper'
-import {
-  blueColors,
-  greenColors,
-  redColors,
-  violetColors,
-  yellowColors,
-} from './color'
+import colorSchemes from './color'
 import { ColorSchemes } from './color/utils'
 import { NunitoFont } from './font/nunito'
 
@@ -36,22 +30,6 @@ const createTheme = (schemes: ColorSchemes) => {
   }
 }
 
-const yellowTheme = createTheme(yellowColors)
-
-const greenTheme = createTheme(greenColors)
-
-const blueTheme = createTheme(blueColors)
-
-const violetTheme = createTheme(violetColors)
-
-const redTheme = createTheme(redColors)
-
-const AppTheme = {
-  yellow: yellowTheme,
-  green: greenTheme,
-  blue: blueTheme,
-  red: redTheme,
-  violet: violetTheme,
-}
+const AppTheme = colorSchemes.map(createTheme)
 
 export { AppTheme }

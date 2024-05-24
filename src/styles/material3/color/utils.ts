@@ -1,5 +1,5 @@
-import { MD3Colors } from 'react-native-paper/lib/typescript/types'
 import Color from 'color'
+import { MD3Colors } from 'react-native-paper/lib/typescript/types'
 
 export interface ColorSchemes {
   light: MD3Colors
@@ -11,17 +11,17 @@ export interface ColorSchemes {
 }
 
 export function getColorSchemes(jsonTheme: JsonTheme): ColorSchemes {
-  const getColors = (key: keyof Schemes) => {
+  const getColors = (key: keyof Schemes, isDark: boolean = false) => {
     const scheme = jsonTheme.schemes[key]
-    return createMD3Color(scheme, jsonTheme.palettes)
+    return createMD3Color(scheme, jsonTheme.palettes, isDark)
   }
 
   const light = getColors('light')
   const lightMediumContrast = getColors('light-medium-contrast')
   const lightHighContrast = getColors('light-high-contrast')
-  const dark = getColors('dark')
-  const darkMediumContrast = getColors('dark-medium-contrast')
-  const darkHighContrast = getColors('dark-high-contrast')
+  const dark = getColors('dark', true)
+  const darkMediumContrast = getColors('dark-medium-contrast', true)
+  const darkHighContrast = getColors('dark-high-contrast', true)
 
   return {
     light,
@@ -36,14 +36,15 @@ export function getColorSchemes(jsonTheme: JsonTheme): ColorSchemes {
 export function createMD3Color(
   scheme: ColorScheme,
   palettes: Palettes,
+  isDark: boolean,
 ): MD3Colors {
   return {
     ...scheme,
-    surfaceDisabled: Color(palettes.neutral[90])
+    surfaceDisabled: Color(palettes.neutral[isDark ? 90 : 10])
       .alpha(opacity.level2)
       .rgb()
       .string(),
-    onSurfaceDisabled: Color(palettes.neutral[90])
+    onSurfaceDisabled: Color(palettes.neutral[isDark ? 90 : 10])
       .alpha(opacity.level4)
       .rgb()
       .string(),
@@ -99,8 +100,4 @@ export function convertToSolidColor(
   const newB = Math.round(inputB * alpha + backgroundB * (1 - alpha))
 
   return `rgb(${newR}, ${newG}, ${newB})`
-}
-
-export function toHex(color: string): string {
-  return Color(color).hex()
 }
