@@ -1,8 +1,7 @@
 import { FC } from 'react'
-import { StyleSheet, ViewProps } from 'react-native'
+import { StyleSheet, View, ViewProps } from 'react-native'
 import { IconButton } from 'react-native-paper'
 import Animated, { AnimatedProps } from 'react-native-reanimated'
-import { Fill } from '~/components/atoms'
 import { useHome } from '../Provider'
 
 interface Props extends AnimatedProps<ViewProps> {}
@@ -21,7 +20,7 @@ export const HomeBottomAppbar: FC<Props> = ({ style, ...props }) => {
       <IconButton icon="microphone" disabled />
       <IconButton icon="picture" disabled />
       <IconButton icon="paint-brush" disabled />
-      <Fill />
+      <View style={styles.fill} />
       <IconButton
         icon="plus-small"
         mode="contained"
@@ -38,5 +37,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  fill: {
+    flex: 1,
   },
 })

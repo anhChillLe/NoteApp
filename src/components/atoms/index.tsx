@@ -1,7 +1,3 @@
-export { Row } from './Row'
-export { Column } from './Column'
-export { Center } from './Center'
-export { Fill } from './Fill'
 export { ActionSheet } from './ActionSheet'
 export { StackedIconButton } from './StackedIconButton'
 export { TouchableScale } from './TouchableScale'

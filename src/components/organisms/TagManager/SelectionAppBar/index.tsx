@@ -1,9 +1,7 @@
 import { FC } from 'react'
-import { StyleSheet } from 'react-native'
-import { ViewProps } from 'react-native'
+import { StyleSheet, ViewProps } from 'react-native'
 import { IconButton, Text, useTheme } from 'react-native-paper'
 import Animated, { AnimatedProps } from 'react-native-reanimated'
-import { Fill } from '~/components/atoms'
 
 export interface SelectionAppBarProps extends AnimatedProps<ViewProps> {
   onClosePress: () => void

@@ -1,7 +1,12 @@
-import { FC, forwardRef, useImperativeHandle, useRef, useState } from 'react'
-import { ModalProps, StyleProp, StyleSheet, ViewStyle } from 'react-native'
+import { FC } from 'react'
+import {
+  ModalProps,
+  StyleProp,
+  StyleSheet,
+  View,
+  ViewStyle,
+} from 'react-native'
 import { Button, Text, TextInput } from 'react-native-paper'
-import { Row } from '~/components/atoms'
 import { ActionSheet } from '~/components/atoms/ActionSheet'
 
 interface Props extends ModalProps {
@@ -48,7 +53,7 @@ export const InputActionSheet: FC<Props> = ({
         onSubmitEditing={handleSubmit}
         dense
       />
-      <Row style={styles.button_container}>
+      <View style={styles.button_container}>
         <Button
           mode="outlined"
           style={styles.button}
@@ -65,7 +70,7 @@ export const InputActionSheet: FC<Props> = ({
         >
           Ok
         </Button>
-      </Row>
+      </View>
     </ActionSheet>
   )
 }
@@ -79,5 +84,5 @@ const styles = StyleSheet.create({
   },
   title: { fontWeight: '600', textAlign: 'center' },
   button: { flex: 1 },
-  button_container: { gap: 8 },
+  button_container: { gap: 8, flexDirection: 'row' },
 })

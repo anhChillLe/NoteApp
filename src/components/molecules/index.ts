@@ -1,7 +1,6 @@
 export { NoteListItem } from './NoteListItem'
 export { TagMenu } from './TagMenu'
 export { PagerIndicator } from './PagerIndicator'
-export { OnboardingPage } from './OnboardingPage'
 export { TagItemFull } from './TagItem/Full'
 export { TagItem } from './TagItem/Default'
 export { TagItemCompact } from './TagItem/Compact'

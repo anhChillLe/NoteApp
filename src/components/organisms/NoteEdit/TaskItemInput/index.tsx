@@ -11,7 +11,7 @@ import {
 } from 'react-native'
 import { Checkbox, IconButton } from 'react-native-paper'
 import Animated, { FadeInDown, FadeOutUp } from 'react-native-reanimated'
-import { Input, Row } from '~/components/atoms'
+import { Input } from '~/components/atoms'
 
 interface Item {
   label: string
@@ -91,7 +91,7 @@ export const TaskListItemEditor: FC<Props> = ({
           </Animated.View>
         )
       })}
-      <Row style={{ alignItems: 'center' }}>
+      <View style={styles.input_container}>
         <IconButton icon="plus" size={14} />
         <Input
           placeholder="Add a new item"
@@ -99,7 +99,7 @@ export const TaskListItemEditor: FC<Props> = ({
           style={styles.editor}
           onSubmitEditing={handleSubmit}
         />
-      </Row>
+      </View>
     </View>
   )
 }
@@ -114,5 +114,9 @@ const styles = StyleSheet.create({
   },
   editor: {
     flex: 1,
+  },
+  input_container: {
+    alignItems: 'center',
+    flexDirection: 'row',
   },
 })

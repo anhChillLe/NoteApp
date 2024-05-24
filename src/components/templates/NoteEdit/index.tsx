@@ -3,14 +3,14 @@ import { ScrollView, StyleSheet, View } from 'react-native'
 import { Divider, IconButton, Text } from 'react-native-paper'
 import { useAnimatedRef } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { Fill, Input, Menu, Row } from '~/components/atoms'
+import { Input, Menu } from '~/components/atoms'
 import { MenuItem, TagMenu } from '~/components/molecules'
 import { useNoteEdit } from '~/components/organisms/NoteEdit/Provider'
-import { EditorToolbar } from '~/components/organisms/NoteEdit/Toolbar'
 import { TaskListItemEditor } from '~/components/organisms/NoteEdit/TaskItemInput'
+import { EditorToolbar } from '~/components/organisms/NoteEdit/Toolbar'
 import { useVisible } from '~/hooks'
-import { useNoteEditor } from '~/store/noteEdit'
 import { TaskItemData } from '~/services/database/model/TaskItem'
+import { useNoteEditor } from '~/store/noteEdit'
 
 interface Props {
   type: NoteType
@@ -35,12 +35,12 @@ const UpdateTime: FC = () => {
   const updateAt = useNoteEdit(state => state.updateTime)
 
   return (
-    <Row style={styles.divider_container}>
+    <View style={styles.divider_container}>
       <Divider style={styles.divider} />
       <Text variant="labelSmall" style={styles.time}>
         {(updateAt ?? new Date()).toLocaleString()}
       </Text>
-    </Row>
+    </View>
   )
 }
 
@@ -68,18 +68,18 @@ const Appbar: FC = () => {
   }
 
   return (
-    <Row style={styles.header}>
+    <View style={styles.header}>
       <IconButton icon="angle-left" onPress={onBackPress} />
-      <Fill />
+      <View style={styles.fill} />
       <IconButton icon="bookmark" />
-      <Row style={styles.tag_container}>
+      <View style={styles.tag_container}>
         <TagMenu
           tags={tags}
           currents={currentTags}
           onChange={update('tags')}
           onNewTagSubmit={onNewTagSubmit}
         />
-      </Row>
+      </View>
       <IconButton ref={menuIcon} icon="menu-dots-vertical" onPress={showMenu} />
       <Menu
         anchorRef={menuIcon}
@@ -103,7 +103,7 @@ const Appbar: FC = () => {
         <MenuItem leadingIcon="share" title="Share" />
         <MenuItem leadingIcon="info" title="Info" />
       </Menu>
-    </Row>
+    </View>
   )
 }
 
@@ -208,11 +208,13 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
+    flexDirection: 'row',
   },
   divider: {
     flex: 1,
   },
   divider_container: {
+    flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
@@ -232,9 +234,13 @@ const styles = StyleSheet.create({
   },
   tag_container: {
     gap: 8,
+    flexDirection: 'row',
   },
   menu: {
     padding: 12,
     gap: 4,
+  },
+  fill: {
+    flex: 1,
   },
 })

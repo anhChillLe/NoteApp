@@ -1,7 +1,6 @@
 import React, { forwardRef } from 'react'
-import { ViewProps } from 'react-native'
+import { StyleSheet, View, ViewProps } from 'react-native'
 import { IconButton } from 'react-native-paper'
-import { Row } from '~/components/atoms'
 
 interface Props extends ViewProps {
   onBoldPress?: () => void
@@ -21,12 +20,13 @@ export const EditorToolbar = forwardRef<Toolbar, Props>(
       onItalicPress,
       onListPress,
       onStrikeThroughPress,
+      style,
       ...props
     },
     ref,
   ) => {
     return (
-      <Row {...props}>
+      <View style={[styles.container, style]} {...props}>
         <IconButton icon="bold" size={18} onPress={onBoldPress} />
         <IconButton icon="italic" size={18} onPress={onItalicPress} />
         <IconButton
@@ -36,7 +36,13 @@ export const EditorToolbar = forwardRef<Toolbar, Props>(
         />
         <IconButton icon="list" size={18} onPress={onListPress} />
         <IconButton icon="picture" size={18} onPress={onImagePress} />
-      </Row>
+      </View>
     )
   },
 )
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+  },
+})

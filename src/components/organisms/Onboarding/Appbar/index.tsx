@@ -1,8 +1,7 @@
 import { FC } from 'react'
-import { StyleProp, StyleSheet, ViewProps, ViewStyle } from 'react-native'
+import { StyleProp, StyleSheet, View, ViewProps, ViewStyle } from 'react-native'
 import Animated, { AnimatedProps } from 'react-native-reanimated'
 import { AnimatedPaper } from '~/components/Animated'
-import { Fill } from '~/components/atoms'
 
 interface Props extends AnimatedProps<ViewProps> {
   backable?: boolean
@@ -31,7 +30,7 @@ export const OnboardingAppbar: FC<Props> = ({
         disabled={!backable}
         style={backStyle}
       />
-      <Fill />
+      <View style={styles.fill} />
       <AnimatedPaper.Button
         icon="angle-small-right"
         contentStyle={styles.btn_skip}
@@ -57,5 +56,8 @@ const styles = StyleSheet.create({
   },
   btn_skip: {
     flexDirection: 'row-reverse',
+  },
+  fill: {
+    flex: 1,
   },
 })

@@ -1,9 +1,7 @@
 import { FC } from 'react'
-import { StyleSheet } from 'react-native'
-import { View, ViewProps } from 'react-native'
+import { StyleSheet, View, ViewProps } from 'react-native'
 import { Text } from 'react-native-paper'
 import { SvgProps } from 'react-native-svg'
-import { Center, Column, Fill } from '~/components/atoms'
 
 interface Props extends ViewProps {
   Icon: FC<SvgProps>
@@ -20,18 +18,18 @@ export const OnboardingPage: FC<Props> = ({
 }) => {
   return (
     <View collapsable={false} style={[styles.container, style]} {...props}>
-      <Center style={styles.icon_container}>
+      <View style={styles.icon_container}>
         <Icon style={styles.icon} />
-      </Center>
-      <Column style={styles.content_container}>
+      </View>
+      <View style={styles.content_container}>
         <Text variant="headlineMedium" style={styles.title}>
           {title}
         </Text>
         <Text variant="bodyLarge" style={styles.desc}>
           {description}
         </Text>
-        <Fill />
-      </Column>
+        <View style={styles.fill} />
+      </View>
     </View>
   )
 }
@@ -56,4 +54,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   desc: {},
+  fill: {
+    flex: 1,
+  },
 })

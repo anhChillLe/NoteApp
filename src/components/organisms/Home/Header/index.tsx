@@ -1,5 +1,5 @@
 import { FC, useEffect } from 'react'
-import { StyleSheet, TextInput, ViewProps, ViewStyle } from 'react-native'
+import { StyleSheet, TextInput, View, ViewProps, ViewStyle } from 'react-native'
 import { IconButton, Text, useTheme } from 'react-native-paper'
 import Animated, {
   AnimatedProps,
@@ -8,7 +8,6 @@ import Animated, {
   WithTimingConfig,
   ZoomIn,
   ZoomOut,
-  dispatchCommand,
   interpolate,
   interpolateColor,
   useAnimatedRef,
@@ -17,7 +16,6 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated'
 import { AnimatedInput, AnimatedPaper } from '~/components/Animated'
-import { Column, Fill } from '~/components/atoms'
 import { useLayout } from '~/hooks'
 import { useHomeSearch } from '~/store/home'
 import { useHome } from '../Provider'
@@ -104,13 +102,13 @@ export const HomeHeader: FC<Props> = ({ style, ...props }) => {
     <Animated.View style={style} {...props}>
       <Animated.View onLayout={onContainerLayout}>
         <Animated.View style={[styles.container, containerStyle]}>
-          <Column>
+          <View>
             <Text variant="labelSmall">{new Date().toDateString()}</Text>
             <Text variant="titleLarge" style={styles.title}>
               {strings.appName}
             </Text>
-          </Column>
-          <Fill />
+          </View>
+          <View style={styles.fill} />
           <Animated.View
             onLayout={onSearchButtonLayout}
             style={styles.search_icon}
@@ -183,6 +181,9 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   input: {
+    flex: 1,
+  },
+  fill: {
     flex: 1,
   },
 })
