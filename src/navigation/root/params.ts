@@ -3,8 +3,7 @@ import { RouteProp } from '@react-navigation/native'
 export type RootStackParamList = {
   onboarding: undefined
   home: undefined
-  note_edit: { readonly id: string } | undefined
-  task_edit: { readonly id: string } | undefined
+  note_edit: { type: NoteType; id?: Readonly<string>; tagId?: Readonly<string> }
   tag_init: undefined
   tag_manager: undefined
   setting: undefined

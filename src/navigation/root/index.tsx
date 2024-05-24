@@ -14,7 +14,6 @@ import {
   SettingScreen,
   TagManagerScreen,
   TagSelectScreen,
-  TaskEditScreen,
 } from '~/screens'
 import { Key } from '~/services/storage/keys'
 
@@ -34,7 +33,6 @@ const RootStack: FC = () => {
         <Stack.Group>
           <Stack.Screen name="home" component={HomeScreen} />
           <Stack.Screen name="note_edit" component={NoteEditScreen} />
-          <Stack.Screen name="task_edit" component={TaskEditScreen} />
           <Stack.Screen name="tag_manager" component={TagManagerScreen} />
           <Stack.Screen name="setting" component={SettingScreen} />
           <Stack.Screen name="deleted" component={DeletedNoteScreen} />
