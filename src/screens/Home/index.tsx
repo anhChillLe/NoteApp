@@ -28,10 +28,16 @@ export const HomeScreen: FC = () => {
     searchValue,
   ])
 
-  const openEditor = useCallback((item: Note) => {
-    const destination = item?.type === 'task' ? 'task_edit' : 'note_edit'
-    navigation.navigate(destination, { id: item.id })
-  }, [])
+  const openEditor = useCallback(
+    (item: Note) => {
+      navigation.navigate('note_edit', {
+        id: item.id,
+        type: item.type,
+        tagId: currentTag?.id,
+      })
+    },
+    [currentTag],
+  )
 
   const openDeletedNote = useCallback(() => {
     navigation.navigate('deleted')
@@ -50,23 +56,23 @@ export const HomeScreen: FC = () => {
   }, [navigation])
 
   const openNewNoteEditor = useCallback(() => {
-    navigation.navigate('note_edit')
-  }, [navigation])
+    navigation.navigate('note_edit', { type: 'note', tagId: currentTag?.id })
+  }, [navigation, currentTag])
 
   const openNewTaskEditor = useCallback(() => {
-    navigation.navigate('task_edit')
+    navigation.navigate('note_edit', { type: 'task' })
   }, [navigation])
 
   const openNewRecordEditor = useCallback(() => {
-    navigation.navigate('task_edit')
+    navigation.navigate('note_edit', { type: 'note' })
   }, [navigation])
 
   const openNewImageEditor = useCallback(() => {
-    navigation.navigate('task_edit')
+    navigation.navigate('note_edit', { type: 'note' })
   }, [navigation])
 
   const openNewPaintEditor = useCallback(() => {
-    navigation.navigate('task_edit')
+    navigation.navigate('note_edit', { type: 'note' })
   }, [navigation])
 
   const changeTaskItemStatus = useCallback(

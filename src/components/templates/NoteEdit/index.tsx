@@ -1,131 +1,198 @@
-import React, { FC, useEffect } from 'react'
-import { Controller, useForm } from 'react-hook-form'
-import { StyleSheet, View } from 'react-native'
+import React, { FC } from 'react'
+import { ScrollView, StyleSheet, View } from 'react-native'
 import { Divider, IconButton, Text } from 'react-native-paper'
+import { useAnimatedRef } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { Fill, Row } from '~/components/atoms'
-import { Editor, TagMenu } from '~/components/molecules'
-import { useDebounceWatch } from '~/hooks/debounce_watch'
-import { Note, Tag } from '~/services/database/model'
-
-export interface NoteForm {
-  title: string
-  content: string
-  tags: Tag[]
-}
+import { Fill, Input, Menu, Row } from '~/components/atoms'
+import { MenuItem, TagMenu } from '~/components/molecules'
+import { useNoteEdit } from '~/components/organisms/NoteEdit/Provider'
+import { EditorToolbar } from '~/components/organisms/NoteEdit/Toolbar'
+import { TaskListItemEditor } from '~/components/organisms/NoteEdit/TaskItemInput'
+import { useVisible } from '~/hooks'
+import { useNoteEditor } from '~/store/noteEdit'
+import { TaskItemData } from '~/services/database/model/TaskItem'
 
 interface Props {
-  note?: Note | null
-  tags: Tag[]
-  onChange: (data: NoteForm) => void
-  onBackPress: () => void
-  onNewTagSubmit: (text: string) => void
+  type: NoteType
 }
 
-const defaultValues: NoteForm = {
-  title: '',
-  content: '',
-  tags: [],
-}
-
-export const NoteEditLayout: FC<Props> = ({
-  onBackPress,
-  onNewTagSubmit,
-  onChange,
-  tags,
-  note,
-}) => {
-  const {
-    control,
-    formState: { isDirty },
-  } = useForm<NoteForm>({
-    defaultValues: {
-      ...defaultValues,
-      ...note?.data,
-    },
-  })
-
-  const [title, content, itemTags] = useDebounceWatch({
-    control,
-    name: ['title', 'content', 'tags'],
-    delay: 300,
-  })
-
-  useEffect(() => {
-    if (!isDirty) return
-    onChange({ title, content, tags: itemTags })
-  }, [title, content, itemTags, isDirty, onChange])
-
+export const NoteEditLayout: FC<Props> = ({ type }) => {
   return (
     <SafeAreaView style={styles.container}>
-      <Row style={styles.header}>
-        <IconButton icon="angle-left" onPress={onBackPress} />
-        <Fill />
-        <IconButton icon="bookmark" />
-        <Row style={styles.tag_container}>
-          <Controller
-            name="tags"
-            control={control}
-            render={({ field: { onChange, value } }) => {
-              return (
-                <TagMenu
-                  tags={tags}
-                  currents={value}
-                  onChange={onChange}
-                  onNewTagSubmit={onNewTagSubmit}
-                />
-              )
-            }}
-          />
-        </Row>
-        <IconButton icon="menu-dots-vertical" />
-      </Row>
+      <Appbar />
       <View style={styles.content_container}>
-        <Controller
-          name="title"
-          control={control}
-          render={({ field: { value, onChange, onBlur, ref } }) => {
-            return (
-              <Editor.Text
-                ref={ref}
-                style={styles.title}
-                value={value}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                multiline
-                numberOfLines={2}
-                placeholder="Title"
-              />
-            )
-          }}
-        />
-        <Row style={styles.divider_container}>
-          <Divider style={styles.divider} />
-          <Text variant="labelSmall" style={styles.time}>
-            {(note?.updateAt ?? new Date()).toLocaleString()}
-          </Text>
-        </Row>
-        <Controller
-          name="content"
-          control={control}
-          render={({ field: { value, onChange, onBlur, ref } }) => {
-            return (
-              <Editor.Text
-                value={value}
-                ref={ref}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                style={styles.content}
-                autoCapitalize="sentences"
-                multiline
-                placeholder="Content for note"
-              />
-            )
-          }}
-        />
+        <TitleInput />
+        <UpdateTime />
+        {type === 'note' && <ContentInput />}
+        {type === 'task' && <TaskItemInput />}
       </View>
-      <Editor.Toolbar style={styles.toolbar} />
+      {type === 'note' && <EditorToolbar style={styles.toolbar} />}
     </SafeAreaView>
+  )
+}
+
+const UpdateTime: FC = () => {
+  const updateAt = useNoteEdit(state => state.updateTime)
+
+  return (
+    <Row style={styles.divider_container}>
+      <Divider style={styles.divider} />
+      <Text variant="labelSmall" style={styles.time}>
+        {(updateAt ?? new Date()).toLocaleString()}
+      </Text>
+    </Row>
+  )
+}
+
+const Appbar: FC = () => {
+  const menuIcon = useAnimatedRef<View>()
+  const [menuVisible, showMenu, hideMenu] = useVisible()
+
+  const onBackPress = useNoteEdit(state => state.onBackPress)
+  const tags = useNoteEdit(state => state.tags)
+  const onNewTagSubmit = useNoteEdit(state => state.onNewTagSubmit)
+
+  const currentTags = useNoteEditor(state => state.tags)
+  const isPrivate = useNoteEditor(state => state.isPrivate)
+  const isPinned = useNoteEditor(state => state.isPinned)
+  const update = useNoteEditor(state => state.update)
+
+  const handlePinPress = () => {
+    update('isPinned')(!isPinned)
+    hideMenu()
+  }
+
+  const handlePrivatePress = () => {
+    update('isPrivate')(!isPrivate)
+    hideMenu()
+  }
+
+  return (
+    <Row style={styles.header}>
+      <IconButton icon="angle-left" onPress={onBackPress} />
+      <Fill />
+      <IconButton icon="bookmark" />
+      <Row style={styles.tag_container}>
+        <TagMenu
+          tags={tags}
+          currents={currentTags}
+          onChange={update('tags')}
+          onNewTagSubmit={onNewTagSubmit}
+        />
+      </Row>
+      <IconButton ref={menuIcon} icon="menu-dots-vertical" onPress={showMenu} />
+      <Menu
+        anchorRef={menuIcon}
+        visible={menuVisible}
+        onRequestClose={hideMenu}
+        onDismiss={hideMenu}
+        style={styles.menu}
+      >
+        <MenuItem
+          leadingIcon={isPrivate ? 'unlock' : 'lock'}
+          title={isPrivate ? 'Unlock' : 'Lock'}
+          onPress={handlePrivatePress}
+        />
+        <MenuItem
+          leadingIcon="thumbtack"
+          title={isPinned ? 'Unpin' : 'Pin'}
+          onPress={handlePinPress}
+        />
+        <MenuItem leadingIcon="search" title="Search" />
+        <MenuItem leadingIcon="trash" title="Delete" />
+        <MenuItem leadingIcon="share" title="Share" />
+        <MenuItem leadingIcon="info" title="Info" />
+      </Menu>
+    </Row>
+  )
+}
+
+const TitleInput: FC = () => {
+  const title = useNoteEditor(state => state.title)
+  const update = useNoteEditor(state => state.update)
+
+  return (
+    <Input
+      style={styles.title}
+      value={title}
+      onChangeText={update('title')}
+      multiline
+      numberOfLines={2}
+      placeholder="Title"
+    />
+  )
+}
+
+const ContentInput: FC = () => {
+  const content = useNoteEditor(state => state.content)
+  const update = useNoteEditor(state => state.update)
+
+  return (
+    <Input
+      value={content}
+      onChangeText={update('content')}
+      style={styles.content}
+      autoCapitalize="sentences"
+      multiline
+      placeholder="Content for note"
+    />
+  )
+}
+
+const TaskItemInput: FC = () => {
+  const taskItems = useNoteEditor(state => state.taskList)
+  const setTaskItems = useNoteEditor(state => state.update('taskList'))
+
+  const onCheckPress = (item: TaskItemData) => {
+    switch (item.status) {
+      case 'checked':
+        item.status = 'unchecked'
+        break
+      case 'unchecked':
+        item.status = 'checked'
+        break
+      case 'indeterminate':
+        break
+    }
+    setTaskItems([...taskItems])
+  }
+
+  const onDeletePress = (item: TaskItemData, index: number) => {
+    taskItems.splice(index, 1)
+    setTaskItems([...taskItems])
+  }
+
+  const onDisablePress = (item: TaskItemData) => {
+    item.status = item.status == 'indeterminate' ? 'unchecked' : 'indeterminate'
+    setTaskItems([...taskItems])
+  }
+
+  const onLabelChange = (item: TaskItemData, label: string) => {
+    item.label = label
+    setTaskItems([...taskItems])
+  }
+
+  const onNewItem = (label: string) => {
+    taskItems.push({ label, status: 'unchecked' })
+    setTaskItems([...taskItems])
+  }
+
+  return (
+    <ScrollView
+      keyboardShouldPersistTaps="always"
+      automaticallyAdjustKeyboardInsets
+      showsVerticalScrollIndicator={false}
+      keyboardDismissMode="interactive"
+    >
+      <TaskListItemEditor
+        items={taskItems}
+        onCheckPress={onCheckPress}
+        onDeletePress={onDeletePress}
+        onDisablePress={onDisablePress}
+        onLabelChange={onLabelChange}
+        onNewItem={onNewItem}
+      />
+    </ScrollView>
   )
 }
 
@@ -165,5 +232,9 @@ const styles = StyleSheet.create({
   },
   tag_container: {
     gap: 8,
+  },
+  menu: {
+    padding: 12,
+    gap: 4,
   },
 })

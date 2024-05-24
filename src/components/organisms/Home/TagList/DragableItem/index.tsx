@@ -22,7 +22,7 @@ export const DragableTagItem: FC<Props> = ({
 }) => {
   const ref = useAnimatedRef<View>()
   const isPressed = useSharedValue(false)
-  const { gesturePayload, target } = useDragingHome()
+  const { gesturePayload, target, setDragingTag } = useDragingHome()
 
   const gesture = Gesture.Pan()
     .activateAfterLongPress(250)
@@ -44,6 +44,7 @@ export const DragableTagItem: FC<Props> = ({
     .onFinalize(e => {
       isPressed.value = false
       target.value = undefined
+      runOnJS(setDragingTag)(undefined)
     })
 
   return (

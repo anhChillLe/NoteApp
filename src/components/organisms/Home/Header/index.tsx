@@ -39,9 +39,8 @@ export const HomeHeader: FC<Props> = ({ style, ...props }) => {
 
   useEffect(() => {
     if (isInSearchMode) {
-      progress.value = withTiming(1, timingConfig, () => {
-        dispatchCommand(input, 'focus')
-      })
+      input.current?.focus()
+      progress.value = withTiming(1, timingConfig)
     } else {
       input.current?.blur()
       progress.value = withTiming(0, timingConfig)

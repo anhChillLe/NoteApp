@@ -1,100 +1,149 @@
+import React, { FC, useCallback, useEffect, useState } from 'react'
 import {
-  forwardRef,
-  useCallback,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from 'react'
-import { ModalProps, StyleSheet } from 'react-native'
-import { useTheme } from 'react-native-paper'
-import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated'
+  KeyboardAvoidingView,
+  ModalProps,
+  StyleSheet,
+  View,
+  ViewStyle,
+} from 'react-native'
+import { trigger } from 'react-native-haptic-feedback'
+import { Portal, useTheme } from 'react-native-paper'
+import Animated, {
+  Easing,
+  SlideInDown,
+  SlideOutDown,
+  interpolate,
+  runOnJS,
+  runOnUI,
+  useAnimatedRef,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { AnimatedModal, useModal } from '../AnimatedModal'
+import { AnimatedPressable } from '~/components/Animated'
+import { useLayout, useSafeAreaPadding } from '~/hooks'
 
 interface Props extends ModalProps {
-  dissmisable?: boolean
-  enteringDuration?: number
-  exitingDuration?: number
-  safeArea?: boolean
+  animationDuration?: number
 }
 
-type TransitionCallback = () => void
+export const ActionSheet: FC<Props> = ({
+  children,
+  visible,
+  style,
+  animationDuration = 150,
+  onDismiss,
+}) => {
+  const { colors, roundness } = useTheme()
+  const safeAreaStyle = useSafeAreaPadding()
 
-interface ActionSheet {
-  show: (onCompleteTransition?: TransitionCallback) => void
-  hide: (onCompleteTransition?: TransitionCallback) => void
-}
+  const progress = useSharedValue(0)
+  const [layout, onLayout] = useLayout()
+  const [contentVisible, setContentVisible] = useState(false)
 
-export function useActionSheetRef() {
-  const defaultRef = { show: () => {}, hide: () => {} }
-  return useRef<ActionSheet>(defaultRef)
-}
+  const show = useCallback(() => {
+    trigger('effectTick')
+    runOnUI(() => {
+      runOnJS(setContentVisible)(true)
+      progress.value = withTiming(1, {
+        duration: animationDuration,
+        easing: Easing.linear,
+      })
+    })()
+  }, [setContentVisible])
 
-export const ActionSheet = forwardRef<ActionSheet, Props>(
-  (
-    {
-      style,
-      children,
-      dissmisable,
-      safeArea = true,
-      enteringDuration = 200,
-      exitingDuration = 200,
-      ...props
-    },
-    ref,
-  ) => {
-    const { colors } = useTheme()
-    const { bottom, left, right } = useSafeAreaInsets()
-    const modal = useModal()
+  const hide = useCallback(() => {
+    progress.value = withTiming(
+      0,
+      { duration: animationDuration, easing: Easing.linear },
+      () => {
+        runOnJS(setContentVisible)(false)
+      },
+    )
+  }, [setContentVisible])
 
-    const [isShowContent, setIsShowContent] = useState(false)
+  useEffect(() => {
+    if (visible) {
+      show()
+    } else {
+      hide()
+    }
+  }, [show, hide, visible])
 
-    const show = useCallback(() => {
-      setIsShowContent(true)
-      modal.current.show()
-    }, [modal.current, setIsShowContent])
+  useEffect(() => {
+    runOnUI(() => {
+      progress.addListener(0, value => runOnJS(console.log)(value))
+    })
 
-    const hide = useCallback(() => {
-      setIsShowContent(false)
-      modal.current.hide()
-    }, [modal.current, setIsShowContent])
+    return runOnUI(() => {
+      progress.removeListener(0)
+    })
+  }, [])
 
-    useImperativeHandle<ActionSheet, ActionSheet>(ref, () => ({ show, hide }), [
-      show,
-      hide,
-    ])
+  const backdropStyle = useAnimatedStyle<ViewStyle>(() => {
+    return {
+      backgroundColor: colors.backdrop,
+      opacity: progress.value,
+    }
+  })
 
-    return (
-      <AnimatedModal
-        ref={modal}
-        style={styles.container}
-        enteringDuration={200}
-        exitingDuration={200}
-        onDismiss={hide}
-        onRequestClose={hide}
-        {...props}
-      >
-        {isShowContent && (
+  const contentStyle = useAnimatedStyle<ViewStyle>(() => {
+    const height = layout?.height ?? 0
+    const translateY = interpolate(progress.value, [0, 1], [height, 0])
+    return {
+      transform: [{ translateY }],
+      opacity: progress.value == 0 ? 0 : 1,
+    }
+  }, [layout])
+
+  return (
+    <>
+      <Portal>
+        <KeyboardAvoidingView
+          style={[styles.container, safeAreaStyle]}
+          pointerEvents={contentVisible ? 'auto' : 'none'}
+          accessibilityViewIsModal
+          accessibilityLiveRegion="polite"
+          onAccessibilityEscape={hide}
+          behavior="padding"
+        >
+          <AnimatedPressable
+            style={[backdropStyle, StyleSheet.absoluteFill]}
+            accessibilityRole="button"
+            importantForAccessibility="no"
+            onPress={onDismiss}
+          />
           <Animated.View
-            entering={FadeInDown.duration(200)}
-            exiting={FadeOutDown.duration(200)}
+            onLayout={onLayout}
             style={[
-              safeArea && { bottom, left, right },
-              { backgroundColor: colors.background },
+              {
+                backgroundColor: colors.background,
+                borderRadius: roundness * 3,
+              },
+              styles.content_container,
+              contentStyle,
               style,
             ]}
           >
             {children}
           </Animated.View>
-        )}
-      </AnimatedModal>
-    )
-  },
-)
+        </KeyboardAvoidingView>
+      </Portal>
+    </>
+  )
+}
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     justifyContent: 'flex-end',
   },
-  backdrop: StyleSheet.absoluteFillObject,
+  content_container: {
+    padding: 16,
+    gap: 8,
+  },
+  backdrop: {
+    flex: 1,
+  },
 })

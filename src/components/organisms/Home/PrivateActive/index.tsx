@@ -17,7 +17,7 @@ interface Props extends AnimatedProps<ViewProps> {
   activeRange: [number, number]
 }
 
-export const PrivateActive: FC<Props> = ({
+export const HomePrivateActive: FC<Props> = ({
   offset,
   activeRange,
   style,

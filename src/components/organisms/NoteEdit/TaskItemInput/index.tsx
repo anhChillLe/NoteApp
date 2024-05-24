@@ -11,9 +11,7 @@ import {
 } from 'react-native'
 import { Checkbox, IconButton } from 'react-native-paper'
 import Animated, { FadeInDown, FadeOutUp } from 'react-native-reanimated'
-import { Row } from '~/components/atoms'
-import { Editor } from '..'
-import { TextEditor } from '../Text'
+import { Input, Row } from '~/components/atoms'
 
 interface Item {
   label: string
@@ -81,7 +79,7 @@ export const TaskListItemEditor: FC<Props> = ({
             style={[styles.item_container, containerStyle, itemStyle]}
           >
             <Checkbox.Android status={item.status} onPress={handleCheckPress} />
-            <TextEditor
+            <Input
               value={item.label}
               style={[styles.editor, editorStyle]}
               multiline
@@ -95,7 +93,7 @@ export const TaskListItemEditor: FC<Props> = ({
       })}
       <Row style={{ alignItems: 'center' }}>
         <IconButton icon="plus" size={14} />
-        <Editor.Text
+        <Input
           placeholder="Add a new item"
           blurOnSubmit={false}
           style={styles.editor}

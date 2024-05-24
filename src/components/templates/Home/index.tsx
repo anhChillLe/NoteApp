@@ -2,7 +2,6 @@ import { useFocusEffect } from '@react-navigation/native'
 import React, { FC, useCallback, useState } from 'react'
 import { BackHandler, StyleSheet, View } from 'react-native'
 import { Gesture, GestureDetector } from 'react-native-gesture-handler'
-import { Button } from 'react-native-paper'
 import Animated, {
   Easing,
   FadeInDown,
@@ -18,20 +17,20 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { Home } from '~/components/organisms'
-import { PrivateActive } from '~/components/organisms/Home/ContentList/PrivateActive'
-import { useHome } from '~/components/organisms/Home/Provider'
-import { useLayout } from '~/hooks'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { Home, SelectionAppbar } from '~/components/organisms'
+import { useHome } from '~/components/organisms/Home'
 import { useHomeSearch, useHomeSelect } from '~/store/home'
 
 export const HomeScreenLayout: FC = () => {
-  const isInSelectMode = useHomeSelect(state => state.isInSelectMode)
+  const { isInSelectMode, disable, selecteds, set } = useHomeSelect()
   const isInSearchMode = useHomeSearch(state => state.isInSearchMode)
   const openPrivateNote = useHome(state => state.openPrivateNote)
+  const notes = useHome(state => state.notes)
   useHomeBackHandler()
 
-  const [activePan, setActivePan] = useState(false)
+  const insets = useSafeAreaInsets()
+  const [activePan, setActivePan] = useState(true)
   const scrollY = useSharedValue(0)
 
   const handler = useAnimatedScrollHandler(
@@ -42,6 +41,10 @@ export const HomeScreenLayout: FC = () => {
     },
     [setActivePan],
   )
+
+  const checkAll = useCallback(() => {
+    set(notes.map(it => it))
+  }, [notes, set])
 
   const gesture = Gesture.Pan()
     .enabled(activePan)
@@ -67,48 +70,51 @@ export const HomeScreenLayout: FC = () => {
 
   return (
     <Home.DragingTagProvider>
-      <SafeAreaView style={styles.container}>
-        <View style={styles.content_container}>
-          {isInSelectMode ? (
-            <Home.SelectionAppbar
-              style={styles.header}
-              entering={FadeInUp.duration(200)}
-              exiting={FadeOutUp.duration(200)}
+      <View style={styles.content_container}>
+        {isInSelectMode ? (
+          <SelectionAppbar
+            entering={FadeInUp.duration(200)}
+            exiting={FadeOutUp.duration(200)}
+            style={[styles.header, { paddingTop: insets.top }]}
+            numOfItem={selecteds.length}
+            onCheckAllPress={checkAll}
+            onClosePress={disable}
+          />
+        ) : (
+          <Home.Header
+            style={[styles.header, { paddingTop: insets.top }]}
+            entering={FadeInUp.duration(200)}
+            exiting={FadeOutUp.duration(200)}
+          />
+        )}
+        <Home.TagList contentContainerStyle={styles.taglist_container} />
+
+        <GestureDetector gesture={gesture}>
+          <Animated.View style={styles.list_container}>
+            <Home.PrivateActive offset={scrollY} activeRange={[50, 150]} />
+            <Home.ContentList
+              style={[styles.list, listStyle]}
+              contentContainerStyle={[styles.list_content]}
+              onScroll={handler}
+            />
+          </Animated.View>
+        </GestureDetector>
+
+        {!isInSearchMode &&
+          (isInSelectMode ? (
+            <Home.Actionbar
+              entering={FadeInDown.duration(200)}
+              exiting={FadeOutDown.duration(200)}
+              style={{ paddingBottom: insets.bottom }}
             />
           ) : (
-            <Home.Header
-              style={styles.header}
-              entering={FadeInUp.duration(200)}
-              exiting={FadeOutUp.duration(200)}
+            <Home.BottomAppbar
+              entering={FadeInDown.duration(200)}
+              exiting={FadeOutDown.duration(200)}
+              style={{ paddingBottom: insets.bottom }}
             />
-          )}
-          <Home.TagList contentContainerStyle={styles.taglist_container} />
-
-          <GestureDetector gesture={gesture}>
-            <Animated.View style={styles.list_container}>
-              <PrivateActive offset={scrollY} activeRange={[50, 150]} />
-              <Home.ContentList
-                style={[styles.list, listStyle]}
-                contentContainerStyle={[styles.list_content]}
-                onScroll={handler}
-              />
-            </Animated.View>
-          </GestureDetector>
-
-          {!isInSearchMode &&
-            (isInSelectMode ? (
-              <Home.Actionbar
-                entering={FadeInDown.duration(200)}
-                exiting={FadeOutDown.duration(200)}
-              />
-            ) : (
-              <Home.BottomAppbar
-                entering={FadeInDown.duration(200)}
-                exiting={FadeOutDown.duration(200)}
-              />
-            ))}
-        </View>
-      </SafeAreaView>
+          ))}
+      </View>
     </Home.DragingTagProvider>
   )
 }

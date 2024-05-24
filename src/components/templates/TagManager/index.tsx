@@ -1,6 +1,11 @@
 import { useFocusEffect } from '@react-navigation/native'
-import React, { FC, useCallback } from 'react'
-import { BackHandler, ListRenderItem, StyleSheet } from 'react-native'
+import React, { FC, useCallback, useRef, useState } from 'react'
+import {
+  BackHandler,
+  ListRenderItem,
+  StyleSheet,
+  TextInput,
+} from 'react-native'
 import Animated, {
   LinearTransition,
   ZoomOutLeft,
@@ -8,8 +13,8 @@ import Animated, {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Results } from 'realm'
 import { TagItemFull } from '~/components/molecules'
-import { TagManager, useInputActionSheet } from '~/components/organisms'
-import { useSelection } from '~/hooks'
+import { TagManager } from '~/components/organisms'
+import { useSelection, useVisible } from '~/hooks'
 import { Tag } from '~/services/database/model'
 
 interface Props {
@@ -33,8 +38,10 @@ export const TagManagerLayout: FC<Props> = ({
   onDeleteTag,
   onTagPress,
 }) => {
-  const actionSheet = useInputActionSheet()
   const [isInSelect, selecteds, controller] = useSelection(compairTag)
+
+  const [inputVisible, showInput, hideInput] = useVisible()
+  const [inputText, setInputText] = useState('')
 
   const isAllChecked = selecteds.length === tags.length
 
@@ -50,13 +57,10 @@ export const TagManagerLayout: FC<Props> = ({
     }
   }, [controller, selecteds, tags])
 
-  const showInput = useCallback(() => {
-    actionSheet.current?.show()
-  }, [actionSheet])
-
   const showInputForUpdate = useCallback(() => {
-    actionSheet.current?.show(selecteds[0].name)
-  }, [actionSheet, selecteds])
+    setInputText(selecteds[0]?.name)
+    showInput()
+  }, [setInputText, selecteds])
 
   const handleDeleteTags = useCallback(() => {
     onDeleteTag(...selecteds)
@@ -91,7 +95,7 @@ export const TagManagerLayout: FC<Props> = ({
       }
 
       return (
-        <TagItemWithCount
+        <TagItemFull
           data={item}
           onPress={onPress}
           selectable={isInSelect}
@@ -103,11 +107,6 @@ export const TagManagerLayout: FC<Props> = ({
       )
     },
     [onTagPress, controller, selecteds, isInSelect],
-  )
-
-  const ListEmpty = useCallback<FC>(
-    () => <TagManager.Empty onNewTagPress={showInput} />,
-    [showInput],
   )
 
   useFocusEffect(() => {
@@ -139,7 +138,7 @@ export const TagManagerLayout: FC<Props> = ({
           data={tags}
           renderItem={renderTag}
           itemLayoutAnimation={LinearTransition}
-          ListEmptyComponent={ListEmpty}
+          ListEmptyComponent={<TagManager.Empty onNewTagPress={showInput} />}
           keyExtractor={item => item.id}
           style={styles.tag_list}
           contentContainerStyle={[
@@ -159,15 +158,15 @@ export const TagManagerLayout: FC<Props> = ({
       </SafeAreaView>
       <TagManager.InputSheet
         title="Enter a tag name"
-        ref={actionSheet}
         onSubmit={handleInputSubmit}
+        visible={inputVisible}
+        text={inputText}
+        onChangeText={setInputText}
+        onDismiss={hideInput}
+        onRequestClose={hideInput}
       />
     </>
   )
-}
-
-const TagItemWithCount: typeof TagItemFull = props => {
-  return <TagItemFull {...props} />
 }
 
 const styles = StyleSheet.create({

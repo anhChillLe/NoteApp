@@ -1,4 +1,4 @@
-import { Pressable } from 'react-native'
+import { KeyboardAvoidingView, Pressable } from 'react-native'
 import PagerView from 'react-native-pager-view'
 import {
   Appbar,
@@ -44,3 +44,5 @@ export const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
 export const AnimatedInput = Animated.createAnimatedComponent(Input)
 export const AnimatedTouchableScale =
   Animated.createAnimatedComponent(TouchableScale)
+export const AnimatedKeyboardAvoidingView =
+  Animated.createAnimatedComponent(KeyboardAvoidingView)

@@ -6,16 +6,21 @@ import { AnimatedPaper } from '~/components/Animated'
 
 interface Props extends AnimatedProps<Omit<TouchableRippleProps, 'children'>> {
   icon: string
+  color?: string
   label: string
 }
 
 export const StackedIconButton: FC<Props> = ({
   icon,
+  theme,
+  color,
   label,
   style,
   ...props
 }) => {
-  const { roundness } = useTheme()
+  const { colors, roundness } = useTheme()
+
+  const contentColor = color ?? colors.onBackground
 
   return (
     <AnimatedPaper.TouchableRipple
@@ -27,8 +32,10 @@ export const StackedIconButton: FC<Props> = ({
       {...props}
     >
       <View style={styles.container}>
-        <Icon source={icon} size={24} />
-        <Text>{label}</Text>
+        <Icon source={icon} size={24} color={contentColor} />
+        <Text variant="bodyLarge" style={{ color: contentColor }}>
+          {label}
+        </Text>
       </View>
     </AnimatedPaper.TouchableRipple>
   )

@@ -2,8 +2,9 @@ import { FC, useState } from 'react'
 import { Keyboard, StyleSheet, View, ViewStyle } from 'react-native'
 import { Button, TextInput, useTheme } from 'react-native-paper'
 import { List } from 'realm'
-import { ActionSheet, useActionSheetRef } from '~/components/atoms'
 import { AnimatedPaper, AnimatedPressable } from '~/components/Animated'
+import { ActionSheet } from '~/components/atoms'
+import { useVisible } from '~/hooks'
 import { Tag } from '~/services/database/model'
 import { TagItem } from '..'
 
@@ -24,35 +25,19 @@ export const TagMenu: FC<Props> = ({
 }) => {
   const { colors, roundness } = useTheme()
   const [text, setText] = useState('')
-  const tagSheet = useActionSheetRef()
-  const inputSheet = useActionSheetRef()
 
   const isEmpty = currents.length === 0
 
   const icon = isEmpty ? 'plus-small' : undefined
 
-  const showTags = () => {
-    Keyboard.dismiss()
-    tagSheet.current.show()
-  }
-  const hideTags = () => {
-    tagSheet.current.hide()
-  }
-
-  const showInput = () => {
-    Keyboard.dismiss()
-    tagSheet.current.hide(inputSheet.current.show)
-  }
-
-  const hideInput = () => {
-    Keyboard.dismiss()
-    inputSheet.current.hide()
-  }
+  const [tagVisbile, showTags, hideTags] = useVisible(false)
+  const [inputVisible, showInput, hideInput] = useVisible(false)
 
   const handleSubmit = () => {
     onNewTagSubmit?.(text)
     Keyboard.dismiss()
-    inputSheet.current.hide(showTags)
+    hideInput()
+    setText('')
   }
 
   const renderTag = (tag: Tag) => {
@@ -63,6 +48,7 @@ export const TagMenu: FC<Props> = ({
       else onChange(newTags)
     }
     const icon = isSelected ? 'check' : undefined
+
     return (
       <TagItem
         key={tag.id}
@@ -97,8 +83,9 @@ export const TagMenu: FC<Props> = ({
         </AnimatedPaper.Text>
       </AnimatedPressable>
       <ActionSheet
-        ref={tagSheet}
-        dissmisable
+        visible={tagVisbile}
+        onDismiss={hideTags}
+        onRequestClose={hideTags}
         style={[sheetContaineStyle, styles.container]}
       >
         <View style={styles.tag_container}>
@@ -112,15 +99,15 @@ export const TagMenu: FC<Props> = ({
         </View>
       </ActionSheet>
       <ActionSheet
-        ref={inputSheet}
-        dissmisable
+        visible={inputVisible}
+        onRequestClose={hideInput}
+        onDismiss={hideInput}
         style={[sheetContaineStyle, styles.container]}
       >
         <AnimatedPaper.Text variant="titleLarge" children="Create tag" />
         <TextInput
           mode="outlined"
           placeholder="Enter tag title"
-          autoFocus
           value={text}
           onChangeText={setText}
         />
@@ -151,7 +138,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   container: {
-    margin: 8,
+    marginHorizontal: 8,
+    marginBottom: 24,
     padding: 24,
     gap: 16,
     alignItems: 'stretch',

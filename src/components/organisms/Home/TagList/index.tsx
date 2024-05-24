@@ -1,6 +1,6 @@
 import { FlashList, FlashListProps, ListRenderItem } from '@shopify/flash-list'
 import React, { FC, useCallback } from 'react'
-import { StyleSheet, View } from 'react-native'
+import { ScrollView, ScrollViewProps, StyleSheet, View } from 'react-native'
 import { TagItem } from '~/components/molecules'
 import { Tag } from '~/services/database/model'
 import { useDragingHome } from '../DargingTagProvider'
@@ -8,9 +8,7 @@ import { DragItem } from './DragItem'
 import { DragableTagItem } from './DragableItem'
 import { useHome } from '../Provider'
 
-type ListProps = Omit<FlashListProps<Tag>, 'renderItem' | 'data'>
-
-interface Props extends ListProps {}
+interface Props extends ScrollViewProps {}
 
 export const HomeTagList: FC<Props> = ({
   style,
@@ -22,7 +20,7 @@ export const HomeTagList: FC<Props> = ({
   const currentTag = useHome(state => state.currentTag)
   const changeCurrentTag = useHome(state => state.changeCurrentTag)
 
-  const renderItem: ListRenderItem<Tag> = ({ item }) => {
+  const renderItem = (item: Tag, index: number) => {
     const { id, name, isPinned } = item
     const isCurrent = currentTag?.id === id
     const onPress = () => changeCurrentTag(item)
@@ -52,20 +50,22 @@ export const HomeTagList: FC<Props> = ({
           isSelected={currentTag?.id === dragingTag.id}
         />
       )}
-      <FlashList
-        data={tags}
+      <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        estimatedItemSize={92}
         contentContainerStyle={contentContainerStyle}
-        keyExtractor={keyExtractor}
-        extraData={currentTag}
-        ListEmptyComponent={Empty}
-        ListHeaderComponent={Header}
-        ListFooterComponent={Footer}
-        renderItem={renderItem}
         {...props}
-      />
+      >
+        {tags.length === 0 ? (
+          <Empty />
+        ) : (
+          <>
+            <Header />
+            {tags.map(renderItem)}
+            <Footer />
+          </>
+        )}
+      </ScrollView>
     </View>
   )
 }

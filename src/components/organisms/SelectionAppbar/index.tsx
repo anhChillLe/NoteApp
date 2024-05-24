@@ -28,11 +28,22 @@ export const SelectionAppbar: FC<Props> = ({
       {...props}
     >
       <Animated.View style={styles.sub_container}>
-        <IconButton icon="cross-small" onPress={onClosePress} />
-        <Text style={[styles.label]} variant="titleMedium">
+        <IconButton
+          icon="cross-small"
+          onPress={onClosePress}
+          iconColor={colors.onSurfaceVariant}
+        />
+        <Text
+          style={[styles.label, { color: colors.onSurfaceVariant }]}
+          variant="titleMedium"
+        >
           {numOfItem} selecteds
         </Text>
-        <IconButton icon="list-check" onPress={onCheckAllPress} />
+        <IconButton
+          icon="list-check"
+          onPress={onCheckAllPress}
+          iconColor={colors.onSurfaceVariant}
+        />
       </Animated.View>
     </Animated.View>
   )

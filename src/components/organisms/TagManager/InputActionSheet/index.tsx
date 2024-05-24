@@ -1,80 +1,74 @@
-import { forwardRef, useState, useImperativeHandle, useRef } from 'react'
-import { StyleProp, ViewStyle } from 'react-native'
-import { StyleSheet, TextInput as RNTextInput } from 'react-native'
-import { Text, TextInput, Button } from 'react-native-paper'
-import { useActionSheetRef, ActionSheet, Row } from '~/components/atoms'
+import { FC, forwardRef, useImperativeHandle, useRef, useState } from 'react'
+import { ModalProps, StyleProp, StyleSheet, ViewStyle } from 'react-native'
+import { Button, Text, TextInput } from 'react-native-paper'
+import { Row } from '~/components/atoms'
+import { ActionSheet } from '~/components/atoms/ActionSheet'
 
-interface DialogProps {
+interface Props extends ModalProps {
   title: string
   onSubmit: (text: string) => void
   style?: StyleProp<ViewStyle>
+  visible: boolean
+  text?: string
+  onChangeText: (text: string) => void
 }
 
-interface InputSheet {
-  show: (text?: string) => void
-  hide: () => void
-}
-
-export const useInputActionSheet = () => useRef<InputSheet>(null)
-
-export const InputActionSheet = forwardRef<InputSheet, DialogProps>(
-  ({ title, onSubmit, style }, ref) => {
-    const actionSheet = useActionSheetRef()
-    const [text, setText] = useState<string>()
-    const show = (text?: string) => {
-      actionSheet.current?.show()
-      setText(text)
+export const InputActionSheet: FC<Props> = ({
+  title,
+  onSubmit,
+  style,
+  visible,
+  text,
+  onChangeText,
+  onDismiss,
+  ...props
+}) => {
+  const handleSubmit = () => {
+    if (text) {
+      onSubmit(text)
+      onDismiss?.()
     }
-    useImperativeHandle(ref, () => ({ show, hide: actionSheet.current.hide }))
+  }
 
-    const handleSubmit = () => {
-      if (text) {
-        onSubmit(text)
-        setText('')
-        actionSheet.current.hide()
-      }
-    }
-
-    return (
-      <ActionSheet
-        ref={actionSheet}
-        dissmisable
-        style={[styles.container, style]}
-      >
-        <Text variant="titleLarge" style={styles.title}>
-          {title}
-        </Text>
-        <TextInput
+  return (
+    <ActionSheet
+      visible={visible}
+      style={[styles.container, style]}
+      onDismiss={onDismiss}
+      {...props}
+    >
+      <Text variant="titleLarge" style={styles.title}>
+        {title}
+      </Text>
+      <TextInput
+        mode="outlined"
+        placeholder="Tag name"
+        value={text}
+        onChangeText={onChangeText}
+        onSubmitEditing={handleSubmit}
+        dense
+      />
+      <Row style={styles.button_container}>
+        <Button
           mode="outlined"
-          placeholder="Tag name"
-          value={text}
-          onChangeText={setText}
-          onSubmitEditing={handleSubmit}
-          autoFocus
-          dense
-        />
-        <Row style={styles.button_container}>
-          <Button
-            mode="outlined"
-            style={styles.button}
-            compact
-            onPress={() => actionSheet.current.hide()}
-          >
-            Cancel
-          </Button>
-          <Button
-            mode="contained"
-            style={styles.button}
-            compact
-            onPress={handleSubmit}
-          >
-            Ok
-          </Button>
-        </Row>
-      </ActionSheet>
-    )
-  },
-)
+          style={styles.button}
+          compact
+          onPress={onDismiss}
+        >
+          Cancel
+        </Button>
+        <Button
+          mode="contained"
+          style={styles.button}
+          compact
+          onPress={handleSubmit}
+        >
+          Ok
+        </Button>
+      </Row>
+    </ActionSheet>
+  )
+}
 
 const styles = StyleSheet.create({
   container: {
