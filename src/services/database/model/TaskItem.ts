@@ -1,5 +1,7 @@
 import { Object, ObjectSchema, PropertiesTypes } from 'realm'
 
+export type TaskItemData = { label: string; status: TaskItemStatus }
+
 export class TaskItem extends Object<TaskItem> {
   label!: string
   status!: TaskItemStatus
