@@ -1,8 +1,13 @@
 package com.chillle.note.module
 
+import android.animation.ArgbEvaluator
+import android.animation.ValueAnimator
 import android.graphics.Color
 import android.os.Build
+import android.util.Log
 import android.view.Window
+import android.view.WindowManager
+import android.view.animation.LinearInterpolator
 import androidx.annotation.ColorInt
 import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.toColor
@@ -17,6 +22,7 @@ import com.facebook.react.bridge.ReactMethod
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class SystemBarController(private val reactContext: ReactApplicationContext) :
@@ -27,6 +33,10 @@ class SystemBarController(private val reactContext: ReactApplicationContext) :
     companion object {
         private fun String.toIntColor(): Int {
             return Color.parseColor(this)
+        }
+
+        private fun Int.toHexColor(): String {
+            return String.format("#%06X", 0xFFFFFF and this)
         }
 
         val Int.isDark: Boolean
@@ -61,8 +71,7 @@ class SystemBarController(private val reactContext: ReactApplicationContext) :
 
     @ReactMethod(isBlockingSynchronousMethod = true)
     fun getNavigationBarColor(): String {
-        val intColor = window.navigationBarColor
-        return String.format("#%06X", 0xFFFFFF and intColor)
+        return window.navigationBarColor.toHexColor()
     }
 
     @ReactMethod(isBlockingSynchronousMethod = false)
@@ -71,10 +80,55 @@ class SystemBarController(private val reactContext: ReactApplicationContext) :
         setStatusBarColor(color)
     }
 
+    @ReactMethod(isBlockingSynchronousMethod = false)
+    fun setSystemBarColor(strColor: String) {
+        val color = strColor.toIntColor()
+        setStatusBarColor(color)
+        setNavigationBarColor(color)
+    }
+
     @ReactMethod(isBlockingSynchronousMethod = true)
     fun getStatusBarColor(): String {
-        val intColor = window.statusBarColor
-        return String.format("#%06X", 0xFFFFFF and intColor)
+        return window.statusBarColor.toHexColor()
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = false)
+    fun animatedNavigationBarColor(color: String, duration: Int = 200) {
+        val startColor = getNavigationBarColor().toIntColor()
+        val endColor = color.toIntColor()
+        val colorAnimator = ValueAnimator.ofArgb(startColor, endColor)
+        colorAnimator.duration = duration.toLong()
+        colorAnimator.interpolator = LinearInterpolator()
+        colorAnimator.addUpdateListener {
+            window.navigationBarColor = it.animatedValue as Int
+        }
+        scope.launch {
+            delay(duration.toLong())
+            wic.isAppearanceLightNavigationBars = !endColor.isDark
+        }
+        colorAnimator.start()
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = false)
+    fun animatedStatusBarColor(color: String, duration: Int = 200) {
+        val startColor = getNavigationBarColor().toIntColor()
+        val endColor = color.toIntColor()
+        val colorAnimator = ValueAnimator.ofArgb(startColor, endColor)
+        colorAnimator.duration = duration.toLong()
+        colorAnimator.addUpdateListener {
+            window.statusBarColor = it.animatedValue as Int
+        }
+        scope.launch {
+            delay(duration.toLong())
+            wic.isAppearanceLightStatusBars = !endColor.isDark
+        }
+        colorAnimator.start()
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = false)
+    fun animatedSystemBarColor(color: String, duration: Int = 200) {
+        animatedStatusBarColor(color, duration)
+        animatedNavigationBarColor(color, duration)
     }
 
     @ReactMethod(isBlockingSynchronousMethod = true)
@@ -119,11 +173,24 @@ class SystemBarController(private val reactContext: ReactApplicationContext) :
         }
     }
 
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    fun setIsAppearanceLightStatusBars(isLight: Boolean){
+        scope.launch {
+            wic.isAppearanceLightStatusBars = isLight
+        }
+    }
+
+    @ReactMethod(isBlockingSynchronousMethod = true)
+    fun setIsAppearanceLightNavigationBars(isLight: Boolean){
+        scope.launch {
+            wic.isAppearanceLightNavigationBars = isLight
+        }
+    }
+
     private fun setStatusBarColor(@ColorInt color: Int) {
         scope.launch {
             window.statusBarColor = color
             wic.isAppearanceLightStatusBars = !color.isDark
-
         }
     }
 
@@ -133,6 +200,4 @@ class SystemBarController(private val reactContext: ReactApplicationContext) :
             wic.isAppearanceLightNavigationBars = !color.isDark
         }
     }
-
-
 }
