@@ -1,0 +1,9 @@
+{
+  "name": "react-native-android-systembar",
+  "version": "0.0.0",
+  "description": "Systembar controller for android",
+  "main": "src/index",
+  "author": " <> ()",
+  "license": "UNLICENSED",
+  "homepage": "#readme"
+}

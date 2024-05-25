@@ -5,7 +5,7 @@ import { Settings } from 'react-native-paper/lib/typescript/core/settings'
 import { useSetting } from '~/store/setting'
 import { AppTheme } from '~/styles/material3'
 import { FlatIcon } from './FlatIcons'
-import { SystemBar } from '~/modules'
+import { SystemBar } from 'react-native-android-systembar'
 
 interface Props {
   children: ReactElement

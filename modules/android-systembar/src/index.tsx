@@ -1,86 +1,60 @@
-import Color from 'color'
-import { useState, useEffect } from 'react'
-import { NativeModules, Platform } from 'react-native'
-const SystemBarController: SystemBarControllerType =
-  NativeModules.SystemBarController
-
-type SystemBarControllerType = {
-  setNavigationBarColor: (color: string) => Promise<void>
-  animatedNavigationBarColor: (color: string, duration: number) => Promise<void>
-  animatedStatusBarColor: (color: string, duration: number) => Promise<void>
-  animatedSystemBarColor: (color: string, duration: number) => Promise<void>
-  getNavigationBarColor: () => string | null
-  setStatusBarColor: (color: string) => Promise<void>
-  setSystemBarColor: (color: string) => Promise<void>
-  setIsAppearanceLightStatusBars: (isLight: boolean) => Promise<void>
-  setIsAppearanceLightNavigationBars: (isLight: boolean) => Promise<void>
-  getStatusBarColor: () => string | null
-  hideStatusBar: () => void
-  showStatusBar: () => void
-  hideNavigationBar: () => void
-  showNavigationBar: () => void
-  hideSystemBar: () => void
-  showSystemBar: () => void
-}
+import { Platform } from 'react-native'
+import AndroidSystembar from './module'
 
 namespace SystemBarAndroid {
-  function toHex(color: string): string {
-    return Color(color).hex()
-  }
-
   export const setNavigationBarColor = (color: string) => {
-    SystemBarController.setNavigationBarColor(toHex(color))
+    AndroidSystembar.setNavigationBarColor(color)
   }
   export const animatedStatusBarColor = (
     color: string,
     duration: number = 200,
   ) => {
-    SystemBarController.animatedStatusBarColor(toHex(color), duration)
+    AndroidSystembar.animatedStatusBarColor(color, duration)
   }
   export const setIsDarkStatusBar = (isLight: boolean) => {
-    SystemBarController.setIsAppearanceLightStatusBars(isLight)
+    AndroidSystembar.setIsAppearanceLightStatusBars(isLight)
   }
   export const setIsDarkNavigationBar = (isLight: boolean) => {
-    SystemBarController.setIsAppearanceLightNavigationBars(isLight)
+    AndroidSystembar.setIsAppearanceLightNavigationBars(isLight)
   }
   export const animatedNavigationBarColor = (
     color: string,
     duration: number = 200,
   ) => {
-    SystemBarController.animatedNavigationBarColor(toHex(color), duration)
+    AndroidSystembar.animatedNavigationBarColor(color, duration)
   }
   export const animatedSystemBarColor = (
     color: string,
     duration: number = 200,
   ) => {
-    SystemBarController.animatedSystemBarColor(toHex(color), duration)
+    AndroidSystembar.animatedSystemBarColor(color, duration)
   }
   export const getNavigationBarColor = () => {
-    return SystemBarController.getNavigationBarColor()
+    return AndroidSystembar.getNavigationBarColor()
   }
   export const setStatusBarColor = (color: string) => {
-    SystemBarController.setStatusBarColor(toHex(color))
+    AndroidSystembar.setStatusBarColor(color)
   }
   export const getStatusBarColor = () => {
-    return SystemBarController.getStatusBarColor()
+    return AndroidSystembar.getStatusBarColor()
   }
   export const hideStatusBar = () => {
-    SystemBarController.hideStatusBar()
+    AndroidSystembar.hideStatusBar()
   }
   export const showStatusBar = () => {
-    SystemBarController.showStatusBar()
+    AndroidSystembar.showStatusBar()
   }
   export const hideNavigationBar = () => {
-    SystemBarController.hideNavigationBar()
+    AndroidSystembar.hideNavigationBar()
   }
   export const showNavigationBar = () => {
-    SystemBarController.showNavigationBar()
+    AndroidSystembar.showNavigationBar()
   }
   export const hideSystemBar = () => {
-    SystemBarController.hideSystemBar()
+    AndroidSystembar.hideSystemBar()
   }
   export const showSystemBar = () => {
-    SystemBarController.showSystemBar()
+    AndroidSystembar.showSystemBar()
   }
 }
 
@@ -148,4 +122,4 @@ const SystemBar = Platform.select({
   default: SystemBarIOS,
 })
 
-export default SystemBar
+export { SystemBar }

@@ -19,6 +19,7 @@
     "color": "^4.2.3",
     "react": "18.2.0",
     "react-native": "0.73.6",
+    "react-native-android-systembar": "link:./modules/android-systembar",
     "react-native-gesture-handler": "^2.15.0",
     "react-native-get-random-values": "^1.10.0",
     "react-native-haptic-feedback": "^2.2.0",

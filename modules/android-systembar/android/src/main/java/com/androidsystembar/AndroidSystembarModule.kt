@@ -1,21 +1,16 @@
-package com.chillle.note.module
+package com.androidsystembar
 
-import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
 import android.graphics.Color
 import android.os.Build
-import android.util.Log
 import android.view.Window
-import android.view.WindowManager
 import android.view.animation.LinearInterpolator
 import androidx.annotation.ColorInt
 import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.toColor
-import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import com.chillle.note.module.SystemBarController.Companion.isDark
 import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.bridge.ReactContextBaseJavaModule
 import com.facebook.react.bridge.ReactMethod
@@ -25,12 +20,14 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-class SystemBarController(private val reactContext: ReactApplicationContext) :
+class AndroidSystemBarModule(private val reactContext: ReactApplicationContext) :
     ReactContextBaseJavaModule(reactContext) {
 
     private val scope by lazy { CoroutineScope(Dispatchers.Main + SupervisorJob()) }
 
     companion object {
+        const val NAME = "AndroidSystembar"
+
         private fun String.toIntColor(): Int {
             return Color.parseColor(this)
         }
@@ -50,7 +47,7 @@ class SystemBarController(private val reactContext: ReactApplicationContext) :
     }
 
     override fun getName(): String {
-        return "SystemBarController"
+        return NAME
     }
 
     private val window: Window
