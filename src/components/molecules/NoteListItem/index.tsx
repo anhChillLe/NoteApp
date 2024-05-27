@@ -1,4 +1,4 @@
-import { forwardRef, useEffect } from 'react'
+import { forwardRef, useEffect, useMemo } from 'react'
 import {
   PressableProps,
   StyleProp,
@@ -6,18 +6,19 @@ import {
   View,
   ViewStyle,
 } from 'react-native'
+import { Gesture, GestureDetector } from 'react-native-gesture-handler'
 import { Text, useTheme } from 'react-native-paper'
 import Animated, {
   AnimatedProps,
   LinearTransition,
-  interpolateColor,
+  measure,
   useAnimatedReaction,
+  useAnimatedRef,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated'
-import { AnimatedPaper } from '~/components/Animated'
-import { AnimatedPressable } from '~/components/Animated'
+import { AnimatedPaper, AnimatedPressable } from '~/components/Animated'
 import { Note, TaskItem } from '~/services/database/model'
 import { TagItemCompact } from '../TagItem/Compact'
 import { Item } from './TaskItem'
@@ -42,8 +43,8 @@ export const NoteListItem = forwardRef<View, Props>(
       emptyContent = 'Empty text',
       maxLineOfTitle = 1,
       maxLineOfContent = 6,
-      isSelected,
-      selectable,
+      isSelected = false,
+      selectable = false,
       style,
       onTaskItemPress,
       ...props
@@ -53,104 +54,135 @@ export const NoteListItem = forwardRef<View, Props>(
     const { roundness, colors } = useTheme()
     const { title, content } = getContentTitle(data, emptyContent)
     const progress = useSharedValue(0)
-    const isPressed = useSharedValue(false)
     const scale = useSharedValue(1)
+    const rippleRef = useAnimatedRef<View>()
 
-    const handlePressIn = () => (isPressed.value = true)
-    const handlePressOut = () => (isPressed.value = false)
+    const rippleScale = useSharedValue(0)
+
+    const rippleOpacity = useSharedValue(1)
+
+    const { activeX, activeY, gesture, isPressed } = useGesture()
+
+    const containerStyle = useAnimatedStyle(() => {
+      return {
+        borderRadius: roundness * 3,
+        backgroundColor: colors.elevation.level1,
+        transform: [{ scale: scale.value }],
+      }
+    }, [colors, roundness])
+
+    const rippleStyle = useAnimatedStyle(() => {
+      const m = measure(rippleRef)
+      const w = m?.width ?? 0
+      const h = m?.height ?? 0
+      const size = Math.sqrt(w ** 2 + h ** 2) // c^2 = a^2 + b^2
+
+      return {
+        borderRadius: size,
+        top: activeY.value - size,
+        left: activeX.value - size,
+        width: 2 * size,
+        height: 2 * size,
+        opacity: rippleOpacity.value,
+        transform: [{ scale: rippleScale.value }],
+        backgroundColor: colors.elevation.level3,
+      }
+    }, [colors])
+
+    useEffect(() => {
+      if (isSelected) {
+        rippleOpacity.value = 1
+        rippleScale.value = withTiming(1, { duration: 250 })
+      } else {
+        rippleOpacity.value = withTiming(0, { duration: 150 }, () => {
+          rippleScale.value = 0
+        })
+      }
+    }, [isSelected])
 
     useAnimatedReaction(
       () => isPressed.value,
       () => {
         scale.value = withTiming(isPressed.value ? 0.95 : 1, { duration: 100 })
       },
+      [],
     )
 
     useEffect(() => {
       progress.value = withTiming(isSelected ? 1 : 0, { duration: 100 })
     }, [isSelected])
 
-    const containerStyle = useAnimatedStyle(() => {
-      const backgroundColor = !selectable
-        ? colors.elevation.level1
-        : interpolateColor(
-            progress.value,
-            [0, 1],
-            [colors.elevation.level1, colors.elevation.level5],
-          )
-      return {
-        borderRadius: roundness * 3,
-        backgroundColor,
-        transform: [{ scale: scale.value }],
-      }
-    }, [colors, roundness, selectable])
-
     const hasTag = data.tags.length !== 0
     const hasTask = data.type == 'task'
     const hasContent = data.type == 'note' || data.taskList.length === 0
 
     return (
-      <AnimatedPressable
-        ref={ref}
-        style={[containerStyle, style]}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        {...props}
-      >
-        <Animated.View style={[styles.container, contentContainerStyle]}>
-          <AnimatedPaper.Text
-            variant="titleMedium"
-            numberOfLines={maxLineOfTitle}
-          >
-            {title.trim()}
-          </AnimatedPaper.Text>
-          <Animated.View style={styles.date_row} layout={LinearTransition}>
-            <AnimatedPaper.Divider
-              style={styles.divider}
-              layout={LinearTransition}
-            />
-            <AnimatedPaper.Text
-              variant="labelSmall"
-              style={styles.date_label}
-              layout={LinearTransition}
+      <GestureDetector gesture={gesture}>
+        <AnimatedPressable ref={ref} style={[containerStyle, style]} {...props}>
+          <Animated.View style={[styles.container, contentContainerStyle]}>
+            <View
+              ref={rippleRef}
+              style={[styles.ripple_container, { borderRadius: roundness * 3 }]}
             >
-              {data.updateAt.toDateString()}
+              <Animated.View style={[styles.ripple, rippleStyle]} />
+            </View>
+            <AnimatedPaper.Text
+              variant="titleMedium"
+              numberOfLines={maxLineOfTitle}
+            >
+              {title.trim()}
             </AnimatedPaper.Text>
-            {data.isPinned && (
-              <AnimatedPaper.Icon
+            <Animated.View style={styles.date_row} layout={LinearTransition}>
+              <AnimatedPaper.Divider
+                style={styles.divider}
                 layout={LinearTransition}
-                source="thumbtack"
-                size={10}
-                color={colors.primary}
               />
+              <AnimatedPaper.Text
+                variant="labelSmall"
+                style={styles.date_label}
+                layout={LinearTransition}
+              >
+                {data.updateAt.toDateString()}
+              </AnimatedPaper.Text>
+              {data.isPinned && (
+                <AnimatedPaper.Icon
+                  layout={LinearTransition}
+                  source="thumbtack"
+                  size={10}
+                  color={colors.primary}
+                />
+              )}
+            </Animated.View>
+            {hasContent && (
+              <Text variant="bodySmall" numberOfLines={maxLineOfContent}>
+                {content.trim()}
+              </Text>
+            )}
+            {hasTask && (
+              <View
+                style={styles.task_list}
+                pointerEvents={selectable ? 'none' : 'auto'}
+              >
+                {data.taskList.slice(0, maxLineOfContent).map((item, index) => (
+                  <Item
+                    key={index}
+                    data={item}
+                    disabled={selectable || !onTaskItemPress}
+                    onPress={() => onTaskItemPress?.(item)}
+                  />
+                ))}
+              </View>
+            )}
+            {hasTag && (
+              <View style={styles.tag_group}>
+                {data.tags.map(tag => (
+                  <TagItemCompact key={tag.id} label={tag.name} />
+                ))}
+              </View>
             )}
           </Animated.View>
-          {hasContent && (
-            <Text variant="bodySmall" numberOfLines={maxLineOfContent}>
-              {content.trim()}
-            </Text>
-          )}
-          {hasTask && (
-            <View style={styles.task_list}>
-              {data.taskList.slice(0, maxLineOfContent).map((item, index) => (
-                <Item
-                  key={index}
-                  data={item}
-                  disabled={selectable || !onTaskItemPress}
-                  onPress={() => onTaskItemPress?.(item)}
-                />
-              ))}
-            </View>
-          )}
-          {hasTag && (
-            <View style={styles.tag_group}>
-              {data.tags.map(tag => (
-                <TagItemCompact key={tag.id} label={tag.name} />
-              ))}
-            </View>
-          )}
-        </Animated.View>
-      </AnimatedPressable>
+        </AnimatedPressable>
+      </GestureDetector>
     )
   },
 )
@@ -164,6 +196,31 @@ const getContentTitle = (data: Note, emptyContent: string) => {
     const content =
       resContent.length !== 0 ? resContent.join('\n') : emptyContent
     return { title, content }
+  }
+}
+
+const useGesture = () => {
+  const isPressed = useSharedValue(false)
+  const activeX = useSharedValue(0)
+  const activeY = useSharedValue(0)
+
+  const gesture = useMemo(() => {
+    return Gesture.Tap()
+      .onBegin(e => {
+        isPressed.value = true
+        activeX.value = e.x
+        activeY.value = e.y
+      })
+      .onFinalize(() => {
+        isPressed.value = false
+      })
+  }, [])
+
+  return {
+    gesture,
+    activeX,
+    activeY,
+    isPressed,
   }
 }
 
@@ -192,5 +249,12 @@ const styles = StyleSheet.create({
   },
   date_label: {
     opacity: 0.5,
+  },
+  ripple_container: {
+    ...StyleSheet.absoluteFillObject,
+    overflow: 'hidden',
+  },
+  ripple: {
+    position: 'absolute',
   },
 })
