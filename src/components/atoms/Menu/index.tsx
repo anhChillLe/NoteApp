@@ -4,6 +4,7 @@ import {
   LayoutChangeEvent,
   LayoutRectangle,
   ModalProps,
+  PressableProps,
   ScaledSize,
   StyleSheet,
   ViewStyle,
@@ -25,18 +26,21 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated'
+import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { AnimatedPressable } from '~/components/Animated'
 import { useLayout } from '~/hooks'
 
 interface Props extends ModalProps {
   anchorRef: AnimatedRef<any>
   animationDuration?: number
+  safeArea?: boolean
 }
 
 export const Menu: FC<Props> = ({
   children,
   anchorRef,
   visible,
+  safeArea = true,
   style,
   animationDuration: duration = 250,
   onDismiss,
@@ -48,6 +52,7 @@ export const Menu: FC<Props> = ({
   const window = useWindowDimensions()
   const anchorMeasurement = useSharedValue<MeasuredDimensions | null>(null)
   const contentLayout = useSharedValue<LayoutRectangle | undefined>(undefined)
+  const insets = useSafeAreaInsets()
 
   const show = useCallback(() => {
     trigger('effectTick')
@@ -76,7 +81,12 @@ export const Menu: FC<Props> = ({
   const contentStyle = useAnimatedStyle<ViewStyle>(() => {
     if (anchorMeasurement.value === null) return {}
     return {
-      ...getStyle(anchorMeasurement.value, window, contentLayout.value),
+      ...getPosition(
+        anchorMeasurement.value,
+        window,
+        contentLayout.value,
+        safeArea ? insets : undefined,
+      ),
       backgroundColor: colors.background,
       borderRadius: roundness * 3,
       transform: [{ scale: progress.value }],
@@ -91,15 +101,11 @@ export const Menu: FC<Props> = ({
     }
   })
 
-  const containerStyle = useAnimatedStyle<ViewStyle>(() => {
-    return {}
-  }, [])
-
   return (
     <>
       <Portal>
         <Animated.View
-          style={[StyleSheet.absoluteFill, containerStyle]}
+          style={StyleSheet.absoluteFill}
           accessibilityViewIsModal
           accessibilityLiveRegion="polite"
           onAccessibilityEscape={hide}
@@ -116,11 +122,6 @@ export const Menu: FC<Props> = ({
             style={[
               {
                 opacity: contentVisible ? 1 : 0,
-                transformOrigin: callculateSide(
-                  anchorMeasurement.value,
-                  window,
-                  contentLayout.value,
-                ),
               },
               styles.content_container,
               contentStyle,
@@ -149,60 +150,61 @@ const styles = StyleSheet.create({
 
 const easing = Easing.out(Easing.poly(2))
 
-function callculateSide(
+function getPosition(
   anchor?: MeasuredDimensions | null,
-  window?: ScaledSize | null,
+  window?: { width: number; height: number } | null,
   content?: { width: number; height: number } | null,
-) {
-  'worklet'
-  if (!anchor || !window) return 'left top'
-
-  const { pageX, pageY, width, height } = anchor
-  const { width: windowWidth, height: windowHeight } = window
-
-  const isLeft = pageX < windowWidth / 2
-  const isTop = pageY < windowHeight / 2
-
-  const horizontal = (() => {
-    if (content) {
-      const fromLeft = isLeft
-        ? anchor.width / 2
-        : content.width - anchor.width / 2
-      const aspectRatio = Math.round((fromLeft / content.width) * 100)
-      return `${aspectRatio}%`
-    } else {
-      return isLeft ? 'left' : 'right'
-    }
-  })()
-
-  const vertical = isTop ? 'top' : 'bottom'
-  const side = horizontal + ' ' + vertical
-  return side
-}
-
-function getStyle(
-  anchor?: MeasuredDimensions | null,
-  window?: ScaledSize | null,
-  content?: { width: number; height: number } | null,
+  insets: EdgeInsets = { bottom: 0, top: 0, left: 0, right: 0 },
 ): ViewStyle {
   'worklet'
   if (!anchor || !window || !content) return {}
 
-  const { pageX, pageY, width: anchorWidth, height: anchorHeight } = anchor
-  const { width: windowWidth, height: windowHeight } = window
+  let top: number
+  let bottom: number | undefined = undefined
+  let left: number
+  let right: number | undefined = undefined
 
-  const isLeft = pageX < windowWidth / 2
-  const isTop = pageY < windowHeight / 2
+  const safeHeight = window.height - insets.top - insets.bottom
+  const safeWidth = window.width - insets.left - insets.right
+  const isLeft = anchor.pageX + anchor.width / 2 < window.width / 2
 
-  const left = pageX
-  const right = window.width - pageX - anchorWidth
-  const top = pageY + anchorHeight + 8
-  const bottom = window.height - pageY + 8
+  if (content.height >= safeHeight) {
+    top = insets.top
+    bottom = insets.bottom
+  } else if (
+    content.height >
+    window.height - insets.bottom - anchor.pageY - anchor.height
+  ) {
+    top = window.height - content.height - insets.bottom
+  } else {
+    top = anchor.pageY + anchor.height
+  }
+
+  if (content.width >= safeWidth) {
+    left = insets.left
+    right = insets.right
+  } else if (isLeft) {
+    if (content.width > window.width - insets.right - anchor.pageX) {
+      left = window.width - content.width
+    } else {
+      left = anchor.pageX
+    }
+  } else {
+    if (content.width > anchor.pageX + anchor.width - insets.left) {
+      left = insets.left
+    } else {
+      left = anchor.pageX + anchor.width - content.width
+    }
+  }
+
+  const fromLeft = anchor.pageX + anchor.width / 2 - left
+  const fromTop = anchor.pageY + anchor.height / 2 - top
 
   return {
-    left: isLeft ? left : undefined,
-    right: isLeft ? undefined : right,
-    top: isTop ? top : undefined,
-    bottom: isTop ? undefined : bottom,
+    top,
+    left,
+    bottom,
+    right,
+    transformOrigin: [fromLeft, fromTop, 0],
   }
 }

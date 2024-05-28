@@ -26,6 +26,7 @@ import { useLayout, useSafeAreaPadding } from '~/hooks'
 
 interface Props extends ModalProps {
   animationDuration?: number
+  safeArea?: boolean
 }
 
 export const ActionSheet: FC<Props> = ({
@@ -33,9 +34,10 @@ export const ActionSheet: FC<Props> = ({
   visible,
   style,
   animationDuration = 150,
+  safeArea = true,
   onDismiss,
 }) => {
-  const { colors, roundness } = useTheme()
+  const { colors } = useTheme()
   const safeAreaStyle = useSafeAreaPadding()
 
   const progress = useSharedValue(0)
@@ -101,7 +103,7 @@ export const ActionSheet: FC<Props> = ({
     <>
       <Portal>
         <KeyboardAvoidingView
-          style={[styles.container, safeAreaStyle]}
+          style={styles.container}
           pointerEvents={contentVisible ? 'auto' : 'none'}
           accessibilityViewIsModal
           accessibilityLiveRegion="polite"
@@ -117,12 +119,9 @@ export const ActionSheet: FC<Props> = ({
           <Animated.View
             onLayout={onLayout}
             style={[
-              {
-                backgroundColor: colors.background,
-                borderRadius: roundness * 3,
-              },
               styles.content_container,
               contentStyle,
+              safeArea ? safeAreaStyle : undefined,
               style,
             ]}
           >
