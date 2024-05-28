@@ -1,32 +1,28 @@
 import { StateCreator, create } from 'zustand'
 import { PersistOptions, createJSONStorage, persist } from 'zustand/middleware'
 import { zustandStorage } from '~/services/storage'
-import { AppTheme } from '~/styles/material3'
 
-type ColorScheme = 'light' | 'dark' | 'system'
-type Theme = keyof typeof AppTheme
+export type ColorScheme = 'light' | 'dark' | 'system'
 
 interface SettingData {
   colorScheme: ColorScheme
   themeIndex: number
 }
 
+type SetValueFunction<T> = <K extends keyof T = keyof T>(
+  key: K,
+) => (value: T[K]) => void
+
 interface SettingController {
-  setColorScheme: (scheme: ColorScheme) => void
-  setTheme: (index: number) => void
+  set: SetValueFunction<SettingData>
 }
 
 type SettingState = SettingData & SettingController
 
 const settingCreator: StateCreator<SettingState> = (set, get) => ({
   colorScheme: 'system',
-  setColorScheme: scheme => {
-    set({ colorScheme: scheme })
-  },
   themeIndex: 0,
-  setTheme: themeIndex => {
-    set({ themeIndex })
-  },
+  set: key => value => set({ [key]: value }),
 })
 
 const persistOptions: PersistOptions<SettingState, SettingData> = {

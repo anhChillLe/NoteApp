@@ -14,9 +14,10 @@ import Animated, {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { AnimatedPaper } from '~/components/Animated'
 import { Menu } from '~/components/atoms'
+import { MenuSelectItem, Section } from '~/components/molecules'
 import { Appbar } from '~/components/organisms'
 import { useVisible } from '~/hooks'
-import { useSetting } from '~/store/setting'
+import { ColorScheme, useSetting } from '~/store/setting'
 import { AppTheme } from '~/styles/material3'
 
 interface Props {
@@ -25,7 +26,6 @@ interface Props {
 
 export const SettingLayout: FC<Props> = ({ onBackPress }) => {
   const headerTitle = useAnimatedRef()
-
   const progress = useSharedValue(0)
 
   const handler = useAnimatedScrollHandler(event => {
@@ -78,7 +78,7 @@ export const SettingLayout: FC<Props> = ({ onBackPress }) => {
 
 const ThemeSection: FC = () => {
   const themeIndex = useSetting(state => state.themeIndex)
-  const setTheme = useSetting(state => state.setTheme)
+  const setTheme = useSetting(state => state.set('themeIndex'))
   const systemColorScheme = useColorScheme() ?? 'light'
   const appClorScheme = useSetting(state => state.colorScheme)
   const colorScheme =
@@ -130,46 +130,28 @@ const ThemeSection: FC = () => {
 }
 
 const ColorSchemeSection: FC = () => {
-  const { colors, roundness } = useTheme()
+  const { roundness } = useTheme()
   const colorScheme = useSetting(state => state.colorScheme)
-  const setColorScheme = useSetting(state => state.setColorScheme)
+  const setColorScheme = useSetting(state => state.set('colorScheme'))
   const section = useAnimatedRef<View>()
-
   const [visible, show, hide] = useVisible(false)
 
-  const label: Record<'light' | 'dark' | 'system', string> = {
+  const label: Record<ColorScheme, string> = {
     light: 'Light',
     dark: 'Dark',
     system: 'Follow system',
   }
 
+  const options: ColorScheme[] = ['light', 'dark', 'system']
+
   return (
     <>
-      <TouchableRipple onPress={show}>
-        <Animated.View
-          style={{
-            padding: 16,
-            gap: 8,
-            alignItems: 'center',
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-          }}
-        >
-          <Text variant="titleMedium">Color scheme</Text>
-          <Animated.View
-            ref={section}
-            style={{
-              alignItems: 'center',
-              flexDirection: 'row',
-              gap: 4,
-              opacity: 0.75,
-            }}
-          >
-            <Text variant="bodyMedium">{label[colorScheme]}</Text>
-            <Icon source="angle-small-right" size={24} />
-          </Animated.View>
-        </Animated.View>
-      </TouchableRipple>
+      <Section
+        title="Color scheme"
+        value={label[colorScheme]}
+        valueRef={section}
+        onPress={show}
+      />
       <Menu
         anchorRef={section}
         visible={visible}
@@ -177,45 +159,22 @@ const ColorSchemeSection: FC = () => {
         onRequestClose={hide}
         style={{ borderRadius: roundness * 3, overflow: 'hidden' }}
       >
-        {['light' as 'light', 'dark' as 'dark', 'system' as 'system'].map(
-          it => {
-            const isSelected = it === colorScheme
-            const onPress = () => {
-              setColorScheme(it)
-              hide()
-            }
-            return (
-              <TouchableRipple key={it} onPress={onPress}>
-                <View
-                  style={{
-                    flexDirection: 'row',
-                    padding: 16,
-                    gap: 32,
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    backgroundColor: isSelected
-                      ? colors.primaryContainer
-                      : colors.background,
-                  }}
-                >
-                  <Text
-                    variant="bodyMedium"
-                    style={{ color: colors.onPrimaryContainer }}
-                  >
-                    {label[it]}
-                  </Text>
-                  <Animated.View style={{ opacity: isSelected ? 1 : 0 }}>
-                    <Icon
-                      source="check"
-                      size={20}
-                      color={colors.onPrimaryContainer}
-                    />
-                  </Animated.View>
-                </View>
-              </TouchableRipple>
-            )
-          },
-        )}
+        {options.map(it => {
+          const isSelected = it === colorScheme
+          const onPress = () => {
+            setColorScheme(it)
+            hide()
+          }
+
+          return (
+            <MenuSelectItem
+              key={it}
+              onPress={onPress}
+              title={label[it]}
+              isSelected={isSelected}
+            />
+          )
+        })}
       </Menu>
     </>
   )
