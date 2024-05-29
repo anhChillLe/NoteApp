@@ -8,16 +8,11 @@ import {
   interpolateColor,
   useAnimatedProps,
   useAnimatedStyle,
-  useDerivedValue,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated'
-import { TouchableScale, TouchableScaleProps } from '~/components/atoms'
-import {
-  AnimatedPaper,
-  AnimatedPressable,
-  AnimatedTouchableScale,
-} from '~/components/Animated'
+import { AnimatedPaper, AnimatedTouchableScale } from '~/components/Animated'
+import { TouchableScaleProps } from '~/components/atoms'
 
 interface Props extends AnimatedProps<TouchableScaleProps> {
   label: string
@@ -41,24 +36,7 @@ export const TagItem = forwardRef<View, Props>(
     ref,
   ) => {
     const { colors, roundness } = useTheme()
-
     const progress = useSharedValue(0)
-
-    const backgroundColor = useDerivedValue(() =>
-      interpolateColor(
-        progress.value,
-        [0, 1],
-        [colors.secondaryContainer, colors.primary],
-      ),
-    )
-
-    const contentColor = useDerivedValue(() =>
-      interpolateColor(
-        progress.value,
-        [0, 1],
-        [colors.onSecondaryContainer, colors.onPrimary],
-      ),
-    )
 
     useEffect(() => {
       progress.value = withTiming(isSelected ? 1 : 0, {
@@ -69,12 +47,31 @@ export const TagItem = forwardRef<View, Props>(
     const containerStyle = useAnimatedStyle(() => {
       return {
         borderRadius: roundness * 3,
-        backgroundColor: backgroundColor.value,
+        backgroundColor: interpolateColor(
+          progress.value,
+          [0, 1],
+          [colors.secondaryContainer, colors.primary],
+        ),
       }
     }, [colors, roundness])
 
     const labelStyle = useAnimatedStyle(() => {
-      return { color: contentColor.value }
+      return {
+        color: interpolateColor(
+          progress.value,
+          [0, 1],
+          [colors.onSecondaryContainer, colors.onPrimary],
+        ),
+      }
+    }, [colors])
+
+    const iconProps = useAnimatedProps(() => {
+      const color = interpolateColor(
+        progress.value,
+        [0, 1],
+        [colors.onSecondaryContainer, colors.onPrimary],
+      )
+      return { color }
     }, [colors])
 
     return (
@@ -99,11 +96,11 @@ export const TagItem = forwardRef<View, Props>(
           {label}
         </AnimatedPaper.Text>
         {isPinned && (
-          <AnimatedIcon
-            progress={progress}
+          <AnimatedPaper.Icon
             source="thumbtack"
             size={12}
             layout={LinearTransition}
+            animatedProps={iconProps}
           />
         )}
       </AnimatedTouchableScale>

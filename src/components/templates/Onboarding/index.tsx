@@ -1,6 +1,5 @@
 import React, { FC, useState } from 'react'
-import { NativeSyntheticEvent, SafeAreaView, StyleSheet } from 'react-native'
-import PagerView from 'react-native-pager-view'
+import { NativeSyntheticEvent, StyleSheet } from 'react-native'
 import { Button } from 'react-native-paper'
 import {
   interpolate,
@@ -8,6 +7,7 @@ import {
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { StorySet } from '~/assets/storyset'
 import { AnimatedPagerView } from '~/components/Animated'
 import { PagerIndicator } from '~/components/molecules'
@@ -28,7 +28,7 @@ type PageScrollEvent = {
 }
 
 export const OnboardingLayout: FC<Props> = ({ onSkip, onStart }) => {
-  const pager = useAnimatedRef<PagerView>()
+  const pager = useAnimatedRef<any>()
   const [position, setPosition] = useState(0)
 
   const onPageSelected = (e: PageSelectEvent) => {
@@ -78,6 +78,7 @@ export const OnboardingLayout: FC<Props> = ({ onSkip, onStart }) => {
         style={[styles.container]}
         onPageSelected={onPageSelected}
         onPageScroll={handler}
+        useNext={false}
       >
         <Onboarding.Page
           Icon={StorySet.Note}

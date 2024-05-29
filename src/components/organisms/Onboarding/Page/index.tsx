@@ -17,7 +17,7 @@ export const OnboardingPage: FC<Props> = ({
   ...props
 }) => {
   return (
-    <View collapsable={false} style={[styles.container, style]} {...props}>
+    <View style={[styles.container, style]} {...props}>
       <View style={styles.icon_container}>
         <Icon style={styles.icon} />
       </View>
@@ -39,6 +39,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   container: {
+    flex: 1,
     alignItems: 'stretch',
   },
   icon: {
