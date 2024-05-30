@@ -21,12 +21,12 @@ export const HomeScreen: FC = () => {
   const selecteds = useHomeSelect(state => state.selecteds)
   const disableSelect = useHomeSelect(state => state.disable)
 
-  const tags = useQuery(Tag, createTagQuery())
+  const tags = useQuery({ type: Tag, query: createTagQuery() })
 
-  const notes = useQuery(Note, createNoteQuery(currentTag, searchValue), [
-    currentTag,
-    searchValue,
-  ])
+  const notes = useQuery(
+    { type: Note, query: createNoteQuery(currentTag, searchValue) },
+    [currentTag, searchValue],
+  )
 
   const openEditor = useCallback(
     (item: Note) => {

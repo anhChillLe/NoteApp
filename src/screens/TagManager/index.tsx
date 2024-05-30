@@ -8,7 +8,10 @@ export const TagManagerScreen: FC = () => {
   const reaml = useRealm()
   const navigation = useNavigation()
 
-  const tags = useQuery(Tag, tags => tags.sorted('isPinned', true))
+  const tags = useQuery({
+    type: Tag,
+    query: tags => tags.sorted('isPinned', true),
+  })
 
   const handleDeleteTag = useCallback(
     (...tags: Tag[]) => {

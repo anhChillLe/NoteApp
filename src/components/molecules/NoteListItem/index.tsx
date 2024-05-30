@@ -72,7 +72,7 @@ export const NoteListItem = forwardRef<View, Props>(
     }, [colors, roundness])
 
     const rippleStyle = useAnimatedStyle(() => {
-      const m = measure(rippleRef)
+      const m = _WORKLET ? measure(rippleRef) : null
       const w = m?.width ?? 0
       const h = m?.height ?? 0
       const size = Math.sqrt(w ** 2 + h ** 2) // c^2 = a^2 + b^2

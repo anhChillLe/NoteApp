@@ -51,8 +51,11 @@ export const PrivateNoteScreen: FC = () => {
 }
 
 const useHidedNotes = () => {
-  const notes = useQuery(Note, collection => {
-    return collection.filtered('isDeleted == false AND isPrivate == true')
+  const notes = useQuery({
+    type: Note,
+    query: collection => {
+      return collection.filtered('isDeleted == false AND isPrivate == true')
+    },
   })
   return notes
 }
