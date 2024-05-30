@@ -7,7 +7,10 @@ import { ActionSheet, Menu } from '~/components/atoms'
 import { useVisible } from '~/hooks'
 import { Tag } from '~/services/database/model'
 import { TagItem } from '..'
-import Animated, { useAnimatedRef } from 'react-native-reanimated'
+import Animated, {
+  LinearTransition,
+  useAnimatedRef,
+} from 'react-native-reanimated'
 
 interface Props {
   currents: Tag[]
@@ -49,12 +52,10 @@ export const TagMenu: FC<Props> = ({
       if (!isSelected) onChange([...currents, tag])
       else onChange(newTags)
     }
-    const icon = isSelected ? 'check' : undefined
 
     return (
       <TagItem
         key={tag.id}
-        icon={icon}
         isSelected={isSelected}
         onPress={onPress}
         label={tag.name}
@@ -78,9 +79,10 @@ export const TagMenu: FC<Props> = ({
         ref={tagsRef}
         onPress={showTags}
         style={[styles.item, containerStyle]}
+        layout={LinearTransition}
       >
         {!!icon && <AnimatedPaper.Icon source={icon} size={16} />}
-        <AnimatedPaper.Text>
+        <AnimatedPaper.Text layout={LinearTransition}>
           {isEmpty ? 'Add tag' : getTagsString(currents, maxItems)}
         </AnimatedPaper.Text>
       </AnimatedPressable>
@@ -139,6 +141,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 16,
     borderWidth: 1,
+    margin: 6,
   },
   tag_menu: {
     marginHorizontal: 16,

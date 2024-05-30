@@ -10,6 +10,7 @@ interface NoteData {
   tags: Tag[]
   isPinned: boolean
   isPrivate: boolean
+  isDeleted: boolean
 }
 
 type Updater<T> = <K extends keyof T>(key: K) => (value: T[K]) => void
@@ -26,6 +27,7 @@ const initialData: NoteData = {
   tags: [],
   isPinned: false,
   isPrivate: false,
+  isDeleted: false,
 }
 
 const creator: StateCreator<NoteEditData> = set => {

@@ -4,7 +4,7 @@ import { BSON } from 'realm'
 import { NoteEditProvider } from '~/components/organisms/NoteEdit/Provider'
 import { NoteEditLayout } from '~/components/templates'
 import { useRootRoute } from '~/navigation/root/hook'
-import { useQuery, useRealm } from '~/services/database'
+import { useObject, useQuery, useRealm } from '~/services/database'
 import { Note, Tag } from '~/services/database/model'
 import { NoteData } from '~/services/database/model/Note'
 import { useNoteEditor } from '~/store/noteEdit'
@@ -14,17 +14,20 @@ export const NoteEditScreen: FC = () => {
   const navigation = useNavigation()
   const route = useRootRoute<'note_edit'>()
 
-  const tags = useQuery(Tag)
+  const tags = useQuery({ type: Tag })
   const [id, setId] = useState(new BSON.UUID(route.params?.id))
-  const [updateTime, setUpdateTime] = useState<Date>()
+  const note = useObject({ type: Note, primaryKey: id })
 
-  const handleNewTag = useCallback((text: string) => {
-    if (text) {
-      realm.write(() => {
-        realm.create(Tag, Tag.generate({ name: text }))
-      })
-    }
-  }, [])
+  const handleNewTag = useCallback(
+    (text: string) => {
+      if (text) {
+        realm.write(() => {
+          realm.create(Tag, Tag.generate({ name: text }))
+        })
+      }
+    },
+    [realm],
+  )
 
   useEffect(() => {
     if (route.params.id) {
@@ -51,7 +54,8 @@ export const NoteEditScreen: FC = () => {
 
   useEffect(() => {
     const unsub = useNoteEditor.subscribe(state => {
-      const { title, content, taskList, isPinned, isPrivate, tags } = state
+      const { title, content, taskList, isPinned, isPrivate, tags, isDeleted } =
+        state
       const data: NoteData = {
         type: route.params.type,
         title,
@@ -59,6 +63,7 @@ export const NoteEditScreen: FC = () => {
         taskList,
         isPinned,
         isPrivate,
+        isDeleted,
         tags,
       }
 
@@ -68,27 +73,34 @@ export const NoteEditScreen: FC = () => {
         const note = realm.objectForPrimaryKey(Note, id)
         if (note) {
           note.update(data)
-          setUpdateTime(note.updateAt)
         } else {
           const generatedData = Note.generate(data)
-          const { _id, updateAt } = realm.create(Note, generatedData)
+          const { _id } = realm.create(Note, generatedData)
           setId(_id)
-          setUpdateTime(updateAt)
         }
       })
     })
     return unsub
   }, [realm, id, route.params, setId])
 
+  useEffect(() => {
+    const unsub = useNoteEditor.subscribe(({ isDeleted }) => {
+      if (isDeleted) {
+        navigation.goBack()
+      }
+    })
+    return unsub
+  }, [navigation])
+
   useEffect(() => useNoteEditor.getState().reset, [])
 
   return (
     <NoteEditProvider
       value={{
+        data: note,
         tags: tags.map(it => it),
         onBackPress: navigation.goBack,
         onNewTagSubmit: handleNewTag,
-        updateTime,
       }}
     >
       <NoteEditLayout type={route.params.type} />

@@ -1,13 +1,13 @@
 import React, { FC } from 'react'
-import { ScrollView, StyleSheet, View } from 'react-native'
-import { Divider, IconButton, Text } from 'react-native-paper'
-import { useAnimatedRef } from 'react-native-reanimated'
+import { ModalProps, ScrollView, StyleSheet, View } from 'react-native'
+import { Button, Divider, IconButton, Text, useTheme } from 'react-native-paper'
+import { LinearTransition, useAnimatedRef } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { Input, Menu } from '~/components/atoms'
+import { AnimatedPaper } from '~/components/Animated'
+import { Dialog, Input, Menu } from '~/components/atoms'
 import { MenuItem, TagMenu } from '~/components/molecules'
 import { useNoteEdit } from '~/components/organisms/NoteEdit/Provider'
 import { TaskListItemEditor } from '~/components/organisms/NoteEdit/TaskItemInput'
-import { EditorToolbar } from '~/components/organisms/NoteEdit/Toolbar'
 import { useVisible } from '~/hooks'
 import { TaskItemData } from '~/services/database/model/TaskItem'
 import { useNoteEditor } from '~/store/noteEdit'
@@ -26,19 +26,18 @@ export const NoteEditLayout: FC<Props> = ({ type }) => {
         {type === 'note' && <ContentInput />}
         {type === 'task' && <TaskItemInput />}
       </View>
-      {type === 'note' && <EditorToolbar style={styles.toolbar} />}
     </SafeAreaView>
   )
 }
 
 const UpdateTime: FC = () => {
-  const updateAt = useNoteEdit(state => state.updateTime)
+  const data = useNoteEdit(state => state.data)
 
   return (
     <View style={styles.divider_container}>
       <Divider style={styles.divider} />
       <Text variant="labelSmall" style={styles.time}>
-        {(updateAt ?? new Date()).toLocaleString()}
+        {(data?.updateAt ?? new Date()).toLocaleString()}
       </Text>
     </View>
   )
@@ -47,15 +46,19 @@ const UpdateTime: FC = () => {
 const Appbar: FC = () => {
   const menuIcon = useAnimatedRef<View>()
   const [menuVisible, showMenu, hideMenu] = useVisible()
+  const [infoVisible, showInfo, hideInfo] = useVisible()
 
   const onBackPress = useNoteEdit(state => state.onBackPress)
   const tags = useNoteEdit(state => state.tags)
   const onNewTagSubmit = useNoteEdit(state => state.onNewTagSubmit)
+  const data = useNoteEdit(state => state.data)
 
   const currentTags = useNoteEditor(state => state.tags)
   const isPrivate = useNoteEditor(state => state.isPrivate)
   const isPinned = useNoteEditor(state => state.isPinned)
   const update = useNoteEditor(state => state.update)
+
+  const deleteNote = () => update('isDeleted')(true)
 
   const handlePinPress = () => {
     update('isPinned')(!isPinned)
@@ -67,20 +70,28 @@ const Appbar: FC = () => {
     hideMenu()
   }
 
+  const handleShowInfo = () => {
+    hideMenu()
+    showInfo()
+  }
+
   return (
     <View style={styles.header}>
       <IconButton icon="angle-left" onPress={onBackPress} />
       <View style={styles.fill} />
-      <IconButton icon="bookmark" />
-      <View style={styles.tag_container}>
-        <TagMenu
-          tags={tags}
-          currents={currentTags}
-          onChange={update('tags')}
-          onNewTagSubmit={onNewTagSubmit}
-        />
-      </View>
+      <AnimatedPaper.IconButton icon="bookmark" layout={LinearTransition} />
+      <TagMenu
+        tags={tags}
+        currents={currentTags}
+        onChange={update('tags')}
+        onNewTagSubmit={onNewTagSubmit}
+      />
       <IconButton ref={menuIcon} icon="menu-dots-vertical" onPress={showMenu} />
+      <InfoCard
+        visible={infoVisible}
+        onDismiss={hideInfo}
+        onRequestClose={hideInfo}
+      />
       <Menu
         anchorRef={menuIcon}
         visible={menuVisible}
@@ -91,19 +102,63 @@ const Appbar: FC = () => {
         <MenuItem
           leadingIcon={isPrivate ? 'unlock' : 'lock'}
           title={isPrivate ? 'Unlock' : 'Lock'}
+          disabled={!data}
           onPress={handlePrivatePress}
         />
         <MenuItem
           leadingIcon="thumbtack"
           title={isPinned ? 'Unpin' : 'Pin'}
+          disabled={!data}
           onPress={handlePinPress}
         />
-        <MenuItem leadingIcon="search" title="Search" />
-        <MenuItem leadingIcon="trash" title="Delete" />
-        <MenuItem leadingIcon="share" title="Share" />
-        <MenuItem leadingIcon="info" title="Info" />
+        <MenuItem
+          leadingIcon="trash"
+          title="Delete"
+          disabled={!data}
+          onPress={deleteNote}
+        />
+        <MenuItem leadingIcon="share" title="Share" disabled={!data} />
+        <MenuItem
+          leadingIcon="info"
+          title="Info"
+          disabled={!data}
+          onPress={handleShowInfo}
+        />
       </Menu>
     </View>
+  )
+}
+
+const InfoCard: FC<ModalProps> = props => {
+  const { colors, roundness } = useTheme()
+  const data = useNoteEdit(state => state.data?.data)
+
+  if (!data) return null
+
+  return (
+    <Dialog
+      {...props}
+      contentContainerStyle={[
+        styles.info_card_content,
+        {
+          borderRadius: roundness * 4,
+          backgroundColor: colors.background,
+        },
+      ]}
+    >
+      <Text variant="titleLarge">Detail info</Text>
+      <View style={styles.info_item}>
+        <Text>Create at:</Text>
+        <Text>{data.createAt.toLocaleString()}</Text>
+      </View>
+      <View style={styles.info_item}>
+        <Text>Last update:</Text>
+        <Text>{data.updateAt.toLocaleString()}</Text>
+      </View>
+      <View style={styles.info_action_container}>
+        <Button onPress={props.onDismiss}>OK</Button>
+      </View>
+    </Dialog>
   )
 }
 
@@ -117,6 +172,7 @@ const TitleInput: FC = () => {
       value={title}
       onChangeText={update('title')}
       multiline
+      autoCorrect={false}
       numberOfLines={2}
       placeholder="Title"
     />
@@ -133,6 +189,7 @@ const ContentInput: FC = () => {
       onChangeText={update('content')}
       style={styles.content}
       autoCapitalize="sentences"
+      autoCorrect={false}
       multiline
       placeholder="Content for note"
     />
@@ -209,6 +266,7 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     flexDirection: 'row',
+    justifyContent: 'flex-end',
   },
   divider: {
     flex: 1,
@@ -222,19 +280,18 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   title: {
+    paddingVertical: 0,
+    margin: 0,
     fontSize: 24,
     fontWeight: '600',
   },
   content: {
     flex: 1,
     textAlignVertical: 'top',
+    paddingVertical: 0,
   },
   toolbar: {
     paddingHorizontal: 8,
-  },
-  tag_container: {
-    gap: 8,
-    flexDirection: 'row',
   },
   menu: {
     padding: 12,
@@ -242,5 +299,18 @@ const styles = StyleSheet.create({
   },
   fill: {
     flex: 1,
+  },
+  info_card_content: {
+    padding: 16,
+    width: '80%',
+    gap: 8,
+    alignItems: 'stretch',
+  },
+  info_item: {
+    justifyContent: 'space-between',
+    flexDirection: 'row',
+  },
+  info_action_container: {
+    flexDirection: 'row-reverse',
   },
 })

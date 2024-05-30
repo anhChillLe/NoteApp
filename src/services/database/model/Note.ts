@@ -9,6 +9,7 @@ export type NoteData = {
   taskList?: TaskItemData[]
   isPrivate?: boolean
   isPinned?: boolean
+  isDeleted?: boolean
   tags?: Tag[]
   style?: Style | null
 }
@@ -84,6 +85,7 @@ export class Note extends Object<Note> {
     tags,
     isPrivate,
     isPinned,
+    isDeleted,
     style,
   }: {
     title?: string
@@ -91,6 +93,7 @@ export class Note extends Object<Note> {
     taskList?: TaskItemData[]
     isPrivate?: boolean
     isPinned?: boolean
+    isDeleted?: boolean
     tags?: Tag[]
     style?: Style | null
   }) {
@@ -108,6 +111,9 @@ export class Note extends Object<Note> {
     }
     if (isPrivate !== undefined) {
       this.isPrivate = isPrivate
+    }
+    if (isDeleted !== undefined) {
+      this.isDeleted = isDeleted
     }
     if (tags !== undefined) {
       this.tags = tags

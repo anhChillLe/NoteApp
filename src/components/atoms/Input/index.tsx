@@ -17,7 +17,9 @@ const Input = forwardRef<TextInput, TextInputProps>(
           style,
         ]}
         placeholderTextColor={colors.onSurfaceDisabled}
-        selectionColor={colors.primary}
+        selectionColor={colors.primaryContainer}
+        cursorColor={colors.primary}
+        selectionHandleColor={colors.primary}
         {...props}
       />
     )

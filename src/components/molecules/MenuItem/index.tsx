@@ -1,6 +1,6 @@
 import { FC } from 'react'
 import { StyleSheet, ViewProps } from 'react-native'
-import { Icon, Text, TouchableRippleProps } from 'react-native-paper'
+import { Icon, Text, TouchableRippleProps, useTheme } from 'react-native-paper'
 import Animated, { AnimatedProps } from 'react-native-reanimated'
 import { AnimatedPaper } from '~/components/Animated'
 
@@ -15,10 +15,18 @@ export const MenuItem: FC<Props> = ({
   trailingIcon,
   title,
   disabled,
+  style,
   ...props
 }) => {
+  const { roundness } = useTheme()
+
   return (
-    <AnimatedPaper.TouchableRipple {...props}>
+    <AnimatedPaper.TouchableRipple
+      style={[style, { borderRadius: roundness * 2 }]}
+      borderless
+      disabled={disabled}
+      {...props}
+    >
       <Animated.View
         style={[styles.container, { opacity: disabled ? 0.5 : 1 }]}
       >

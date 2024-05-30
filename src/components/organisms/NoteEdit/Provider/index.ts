@@ -6,7 +6,7 @@ import {
 import { Note, Tag } from '~/services/database/model'
 
 interface NoteEditData {
-  updateTime?: Date
+  data: Note | null
   tags: Tag[]
   onBackPress: () => void
   onNewTagSubmit: (title: string) => void
