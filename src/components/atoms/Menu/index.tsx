@@ -1,34 +1,27 @@
 import React, { FC, useCallback, useEffect, useState } from 'react'
 import {
-  GestureResponderEvent,
   LayoutChangeEvent,
   LayoutRectangle,
   ModalProps,
-  PressableProps,
-  ScaledSize,
   StyleSheet,
   ViewStyle,
   useWindowDimensions,
 } from 'react-native'
 import { trigger } from 'react-native-haptic-feedback'
-import { Portal, useTheme, Modal } from 'react-native-paper'
+import { Portal, useTheme } from 'react-native-paper'
 import Animated, {
   AnimatedRef,
   Easing,
   MeasuredDimensions,
-  interpolate,
   measure,
   runOnJS,
   runOnUI,
-  useAnimatedRef,
   useAnimatedStyle,
-  useDerivedValue,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated'
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { AnimatedPressable } from '~/components/Animated'
-import { useLayout } from '~/hooks'
 
 interface Props extends ModalProps {
   anchorRef: AnimatedRef<any>
@@ -36,7 +29,7 @@ interface Props extends ModalProps {
   safeArea?: boolean
 }
 
-export const Menu: FC<Props> = ({
+const Menu: FC<Props> = ({
   children,
   anchorRef,
   visible,
@@ -208,3 +201,5 @@ function getPosition(
     transformOrigin: [fromLeft, fromTop, 0],
   }
 }
+
+export default Menu

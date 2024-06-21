@@ -1,9 +1,11 @@
 import { useNavigation } from '@react-navigation/native'
 import { FC } from 'react'
-import { SettingLayout } from '~/components/templates'
+import { SettingScreenLayout } from '~/components/templates'
 
-export const SettingScreen: FC = () => {
-  const navigation = useNavigation()
+const SettingScreen: FC = () => {
+  const { goBack } = useNavigation()
 
-  return <SettingLayout onBackPress={navigation.goBack} />
+  return <SettingScreenLayout onBackPress={goBack} />
 }
+
+export default SettingScreen

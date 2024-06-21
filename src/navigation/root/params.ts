@@ -3,12 +3,18 @@ import { RouteProp } from '@react-navigation/native'
 export type RootStackParamList = {
   onboarding: undefined
   home: undefined
-  note_edit: { type: NoteType; id?: Readonly<string>; tagId?: Readonly<string> }
+  editor: {
+    type: NoteType
+    id?: string | null
+    tagId?: string | null
+    isPrivate?: boolean
+  }
   tag_init: undefined
   tag_manager: undefined
   setting: undefined
-  deleted: undefined
+  trash: undefined
   private: undefined
+  createPassword: undefined
 }
 
 export type RootKeys = keyof RootStackParamList

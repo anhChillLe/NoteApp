@@ -1,36 +1,44 @@
-import { FC, ReactElement } from 'react'
+import { FC } from 'react'
 import { StyleProp, StyleSheet, TextStyle, View, ViewProps } from 'react-native'
 import { IconButton, useTheme } from 'react-native-paper'
 import Animated, {
   AnimatedProps,
-  AnimatedStyle,
   useAnimatedRef,
 } from 'react-native-reanimated'
 import { AnimatedPaper } from '~/components/Animated'
 import { Menu } from '~/components/atoms'
+import { MenuItem } from '~/components/molecules'
 import { useVisible } from '~/hooks'
+
+type Action = {
+  icon?: string
+  title?: string
+  visible?: boolean
+  disable?: boolean
+  onPress?: () => void
+}
 
 interface Props extends AnimatedProps<ViewProps> {
   onBackPress: () => void
-  title: string
-  titleStyle?:
-    | StyleProp<TextStyle>
-    | StyleProp<AnimatedStyle<StyleProp<TextStyle>>>
-  menuContent?: ReactElement
+  title?: string
+  titleStyle?: StyleProp<TextStyle>
+  actions?: Action[]
 }
 
-export const Appbar: FC<Props> = ({
+const Appbar: FC<Props> = ({
   style,
+  actions = [],
   onBackPress,
   titleStyle,
   title,
-  menuContent,
   ...props
 }) => {
   const { colors, roundness } = useTheme()
   const menuIcon = useAnimatedRef<View>()
-
   const [visible, showMenu, hideMenu] = useVisible(false)
+
+  const visibleItem = actions.filter(it => it.visible === true)
+  const unVisbileItem = actions.filter(it => it.visible !== true)
 
   return (
     <Animated.View style={[styles.app_bar, style]} {...props}>
@@ -44,7 +52,18 @@ export const Appbar: FC<Props> = ({
         {title}
       </AnimatedPaper.Text>
       <View style={styles.right}>
-        {!!menuContent && (
+        {visibleItem.map((item, index) => {
+          const { icon, disable, onPress } = item
+          return (
+            <IconButton
+              key={index}
+              icon={icon!}
+              disabled={disable}
+              onPress={onPress}
+            />
+          )
+        })}
+        {unVisbileItem.length !== 0 && (
           <>
             <AnimatedPaper.IconButton
               ref={menuIcon}
@@ -64,7 +83,19 @@ export const Appbar: FC<Props> = ({
                 styles.menu,
               ]}
             >
-              {menuContent}
+              {unVisbileItem.map((item, index) => {
+                const { icon, title = '', disable = false, onPress } = item
+
+                return (
+                  <MenuItem
+                    key={index}
+                    title={title}
+                    leadingIcon={icon}
+                    disabled={disable}
+                    onPress={onPress}
+                  />
+                )
+              })}
             </Menu>
           </>
         )}
@@ -83,7 +114,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   menu: {
-    padding: 16,
+    padding: 8,
   },
   left: {
     flex: 1,
@@ -96,3 +127,5 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
 })
+
+export default Appbar

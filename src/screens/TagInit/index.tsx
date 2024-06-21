@@ -1,28 +1,19 @@
-import { FC, useCallback, useState } from 'react'
+import { FC, useCallback } from 'react'
+import useAppState from '~/app/store'
 import { TagInitLayout } from '~/components/templates'
-import { useRealm } from '~/services/database'
-import { Tag } from '~/services/database/model'
-import { storage } from '~/services/storage'
-import { Key } from '~/services/storage/keys'
 
-export const TagSelectScreen: FC = () => {
-  const reaml = useRealm()
+const TagSelectScreen: FC = () => {
+  const setFirstOpen = useAppState(state => state.setFirstOpen)
 
-  const handleSkip = useCallback(() => {
-    storage.set(Key.hasOpened, true)
-  }, [])
+  const skip = useCallback(() => {
+    setFirstOpen(false)
+  }, [setFirstOpen])
 
-  const handleSubmit = useCallback((tags: any[]) => {
-    const selectedTags = tags.filter(it => it.isSelected)
-    if (selectedTags.length == 0) return
+  const start = useCallback(() => {
+    setFirstOpen(false)
+  }, [setFirstOpen])
 
-    reaml.write(() => {
-      selectedTags.forEach(tag => {
-        reaml.create(Tag, Tag.generate({ name: tag.name, isPinned: true }))
-      })
-    })
-    storage.set(Key.hasOpened, true)
-  }, [])
-
-  return <TagInitLayout onSkip={handleSkip} onSubmit={handleSubmit} />
+  return <TagInitLayout onSkip={skip} onStart={start} />
 }
+
+export default TagSelectScreen

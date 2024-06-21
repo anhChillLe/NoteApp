@@ -3,24 +3,19 @@ import {
   KeyboardAvoidingView,
   ModalProps,
   StyleSheet,
-  View,
   ViewStyle,
 } from 'react-native'
 import { trigger } from 'react-native-haptic-feedback'
 import { Portal, useTheme } from 'react-native-paper'
 import Animated, {
   Easing,
-  SlideInDown,
-  SlideOutDown,
   interpolate,
   runOnJS,
   runOnUI,
-  useAnimatedRef,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { AnimatedPressable } from '~/components/Animated'
 import { useLayout, useSafeAreaPadding } from '~/hooks'
 
@@ -29,7 +24,7 @@ interface Props extends ModalProps {
   safeArea?: boolean
 }
 
-export const ActionSheet: FC<Props> = ({
+const ActionSheet: FC<Props> = ({
   children,
   visible,
   style,
@@ -72,16 +67,6 @@ export const ActionSheet: FC<Props> = ({
       hide()
     }
   }, [show, hide, visible])
-
-  useEffect(() => {
-    runOnUI(() => {
-      progress.addListener(0, value => runOnJS(console.log)(value))
-    })
-
-    return runOnUI(() => {
-      progress.removeListener(0)
-    })
-  }, [])
 
   const backdropStyle = useAnimatedStyle<ViewStyle>(() => {
     return {
@@ -146,3 +131,4 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 })
+export default ActionSheet

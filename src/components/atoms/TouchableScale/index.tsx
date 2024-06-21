@@ -67,5 +67,5 @@ const TouchableScale = forwardRef<View, Props>(
   },
 )
 
-export { TouchableScale }
+export default TouchableScale
 export type { Props as TouchableScaleProps }

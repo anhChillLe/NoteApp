@@ -1,6 +1,13 @@
-import React, { FC, useState } from 'react'
-import { NativeSyntheticEvent, StyleSheet } from 'react-native'
-import { Button } from 'react-native-paper'
+import React, { FC, memo, useState } from 'react'
+import {
+  NativeSyntheticEvent,
+  StyleProp,
+  StyleSheet,
+  View,
+  ViewStyle,
+} from 'react-native'
+import { PagerViewInternal } from 'react-native-pager-view/lib/typescript/PagerView'
+import { Button, Text } from 'react-native-paper'
 import {
   interpolate,
   useAnimatedRef,
@@ -8,10 +15,11 @@ import {
   useSharedValue,
 } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { SvgProps } from 'react-native-svg'
 import { StorySet } from '~/assets/storyset'
-import { AnimatedPagerView } from '~/components/Animated'
+import { AnimatedPagerView, AnimatedPaper } from '~/components/Animated'
+import { LargeButton } from '~/components/atoms'
 import { PagerIndicator } from '~/components/molecules'
-import { Onboarding } from '~/components/organisms'
 import { useAnimatedPagerScrollHandler } from '~/hooks'
 
 interface Props {
@@ -27,46 +35,55 @@ type PageScrollEvent = {
   position: number
 }
 
-export const OnboardingLayout: FC<Props> = ({ onSkip, onStart }) => {
-  const pager = useAnimatedRef<any>()
+const OnboardingScreenLayout: FC<Props> = ({ onSkip, onStart }) => {
+  const pager = useAnimatedRef<PagerViewInternal>()
   const [position, setPosition] = useState(0)
 
   const onPageSelected = (e: PageSelectEvent) => {
     setPosition(e.nativeEvent.position)
   }
 
+  const progress = useSharedValue(0)
+
+  const handler = useAnimatedPagerScrollHandler(
+    {
+      onPageScroll: (e: PageScrollEvent) => {
+        'worklet'
+        progress.value = e.offset + e.position
+      },
+    },
+    [],
+  )
+
+  const backIconStyle = useAnimatedStyle(
+    () => ({
+      opacity: interpolate(progress.value, [0, 1], [0, 1], 'clamp'),
+    }),
+    [],
+  )
+
+  const skipIconStyle = useAnimatedStyle(
+    () => ({
+      opacity: interpolate(progress.value, [1, 2], [1, 0], 'clamp'),
+    }),
+    [],
+  )
+
   const isLast = position === 2
   const isFirst = position === 0
 
-  const handlePrevious = () => {
+  const previous = () => {
     pager.current?.setPage(position - 1)
   }
 
-  const handleNext = () => {
+  const next = () => {
     pager.current?.setPage(position + 1)
   }
 
-  const progress = useSharedValue(0)
-
-  const handler = useAnimatedPagerScrollHandler({
-    onPageScroll: (e: PageScrollEvent) => {
-      'worklet'
-      progress.value = e.offset + e.position
-    },
-  })
-
-  const backIconStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(progress.value, [0, 1], [0, 1]),
-  }))
-
-  const skipIconStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(progress.value, [1, 2], [1, 0]),
-  }))
-
   return (
     <SafeAreaView style={styles.container}>
-      <Onboarding.Appbar
-        onBackPress={handlePrevious}
+      <Appbar
+        onBackPress={previous}
         onSkipPress={onSkip}
         backStyle={backIconStyle}
         backable={!isFirst}
@@ -75,28 +92,25 @@ export const OnboardingLayout: FC<Props> = ({ onSkip, onStart }) => {
       />
       <AnimatedPagerView
         ref={pager}
-        style={[styles.container]}
+        style={styles.pager_container}
         onPageSelected={onPageSelected}
         onPageScroll={handler}
         useNext={false}
       >
-        <Onboarding.Page
+        <Page
           Icon={StorySet.Note}
           title={strings.welcome.title}
           description={strings.welcome.description}
-          style={styles.page}
         />
-        <Onboarding.Page
+        <Page
           Icon={StorySet.Notification}
           title={strings.noti.title}
           description={strings.noti.description}
-          style={styles.page}
         />
-        <Onboarding.Page
+        <Page
           Icon={StorySet.Sync}
           title={strings.sync.title}
           description={strings.sync.description}
-          style={styles.page}
         />
       </AnimatedPagerView>
       <PagerIndicator
@@ -108,23 +122,89 @@ export const OnboardingLayout: FC<Props> = ({ onSkip, onStart }) => {
         space={8}
         style={styles.indicator}
       />
-      <Button
+      <LargeButton
         mode="contained"
-        onPress={isLast ? onStart : handleNext}
+        onPress={isLast ? onStart : next}
         style={styles.action}
-        contentStyle={styles.action_content}
-      >
-        {isLast ? strings.start : strings.next}
-      </Button>
+        children={isLast ? strings.start : strings.next}
+      />
     </SafeAreaView>
+  )
+}
+
+interface AppbarProps {
+  backable?: boolean
+  onBackPress: () => void
+  skipable?: boolean
+  onSkipPress: () => void
+  backStyle?: StyleProp<ViewStyle>
+  skipStyle?: StyleProp<ViewStyle>
+}
+
+const Appbar: FC<AppbarProps> = ({
+  onBackPress,
+  onSkipPress,
+  backable,
+  skipable,
+  backStyle,
+  skipStyle,
+}) => {
+  return (
+    <View style={styles.appbar}>
+      <AnimatedPaper.IconButton
+        icon="angle-small-left"
+        onPress={onBackPress}
+        disabled={!backable}
+        style={backStyle}
+      />
+      <View style={styles.fill} />
+      <AnimatedPaper.Button
+        icon="angle-small-right"
+        contentStyle={styles.btn_skip}
+        onPress={onSkipPress}
+        disabled={!skipable}
+        style={skipStyle}
+      >
+        {strings.skip}
+      </AnimatedPaper.Button>
+    </View>
+  )
+}
+
+interface PageProps {
+  Icon: FC<SvgProps>
+  title: string
+  description: string
+}
+
+const Page: FC<PageProps> = ({ Icon, title, description }) => {
+  return (
+    <View style={styles.page}>
+      <View style={styles.icon_container}>
+        <Icon style={styles.icon} />
+      </View>
+      <View style={styles.content_container}>
+        <Text variant="headlineMedium" style={styles.title}>
+          {title}
+        </Text>
+        <Text variant="bodyLarge" style={styles.desc}>
+          {description}
+        </Text>
+      </View>
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
   page: {
     paddingHorizontal: 24,
+    flex: 1,
+    alignItems: 'stretch',
   },
   container: {
+    flex: 1,
+  },
+  pager_container: {
     flex: 1,
   },
   indicator: {
@@ -134,9 +214,35 @@ const styles = StyleSheet.create({
     marginHorizontal: 24,
     marginBottom: 16,
   },
-  action_content: {
-    padding: 6,
+
+  appbar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 4,
   },
+  btn_skip: {
+    flexDirection: 'row-reverse',
+  },
+  fill: {
+    flex: 1,
+  },
+
+  icon_container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  icon: {
+    aspectRatio: 1,
+    width: '100%',
+  },
+  content_container: {
+    gap: 8,
+  },
+  title: {
+    fontWeight: 'bold',
+  },
+  desc: {},
 })
 
 const strings = {
@@ -160,3 +266,5 @@ const strings = {
   next: 'Next',
   skip: 'Skip',
 }
+
+export default memo(OnboardingScreenLayout)

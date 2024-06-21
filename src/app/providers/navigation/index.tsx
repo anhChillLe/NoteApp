@@ -1,15 +1,11 @@
 import { NavigationContainer, Theme } from '@react-navigation/native'
-import { FC, ReactElement } from 'react'
+import { FC, PropsWithChildren } from 'react'
 import { MD3Theme, useTheme } from 'react-native-paper'
 
-interface Props {
-  children: ReactElement
-}
-
-const AppNavigationContainer: FC<Props> = ({ children }) => {
+const AppNavigationContainer: FC<PropsWithChildren> = ({ children }) => {
   const paperTheme = useTheme()
   const navTheme = themeConverter(paperTheme)
-  return <NavigationContainer theme={navTheme}>{children}</NavigationContainer>
+  return <NavigationContainer theme={navTheme} children={children} />
 }
 
 const themeConverter = ({ dark, colors }: MD3Theme): Theme => {

@@ -1,46 +1,45 @@
-import { useNavigation } from '@react-navigation/native'
-import React, { FC, useCallback, useState } from 'react'
-import { Results, SortDescriptor } from 'realm'
-import { Home } from '~/components/organisms'
+import { useFocusEffect, useNavigation } from '@react-navigation/native'
+import React, { FC, useCallback, useEffect, useState } from 'react'
+import { BackHandler } from 'react-native'
+import Realm, { BSON, Results, SortDescriptor } from 'realm'
+import { HomeProvider } from '~/components/Provider'
 import { HomeScreenLayout } from '~/components/templates'
-import { useQuery, useRealm } from '~/services/database'
-import { Note, Tag, TaskItem } from '~/services/database/model'
+import { useObject, useQuery } from '~/services/database'
+import { Note, Tag } from '~/services/database/model'
 import { combineQuery } from '~/services/database/utils'
-import { useHomeSearch, useHomeSelect } from '~/store/home'
+import { debounce } from '~/utils'
+import useHomeState from './store'
 
-export const HomeScreen: FC = () => {
+const HomeScreen: FC = () => {
   const navigation = useNavigation()
-  const realm = useRealm()
 
-  const [currentTag, changeCurrentTag] = useState<Tag | null>(null)
+  const currentTagId = useHomeState(state => state.currentTagId)
+  const [searchValue, setSearchValue] = useState<string | null>(null)
 
-  const searchValue = useHomeSearch(state => {
-    return state.isInSearchMode ? state.value : null
+  const currentTag = useObject({
+    type: Tag,
+    primaryKey: new BSON.UUID(currentTagId!),
   })
-
-  const selecteds = useHomeSelect(state => state.selecteds)
-  const disableSelect = useHomeSelect(state => state.disable)
-
   const tags = useQuery({ type: Tag, query: createTagQuery() })
-
   const notes = useQuery(
     { type: Note, query: createNoteQuery(currentTag, searchValue) },
-    [currentTag, searchValue],
+    [currentTagId, searchValue],
   )
 
   const openEditor = useCallback(
     (item: Note) => {
-      navigation.navigate('note_edit', {
+      const params = {
         id: item.id,
         type: item.type,
-        tagId: currentTag?.id,
-      })
+        tagId: currentTagId,
+      }
+      navigation.navigate('editor', params)
     },
-    [currentTag],
+    [currentTagId],
   )
 
   const openDeletedNote = useCallback(() => {
-    navigation.navigate('deleted')
+    navigation.navigate('trash')
   }, [navigation])
 
   const openPrivateNote = useCallback(() => {
@@ -56,98 +55,50 @@ export const HomeScreen: FC = () => {
   }, [navigation])
 
   const openNewNoteEditor = useCallback(() => {
-    navigation.navigate('note_edit', { type: 'note', tagId: currentTag?.id })
-  }, [navigation, currentTag])
+    navigation.navigate('editor', { type: 'note', tagId: currentTagId })
+  }, [navigation, currentTagId])
 
   const openNewTaskEditor = useCallback(() => {
-    navigation.navigate('note_edit', { type: 'task' })
+    navigation.navigate('editor', { type: 'task' })
   }, [navigation])
 
-  const openNewRecordEditor = useCallback(() => {
-    navigation.navigate('note_edit', { type: 'note' })
-  }, [navigation])
+  const mode = useHomeState(state => state.mode)
+  const setMode = useHomeState(state => state.setMode)
 
-  const openNewImageEditor = useCallback(() => {
-    navigation.navigate('note_edit', { type: 'note' })
-  }, [navigation])
-
-  const openNewPaintEditor = useCallback(() => {
-    navigation.navigate('note_edit', { type: 'note' })
-  }, [navigation])
-
-  const changeTaskItemStatus = useCallback(
-    (item: TaskItem) => {
-      realm.write(() => {
-        item.changeStatus()
-      })
-    },
-    [realm],
-  )
-
-  const addTagToNote = useCallback(
-    (note: Note, tag: Tag) => {
-      realm.write(() => {
-        if (note.tags.includes(tag)) return
-        note.tags.push(tag)
-      })
-    },
-    [realm],
-  )
-
-  const pinNotes = useCallback(() => {
-    realm.write(() => {
-      selecteds.forEach(item => {
-        item.isPinned = !item.isPinned
-      })
-      disableSelect()
+  const handler = useCallback(() => {
+    const listener = BackHandler.addEventListener('hardwareBackPress', () => {
+      mode !== 'default' && setMode('default')
+      return mode !== 'default'
     })
-  }, [realm, selecteds])
+    return listener.remove
+  }, [mode, setMode])
 
-  const deleteNotes = useCallback(() => {
-    realm.write(() => {
-      selecteds.forEach(item => {
-        item.isDeleted = true
-        console.log('delete', selecteds.length)
-      })
-      disableSelect()
+  useEffect(() => {
+    const debouncedSetSearchVaue = debounce(setSearchValue, 300)
+    const unsub = useHomeState.subscribe(({ searchValue, mode }) => {
+      debouncedSetSearchVaue(mode === 'search' ? searchValue : null)
     })
-  }, [realm, selecteds])
+    return unsub
+  }, [setSearchValue])
 
-  const privateNotes = useCallback(() => {
-    realm.write(() => {
-      selecteds.forEach(item => {
-        item.isPrivate = true
-      })
-      disableSelect()
-    })
-  }, [realm, selecteds])
+  useFocusEffect(handler)
+
+  const value = {
+    notes,
+    tags,
+    openEditor,
+    openDeletedNote,
+    openPrivateNote,
+    openTagManager,
+    openSetting,
+    openNewNoteEditor,
+    openNewTaskEditor,
+  }
 
   return (
-    <Home.Provider
-      value={{
-        notes,
-        tags,
-        currentTag,
-        changeCurrentTag,
-        openEditor,
-        openDeletedNote,
-        openPrivateNote,
-        openTagManager,
-        openSetting,
-        openNewNoteEditor,
-        openNewTaskEditor,
-        openNewImageEditor,
-        openNewRecordEditor,
-        openNewPaintEditor,
-        changeTaskItemStatus,
-        addTagToNote,
-        pinNotes,
-        deleteNotes,
-        privateNotes,
-      }}
-    >
+    <HomeProvider value={value}>
       <HomeScreenLayout />
-    </Home.Provider>
+    </HomeProvider>
   )
 }
 
@@ -177,9 +128,10 @@ const queryDefault = () => {
 const queryByText = (text: string | null) => {
   return (collection: Results<Note>) => {
     if (text === null || text.trim() === '') return collection
+
     return collection.filtered(
       'title TEXT $0 OR content TEXT $0 OR taskList.label TEXT $0',
-      text,
+      text.replace(/[^a-zA-Z0-9 ]/g, ''),
     )
   }
 }
@@ -196,3 +148,5 @@ function createTagQuery() {
     return collection.sorted('isPinned', true)
   }
 }
+
+export default HomeScreen

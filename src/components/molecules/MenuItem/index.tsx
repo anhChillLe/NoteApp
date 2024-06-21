@@ -10,7 +10,7 @@ interface Props extends AnimatedProps<Omit<TouchableRippleProps, 'children'>> {
   title: string
 }
 
-export const MenuItem: FC<Props> = ({
+const MenuItem: FC<Props> = ({
   leadingIcon,
   trailingIcon,
   title,
@@ -54,3 +54,5 @@ const styles = StyleSheet.create({
     gap: 12,
   },
 })
+
+export default MenuItem

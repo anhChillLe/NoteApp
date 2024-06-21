@@ -1,13 +1,15 @@
 import { useNavigation } from '@react-navigation/native'
 import React, { FC, useCallback } from 'react'
-import { OnboardingLayout } from '~/components/templates'
+import { OnboardingScreenLayout } from '~/components/templates'
 
-export const OnboardingScreen: FC = () => {
+const OnboardingScreen: FC = () => {
   const navigation = useNavigation()
 
   const handleStart = useCallback(() => {
     navigation.navigate('tag_init')
-  }, [])
+  }, [navigation])
 
-  return <OnboardingLayout onStart={handleStart} onSkip={handleStart} />
+  return <OnboardingScreenLayout onStart={handleStart} onSkip={handleStart} />
 }
+
+export default OnboardingScreen

@@ -2327,77 +2327,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@fluentui/keyboard-keys@npm:^9.0.7":
-  version: 9.0.7
-  resolution: "@fluentui/keyboard-keys@npm:9.0.7"
-  dependencies:
-    "@swc/helpers": ^0.5.1
-  checksum: 7b047ffbb369e17a73ec6fcb337ac173e0f4bb74fec4983928a6bb8e0fa918e0e9d8b28d6652e5ca811920428778a0b790f340ed4eae8307abb0e32f2ff460e0
-  languageName: node
-  linkType: hard
-
-"@fluentui/react-context-selector@npm:^9.1.58":
-  version: 9.1.58
-  resolution: "@fluentui/react-context-selector@npm:9.1.58"
-  dependencies:
-    "@fluentui/react-utilities": ^9.18.7
-    "@swc/helpers": ^0.5.1
-  peerDependencies:
-    "@types/react": ">=16.14.0 <19.0.0"
-    "@types/react-dom": ">=16.9.0 <19.0.0"
-    react: ">=16.14.0 <19.0.0"
-    react-dom: ">=16.14.0 <19.0.0"
-    scheduler: ">=0.19.0 <=0.23.0"
-  checksum: 8dd3d677297f9430c714ceb88a208d5da5737ec719f127e9e1f12ae046485c39bc22c1b0d8e95deedb318e9f5da6604e40eff5ab8344d17f1b7e5a3107477fab
-  languageName: node
-  linkType: hard
-
-"@fluentui/react-shared-contexts@npm:^9.17.0":
-  version: 9.17.0
-  resolution: "@fluentui/react-shared-contexts@npm:9.17.0"
-  dependencies:
-    "@fluentui/react-theme": ^9.1.19
-    "@swc/helpers": ^0.5.1
-  peerDependencies:
-    "@types/react": ">=16.14.0 <19.0.0"
-    react: ">=16.14.0 <19.0.0"
-  checksum: 25b17413cae1121b3fc938f4318edefc148fe8f4de2310db4b797d707b9c3da40f01aeb6dacba32f9a2da74daf16d78db27de5335494ccfd115f3ac272bb8c12
-  languageName: node
-  linkType: hard
-
-"@fluentui/react-theme@npm:^9.1.19":
-  version: 9.1.19
-  resolution: "@fluentui/react-theme@npm:9.1.19"
-  dependencies:
-    "@fluentui/tokens": 1.0.0-alpha.16
-    "@swc/helpers": ^0.5.1
-  checksum: 6750607a3b429c11be04f50fa8d1f3882fff601f9f7058ed0b551c624757c936eb3ef6939b661e3e5d8d94bcf08b174dd71bdb7922bbcee52229c8f70c95b256
-  languageName: node
-  linkType: hard
-
-"@fluentui/react-utilities@npm:^9.18.7":
-  version: 9.18.7
-  resolution: "@fluentui/react-utilities@npm:9.18.7"
-  dependencies:
-    "@fluentui/keyboard-keys": ^9.0.7
-    "@fluentui/react-shared-contexts": ^9.17.0
-    "@swc/helpers": ^0.5.1
-  peerDependencies:
-    "@types/react": ">=16.14.0 <19.0.0"
-    react: ">=16.14.0 <19.0.0"
-  checksum: 1f35cbd1aa37bd6ed0c897a21c33169b9a88b9d82c6f416194a28a563a4ed87a4adcfef496d96aa7f5ddc8499351b8a4287bab4251410eb5805dda8e11cec8a1
-  languageName: node
-  linkType: hard
-
-"@fluentui/tokens@npm:1.0.0-alpha.16":
-  version: 1.0.0-alpha.16
-  resolution: "@fluentui/tokens@npm:1.0.0-alpha.16"
-  dependencies:
-    "@swc/helpers": ^0.5.1
-  checksum: b0e11509eaa331791250e1708edcd10249bc0d371f5f1989dac3e192100e0bdb059a991327fb866b6242e54d6e3d58480b4ec8dd8818dd241f1dc32023358d17
-  languageName: node
-  linkType: hard
-
 "@hapi/hoek@npm:^9.0.0, @hapi/hoek@npm:^9.3.0":
   version: 9.3.0
   resolution: "@hapi/hoek@npm:9.3.0"
@@ -3958,15 +3887,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@swc/helpers@npm:^0.5.1":
-  version: 0.5.11
-  resolution: "@swc/helpers@npm:0.5.11"
-  dependencies:
-    tslib: ^2.4.0
-  checksum: 5d85e641d993264f38871bf53e7509da959cdff7646a40d876153291146b9d0aa701518546e5bfef18fa17c5944333bbeb66c2f0d7a570e8c5535d0937d76bd9
-  languageName: node
-  linkType: hard
-
 "@trysound/sax@npm:0.2.0":
   version: 0.2.0
   resolution: "@trysound/sax@npm:0.2.0"
@@ -5411,8 +5331,6 @@ __metadata:
     "@babel/core": ^7.24.6
     "@babel/preset-env": ^7.24.6
     "@babel/runtime": ^7.24.6
-    "@fluentui/react-context-selector": ^9.1.58
-    "@fluentui/react-utilities": ^9.18.7
     "@react-native/babel-preset": 0.74.83
     "@react-native/eslint-config": 0.74.83
     "@react-native/metro-config": 0.74.83
@@ -5438,18 +5356,19 @@ __metadata:
     react-native-gesture-handler: ^2.16.2
     react-native-get-random-values: ^1.10.0
     react-native-haptic-feedback: ^2.2.0
+    react-native-keychain: ^8.2.0
     react-native-mmkv: ^2.12.2
     react-native-pager-view: ^6.3.1
     react-native-paper: ^5.12.3
-    react-native-reanimated: ^3.11.0
+    react-native-reanimated: ^3.12.0
     react-native-safe-area-context: ^4.10.1
     react-native-screens: ^3.31.1
+    react-native-simple-biometrics: ^1.5.2
     react-native-svg: ^15.3.0
     react-native-svg-transformer: ^1.3.0
     react-native-vector-icons: ^10.1.0
     react-test-renderer: 18.2.0
     realm: ^12.9.0
-    scheduler: ^0.23.2
     typescript: 5.0.4
     zundo: ^2.1.0
     zustand: ^4.5.2
@@ -10078,6 +9997,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-native-keychain@npm:^8.2.0":
+  version: 8.2.0
+  resolution: "react-native-keychain@npm:8.2.0"
+  checksum: 4c4d5331013b8ab17c21120a2388e1e82aa30586738c0a34ed9dcffb6ce12454125ddb690951cad5563c9290b060eb68ccffa9477650cc3a5ddc347696b5d4ef
+  languageName: node
+  linkType: hard
+
 "react-native-mmkv@npm:^2.12.2":
   version: 2.12.2
   resolution: "react-native-mmkv@npm:2.12.2"
@@ -10114,9 +10040,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-reanimated@npm:^3.11.0":
-  version: 3.11.0
-  resolution: "react-native-reanimated@npm:3.11.0"
+"react-native-reanimated@npm:^3.12.0":
+  version: 3.12.0
+  resolution: "react-native-reanimated@npm:3.12.0"
   dependencies:
     "@babel/plugin-transform-arrow-functions": ^7.0.0-0
     "@babel/plugin-transform-nullish-coalescing-operator": ^7.0.0-0
@@ -10130,7 +10056,7 @@ __metadata:
     "@babel/core": ^7.0.0-0
     react: "*"
     react-native: "*"
-  checksum: 5d0c6be5c9b6d933755e50895a1ec903100800a83b7b48fbc6a4242063f0de52a78f5af69d39da4241f6071a4416602f150c3a53e9a97d20880edb3612ffadbd
+  checksum: 14ed9eea5d48b456801847c64a29be5cef2141ac2f5af1f687201083be6dafc925b62235c77bf172b5d9894bc69912677620f96d222341dc451c894211988ab8
   languageName: node
   linkType: hard
 
@@ -10154,6 +10080,16 @@ __metadata:
     react: "*"
     react-native: "*"
   checksum: 1fc61cf7a223b3ef1c8000e74416c8953561c5fa0861557da43659db62a640e37fb51fbdc35dae810a665881a7aa9eeaf1873e90f67404b4dda53a672464a7fe
+  languageName: node
+  linkType: hard
+
+"react-native-simple-biometrics@npm:^1.5.2":
+  version: 1.5.2
+  resolution: "react-native-simple-biometrics@npm:1.5.2"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: bdbee57792b626465d20351588830e8fdb403f474e0f6816fb3fdbcbfa3a43a4e1d911a7c7b5141befcb9de49dbff3c50bad320bd9b7ade1f0182d498cd7b10b
   languageName: node
   linkType: hard
 
@@ -10737,15 +10673,6 @@ __metadata:
   dependencies:
     loose-envify: ^1.1.0
   checksum: d79192eeaa12abef860c195ea45d37cbf2bbf5f66e3c4dcd16f54a7da53b17788a70d109ee3d3dde1a0fd50e6a8fc171f4300356c5aee4fc0171de526bf35f8a
-  languageName: node
-  linkType: hard
-
-"scheduler@npm:^0.23.2":
-  version: 0.23.2
-  resolution: "scheduler@npm:0.23.2"
-  dependencies:
-    loose-envify: ^1.1.0
-  checksum: 3e82d1f419e240ef6219d794ff29c7ee415fbdc19e038f680a10c067108e06284f1847450a210b29bbaf97b9d8a97ced5f624c31c681248ac84c80d56ad5a2c4
   languageName: node
   linkType: hard
 
@@ -11555,7 +11482,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tslib@npm:^2.0.1, tslib@npm:^2.0.3, tslib@npm:^2.4.0":
+"tslib@npm:^2.0.1, tslib@npm:^2.0.3":
   version: 2.6.2
   resolution: "tslib@npm:2.6.2"
   checksum: 329ea56123005922f39642318e3d1f0f8265d1e7fcb92c633e0809521da75eeaca28d2cf96d7248229deb40e5c19adf408259f4b9640afd20d13aecc1430f3ad

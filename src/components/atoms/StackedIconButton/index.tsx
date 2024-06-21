@@ -10,7 +10,7 @@ interface Props extends AnimatedProps<Omit<TouchableRippleProps, 'children'>> {
   label: string
 }
 
-export const StackedIconButton: FC<Props> = ({
+const StackedIconButton: FC<Props> = ({
   icon,
   theme,
   color,
@@ -46,6 +46,7 @@ const styles = StyleSheet.create({
     gap: 8,
     alignItems: 'center',
     padding: 8,
-    aspectRatio: 1,
   },
 })
+
+export default StackedIconButton

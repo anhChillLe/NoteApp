@@ -9,7 +9,7 @@ interface Props extends AnimatedProps<ViewProps> {
   numOfItem: number
 }
 
-export const SelectionAppbar: FC<Props> = ({
+const SelectionAppbar: FC<Props> = ({
   onCheckAllPress,
   onClosePress,
   numOfItem,
@@ -62,3 +62,5 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 })
+
+export default SelectionAppbar

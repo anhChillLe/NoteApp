@@ -1,6 +1,6 @@
-import { FC } from 'react'
-import { ScrollView, StyleSheet, View, useColorScheme } from 'react-native'
-import { Icon, List, Text, TouchableRipple, useTheme } from 'react-native-paper'
+import { FC, memo } from 'react'
+import { Dimensions, ScrollView, StyleSheet, View } from 'react-native'
+import { List, Text, TouchableRipple, useTheme } from 'react-native-paper'
 import Animated, {
   ZoomIn,
   ZoomOut,
@@ -17,14 +17,15 @@ import { Menu } from '~/components/atoms'
 import { MenuSelectItem, Section } from '~/components/molecules'
 import { Appbar } from '~/components/organisms'
 import { useVisible } from '~/hooks'
-import { ColorScheme, useSetting } from '~/store/setting'
+import { useAppColorScheme } from '~/hooks/theme'
+import useSetting, { ColorScheme } from '~/screens/Setting/store'
 import { AppTheme } from '~/styles/material3'
 
 interface Props {
   onBackPress: () => void
 }
 
-export const SettingLayout: FC<Props> = ({ onBackPress }) => {
+const SettingScreenLayout: FC<Props> = ({ onBackPress }) => {
   const headerTitle = useAnimatedRef()
   const progress = useSharedValue(0)
 
@@ -70,6 +71,7 @@ export const SettingLayout: FC<Props> = ({ onBackPress }) => {
         <List.Section title="Theme">
           <ThemeSection />
           <ColorSchemeSection />
+          <NumOfColumnsSection />
         </List.Section>
       </Animated.ScrollView>
     </SafeAreaView>
@@ -78,11 +80,8 @@ export const SettingLayout: FC<Props> = ({ onBackPress }) => {
 
 const ThemeSection: FC = () => {
   const themeIndex = useSetting(state => state.themeIndex)
-  const setTheme = useSetting(state => state.set('themeIndex'))
-  const systemColorScheme = useColorScheme() ?? 'light'
-  const appClorScheme = useSetting(state => state.colorScheme)
-  const colorScheme =
-    appClorScheme === 'system' ? systemColorScheme : appClorScheme
+  const setTheme = useSetting(state => state.setThemeIndex)
+  const colorScheme = useAppColorScheme()
 
   return (
     <Animated.View style={{ padding: 16, gap: 8 }}>
@@ -132,7 +131,7 @@ const ThemeSection: FC = () => {
 const ColorSchemeSection: FC = () => {
   const { roundness } = useTheme()
   const colorScheme = useSetting(state => state.colorScheme)
-  const setColorScheme = useSetting(state => state.set('colorScheme'))
+  const setColorScheme = useSetting(state => state.setColorScheme)
   const section = useAnimatedRef<View>()
   const [visible, show, hide] = useVisible(false)
 
@@ -180,6 +179,67 @@ const ColorSchemeSection: FC = () => {
   )
 }
 
+const NumOfColumnsSection: FC = () => {
+  const { roundness } = useTheme()
+  const numOfColumns = useSetting(state => state.numOfColumns)
+  const setNumOfColumn = useSetting(state => state.setNumOfColumn)
+
+  const section = useAnimatedRef<View>()
+  const [visible, show, hide] = useVisible(false)
+
+  const max = Math.round(Dimensions.get('screen').width / 200)
+  const options = Array.from({ length: max }, (_, i) => i + 1)
+
+  const createLabel = (numOfColumns: number | 'auto') => {
+    return numOfColumns === 'auto'
+      ? 'Auto'
+      : numOfColumns.toString() + ' columns'
+  }
+
+  return (
+    <>
+      <Section
+        title="Columns of note"
+        value={createLabel(numOfColumns)}
+        valueRef={section}
+        onPress={show}
+      />
+      <Menu
+        anchorRef={section}
+        visible={visible}
+        onDismiss={hide}
+        onRequestClose={hide}
+        style={{ borderRadius: roundness * 3, overflow: 'hidden' }}
+      >
+        {options.map(it => {
+          const isSelected = it === numOfColumns
+          const onPress = () => {
+            setNumOfColumn(it)
+            hide()
+          }
+
+          return (
+            <MenuSelectItem
+              key={it}
+              onPress={onPress}
+              title={createLabel(it)}
+              isSelected={isSelected}
+            />
+          )
+        })}
+        <MenuSelectItem
+          onPress={() => {
+            setNumOfColumn('auto')
+            hide()
+          }}
+          title="Auto"
+          isSelected={numOfColumns === 'auto'}
+        />
+      </Menu>
+    </>
+  )
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -204,3 +264,5 @@ const styles = StyleSheet.create({
     padding: 8,
   },
 })
+
+export default memo(SettingScreenLayout)

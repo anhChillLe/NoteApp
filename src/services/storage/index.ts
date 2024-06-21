@@ -16,4 +16,9 @@ const zustandStorage: StateStorage = {
   },
 }
 
-export { zustandStorage, storage }
+const encryptionStorage = new MMKV({
+  id: 'private',
+  encryptionKey: 'chillle',
+})
+
+export { zustandStorage, storage, encryptionStorage }

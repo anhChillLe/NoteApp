@@ -1,71 +1,39 @@
-import { useNavigation } from '@react-navigation/native'
+import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import { FC, useCallback } from 'react'
+import { BackHandler } from 'react-native'
+import { TagManagerProvider } from '~/components/Provider'
 import { TagManagerLayout } from '~/components/templates'
-import { useQuery, useRealm } from '~/services/database'
+import { useQuery } from '~/services/database'
 import { Tag } from '~/services/database/model'
+import useTagMangeState from './store'
 
-export const TagManagerScreen: FC = () => {
-  const reaml = useRealm()
-  const navigation = useNavigation()
+const TagManagerScreen: FC = () => {
+  const { goBack } = useNavigation()
+
+  const isInSelectMode = useTagMangeState(state => state.mode === 'select')
+  const setMode = useTagMangeState(state => state.setMode)
 
   const tags = useQuery({
     type: Tag,
     query: tags => tags.sorted('isPinned', true),
   })
 
-  const handleDeleteTag = useCallback(
-    (...tags: Tag[]) => {
-      reaml.write(() => {
-        reaml.delete(tags)
-      })
-    },
-    [reaml],
-  )
+  const backHandler = useCallback(() => {
+    const handler = () => {
+      isInSelectMode && setMode('default')
+      return isInSelectMode
+    }
+    const listener = BackHandler.addEventListener('hardwareBackPress', handler)
+    return listener.remove
+  }, [isInSelectMode, setMode])
 
-  const handleTagPress = useCallback(
-    (tag: Tag) => {
-      // Go back with tagId
-    },
-    [reaml],
-  )
-
-  const handleCreatetag = useCallback(
-    (name: string) => {
-      reaml.write(() => {
-        reaml.create(Tag, Tag.generate({ name }))
-      })
-    },
-    [reaml],
-  )
-
-  const handlePintag = useCallback(
-    (...tags: Tag[]) => {
-      reaml.write(() => {
-        const hasPinned = tags.some(tag => tag.isPinned)
-        tags.forEach(tag => (tag.isPinned = !hasPinned))
-      })
-    },
-    [reaml],
-  )
-
-  const handleUpdateTag = useCallback(
-    (tag: Tag, name: string) => {
-      reaml.write(() => {
-        tag.name = name
-      })
-    },
-    [reaml],
-  )
+  useFocusEffect(backHandler)
 
   return (
-    <TagManagerLayout
-      tags={tags}
-      onNewTag={handleCreatetag}
-      onPinTag={handlePintag}
-      onBackPress={navigation.goBack}
-      onDeleteTag={handleDeleteTag}
-      onTagPress={handleTagPress}
-      onUpdateTag={handleUpdateTag}
-    />
+    <TagManagerProvider value={{ goBack, tags }}>
+      <TagManagerLayout />
+    </TagManagerProvider>
   )
 }
+
+export default TagManagerScreen

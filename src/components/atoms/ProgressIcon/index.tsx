@@ -19,7 +19,7 @@ interface Props extends AnimatedProps<ViewProps> {
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle)
 
-export const ProgressIcon: FC<Props> = ({
+const ProgressIcon: FC<Props> = ({
   strokeWidth,
   size,
   icon,
@@ -96,3 +96,5 @@ const styles = StyleSheet.create({
     right: 'auto',
   },
 })
+
+export default ProgressIcon

@@ -1,23 +1,19 @@
-import { FC, useState } from 'react'
-import { StyleSheet, View } from 'react-native'
-import { Button, Text } from 'react-native-paper'
-import Animated, { LinearTransition } from 'react-native-reanimated'
+import { FC, memo } from 'react'
+import { ScrollView, StyleSheet, View } from 'react-native'
+import { Button, HelperText, Text } from 'react-native-paper'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { LargeButton } from '~/components/atoms'
 import { TagItem } from '~/components/molecules'
+import useTagInit from '~/screens/TagInit/store'
 
 type TagData = { name: string; isSelected: boolean }
 interface Props {
   onSkip: () => void
-  onSubmit: (tags: TagData[]) => void
+  onStart: () => void
 }
 
-export const TagInitLayout: FC<Props> = ({ onSubmit, onSkip }) => {
-  const [tags, setTags] = useState(tagsEng)
-
-  const handleItemPress = (item: TagData) => {
-    item.isSelected = !item.isSelected
-    setTags(tags => [...tags])
-  }
+const TagInitLayout: FC<Props> = ({ onSkip, onStart }) => {
+  const { data, createTags, toggleItem } = useTagInit()
 
   return (
     <SafeAreaView style={styles.container}>
@@ -31,26 +27,25 @@ export const TagInitLayout: FC<Props> = ({ onSubmit, onSkip }) => {
         </Button>
       </View>
 
-      <Animated.ScrollView contentContainerStyle={styles.tag_group}>
-        <Animated.View style={styles.title_container}>
+      <ScrollView contentContainerStyle={styles.tag_group}>
+        <View style={styles.title_container}>
           <Text variant="headlineMedium" style={styles.title}>
             {strings.title}
           </Text>
           <Text variant="bodyLarge" style={styles.desc}>
             {strings.description}
           </Text>
-          <Text variant="titleMedium" style={styles.helper}>
+          <HelperText type="info" padding="none">
             {strings.helper}
-          </Text>
-        </Animated.View>
+          </HelperText>
+        </View>
 
-        {tags.map((tag, index) => {
+        {data.map((tag, index) => {
           const { isSelected, name } = tag
-          const onPress = () => handleItemPress(tag)
+          const onPress = () => toggleItem(index)
           return (
             <TagItem
               key={index}
-              layout={LinearTransition}
               isSelected={isSelected}
               icon={isSelected ? 'check' : 'plus'}
               onPress={onPress}
@@ -58,16 +53,16 @@ export const TagInitLayout: FC<Props> = ({ onSubmit, onSkip }) => {
             />
           )
         })}
-      </Animated.ScrollView>
-      <Button
+      </ScrollView>
+      <LargeButton
         mode="contained"
-        onPress={() => onSubmit(tags)}
+        onPress={() => {
+          createTags()
+          onStart()
+        }}
         style={styles.action}
-        labelStyle={styles.action_label}
-        contentStyle={styles.action_content}
-      >
-        {strings.start}
-      </Button>
+        children={strings.start}
+      />
     </SafeAreaView>
   )
 }
@@ -80,7 +75,6 @@ const styles = StyleSheet.create({
   tag_group: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    alignItems: 'stretch',
     paddingHorizontal: 16,
     gap: 8,
     flex: 1,
@@ -117,27 +111,11 @@ const styles = StyleSheet.create({
 
 const strings = {
   skip: 'Skip',
-  title: 'Create your own tag',
+  title: 'Select your own tags',
   description:
     'Kick start your note-taking journey by creating personalized tags. These tags will help you categorize and retrieve your notes with ease.',
   helper: 'Select any tag below or create them laster',
   start: 'Get start',
 }
 
-const tagsEng = [
-  { name: 'Work', isSelected: true },
-  { name: 'Family', isSelected: true },
-  { name: 'Health', isSelected: true },
-  { name: 'Goals', isSelected: false },
-  { name: 'Study', isSelected: true },
-  { name: 'Hobbies', isSelected: false },
-  { name: 'Travel', isSelected: false },
-  { name: 'Finance', isSelected: false },
-  { name: 'Technology', isSelected: false },
-  { name: 'Food', isSelected: false },
-  { name: 'Books', isSelected: false },
-  { name: 'Movies', isSelected: false },
-  { name: 'Sports', isSelected: false },
-  { name: 'Shopping', isSelected: false },
-  { name: 'Important', isSelected: false },
-]
+export default memo(TagInitLayout)

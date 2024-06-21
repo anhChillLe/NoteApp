@@ -1,7 +1,15 @@
 import { useState, useCallback } from 'react'
 import { LayoutRectangle, LayoutChangeEvent } from 'react-native'
 
-export function useLayout(
+function useLayout(
+  initLayout?: undefined,
+): [LayoutRectangle | undefined, (e: LayoutChangeEvent) => void]
+
+function useLayout(
+  initLayout: LayoutRectangle,
+): [LayoutRectangle, (e: LayoutChangeEvent) => void]
+
+function useLayout(
   initLayout?: LayoutRectangle,
 ): [LayoutRectangle | undefined, (e: LayoutChangeEvent) => void] {
   const [layout, setLayout] = useState<LayoutRectangle | undefined>(initLayout)
@@ -14,3 +22,5 @@ export function useLayout(
   )
   return [layout, handleLayout]
 }
+
+export default useLayout

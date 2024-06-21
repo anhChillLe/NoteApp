@@ -12,18 +12,21 @@ import {
   TouchableRipple,
 } from 'react-native-paper'
 import Animated from 'react-native-reanimated'
-import { TouchableScale } from '../atoms'
-import { Input } from '../atoms/Input'
+import { Input, TouchableScale } from '../atoms'
 import { withAnimated } from './utils'
+import { FlashList, MasonryFlashList } from '@shopify/flash-list'
+import { Note } from '~/services/database/model'
+import { MasonryList } from '../molecules'
+
+const toAnimated = Animated.createAnimatedComponent
 
 const AnimatedSurface = withAnimated(Surface)
-const AnimatedButton = Animated.createAnimatedComponent(Button)
-const AnimatedIconButton = Animated.createAnimatedComponent(IconButton)
+const AnimatedButton = toAnimated(Button)
+const AnimatedIconButton = toAnimated(IconButton)
 const AnimatedChip = withAnimated(Chip)
 const AnimatedText = withAnimated(Text)
 const AnimatedIcon = withAnimated(Icon)
-const AnimatedTouchableRipple =
-  Animated.createAnimatedComponent(TouchableRipple)
+const AnimatedTouchableRipple = toAnimated(TouchableRipple)
 const AnimatedDivider = withAnimated(Divider)
 const AnimatedAppBar = withAnimated(Appbar)
 
@@ -39,10 +42,10 @@ export namespace AnimatedPaper {
   export const Appbar = AnimatedAppBar
 }
 
-export const AnimatedPagerView = Animated.createAnimatedComponent(PagerView)
-export const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
-export const AnimatedInput = Animated.createAnimatedComponent(Input)
-export const AnimatedTouchableScale =
-  Animated.createAnimatedComponent(TouchableScale)
-export const AnimatedKeyboardAvoidingView =
-  Animated.createAnimatedComponent(KeyboardAvoidingView)
+export const AnimatedPagerView = toAnimated(PagerView)
+export const AnimatedPressable = toAnimated(Pressable)
+export const AnimatedInput = toAnimated(Input)
+export const AnimatedTouchableScale = toAnimated(TouchableScale)
+export const AnimatedKeyboardAvoidingView = toAnimated(KeyboardAvoidingView)
+export const AnimatedMasonryNoteList = toAnimated(MasonryList<Note>)
+export const AnimatedNoteList = toAnimated(FlashList<Note>)

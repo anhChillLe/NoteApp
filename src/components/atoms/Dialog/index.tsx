@@ -30,7 +30,7 @@ const Dialog: FC<DialogProps> = ({
   visible,
   style,
   contentContainerStyle,
-  animationDuration = 150,
+  animationDuration = 100,
   onDismiss,
 }) => {
   const { colors } = useTheme()
@@ -43,7 +43,7 @@ const Dialog: FC<DialogProps> = ({
       runOnJS(setContentVisible)(true)
       progress.value = withTiming(1, {
         duration: animationDuration,
-        easing: Easing.linear,
+        easing: Easing.in(Easing.ease),
       })
     })()
   }, [setContentVisible])
@@ -51,7 +51,7 @@ const Dialog: FC<DialogProps> = ({
   const hide = useCallback(() => {
     progress.value = withTiming(
       0,
-      { duration: animationDuration, easing: Easing.linear },
+      { duration: animationDuration, easing: Easing.in(Easing.ease) },
       () => {
         runOnJS(setContentVisible)(false)
       },
@@ -77,7 +77,7 @@ const Dialog: FC<DialogProps> = ({
     return {
       transform: [
         {
-          translateY: interpolate(progress.value, [0, 1], [128, 0], 'clamp'),
+          translateY: interpolate(progress.value, [0, 1], [32, 0], 'clamp'),
         },
       ],
       opacity: progress.value,
@@ -99,7 +99,13 @@ const Dialog: FC<DialogProps> = ({
           importantForAccessibility="no"
           onPress={onDismiss}
         />
-        <Animated.View style={[contentStyle, contentContainerStyle]}>
+        <Animated.View
+          style={[
+            styles.content_container,
+            contentStyle,
+            contentContainerStyle,
+          ]}
+        >
           {children}
         </Animated.View>
       </View>
@@ -114,9 +120,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   content_container: {
-    padding: 16,
-    gap: 8,
+    paddingHorizontal: 32,
+    width: '100%',
   },
 })
 
 export default Dialog
+export type { DialogProps }

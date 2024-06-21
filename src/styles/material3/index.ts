@@ -13,6 +13,7 @@ const base: Partial<MD3Theme> = {
   fonts: NunitoFont,
   version: 3,
   mode: 'adaptive',
+  roundness: 4,
 }
 
 const createTheme = (schemes: ColorSchemes) => {

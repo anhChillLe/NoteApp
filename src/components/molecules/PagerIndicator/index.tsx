@@ -14,7 +14,7 @@ type Props = AnimatedProps<ViewProps> & {
   scale?: number
 }
 
-export const PagerIndicator: FC<Props> = ({
+const PagerIndicator: FC<Props> = ({
   count,
   current,
   size = 6,
@@ -67,3 +67,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 })
+
+export default PagerIndicator

@@ -40,14 +40,12 @@ export function createMD3Color(
 ): MD3Colors {
   return {
     ...scheme,
-    surfaceDisabled: Color(palettes.neutral[isDark ? 90 : 10])
+    surfaceDisabled: Color(palettes.neutral[isDark ? 10 : 90])
       .alpha(opacity.level2)
-      .rgb()
-      .string(),
+      .hex(),
     onSurfaceDisabled: Color(palettes.neutral[isDark ? 90 : 10])
       .alpha(opacity.level4)
-      .rgb()
-      .string(),
+      .hex(),
     backdrop: Color(palettes['neutral-variant'][20]).alpha(0.4).rgb().string(),
     elevation: {
       level0: 'transparent',

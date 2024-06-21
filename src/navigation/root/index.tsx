@@ -3,28 +3,29 @@ import {
   createNativeStackNavigator,
 } from '@react-navigation/native-stack'
 import { FC } from 'react'
-import { useMMKVBoolean } from 'react-native-mmkv'
-import { RootStackParamList } from '~/navigation/root/params'
+import useAppState from '~/app/store'
+import { RootStackParamList } from '~/navigation/Root/params'
 import {
-  DeletedNoteScreen,
+  CreatePasswordScreen,
+  EditorScreen,
   HomeScreen,
-  NoteEditScreen,
   OnboardingScreen,
   PrivateNoteScreen,
   SettingScreen,
   TagManagerScreen,
   TagSelectScreen,
+  TrashScreen,
 } from '~/screens'
-import { Key } from '~/services/storage/keys'
+import PrivateStack from '../Private'
 
 const Stack = createNativeStackNavigator<RootStackParamList>()
 
 const RootStack: FC = () => {
-  const [hasOpened] = useMMKVBoolean(Key.hasOpened)
+  const isFirst = useAppState(state => state.isFirstOpen)
 
   return (
     <Stack.Navigator screenOptions={screenOptions}>
-      {!hasOpened ? (
+      {isFirst ? (
         <Stack.Group>
           <Stack.Screen name="onboarding" component={OnboardingScreen} />
           <Stack.Screen name="tag_init" component={TagSelectScreen} />
@@ -32,11 +33,15 @@ const RootStack: FC = () => {
       ) : (
         <Stack.Group>
           <Stack.Screen name="home" component={HomeScreen} />
-          <Stack.Screen name="note_edit" component={NoteEditScreen} />
+          <Stack.Screen name="editor" component={EditorScreen} />
           <Stack.Screen name="tag_manager" component={TagManagerScreen} />
           <Stack.Screen name="setting" component={SettingScreen} />
-          <Stack.Screen name="deleted" component={DeletedNoteScreen} />
-          <Stack.Screen name="private" component={PrivateNoteScreen} />
+          <Stack.Screen name="trash" component={TrashScreen} />
+          <Stack.Screen name="private" component={PrivateStack} />
+          <Stack.Screen
+            name="createPassword"
+            component={CreatePasswordScreen}
+          />
         </Stack.Group>
       )}
     </Stack.Navigator>
@@ -49,4 +54,4 @@ const screenOptions: NativeStackNavigationOptions = {
   animation: 'ios',
 }
 
-export { RootStack }
+export default RootStack

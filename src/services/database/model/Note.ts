@@ -132,7 +132,7 @@ export class Note extends Object<Note> {
       createAt: this.createAt,
       updateAt: this.updateAt,
       tags: this.tags,
-      taskList: this.taskList,
+      taskList: this.taskList.map(it => it.data),
       style: this.style,
       isPinned: this.isPinned,
       isPrivate: this.isPrivate,
