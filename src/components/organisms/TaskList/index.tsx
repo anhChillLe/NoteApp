@@ -1,29 +1,13 @@
-import { FC, useCallback } from 'react'
-import {
-  NativeSyntheticEvent,
-  StyleProp,
-  StyleSheet,
-  TextInputSubmitEditingEventData,
-  TextStyle,
-  View,
-  ViewProps,
-  ViewStyle,
-} from 'react-native'
-import { Checkbox, IconButton, TextInput } from 'react-native-paper'
-import Animated, {
-  FadeInDown,
-  FadeOutDown,
-  FadeOutUp,
-} from 'react-native-reanimated'
+import { FC, useCallback, useState } from 'react'
+import { StyleProp, StyleSheet, View, ViewProps, ViewStyle } from 'react-native'
+import { Button, Checkbox, IconButton, useTheme } from 'react-native-paper'
+import Animated, { FadeInDown } from 'react-native-reanimated'
 import { Input } from '~/components/atoms'
-import useMemoThemeStyle from '~/hooks/theme'
 
 interface Item {
   label: string
   status: TaskItemStatus
 }
-type SubmitEvent = NativeSyntheticEvent<TextInputSubmitEditingEventData>
-type SubmitCallback = (e: SubmitEvent) => void
 interface Props extends ViewProps {
   items: Item[]
   onCheckPress: (index: number) => void
@@ -34,7 +18,7 @@ interface Props extends ViewProps {
   itemStyle?: StyleProp<ViewStyle>
 }
 
-export const TaskItemList: FC<Props> = ({
+const TaskList: FC<Props> = ({
   items,
   onCheckPress,
   onDeletePress,
@@ -45,78 +29,73 @@ export const TaskItemList: FC<Props> = ({
   itemStyle,
   ...props
 }) => {
-  const handleSubmit = useCallback<SubmitCallback>(e => {
-    const label = e.nativeEvent.text
-    if (!label) return
-    e.currentTarget.setNativeProps({ text: '' })
-    onNewItem(label)
-  }, [])
+  const { colors, roundness } = useTheme()
+  const [text, setText] = useState('')
 
-  const inputContainerStyle = useMemoThemeStyle(({ colors, roundness }) => {
-    return {
-      borderRadius: roundness * 3,
-      borderColor: colors.primaryContainer,
-    }
+  const handleSubmit = useCallback(() => {
+    if (!text) return
+    onNewItem(text)
+    setText('')
   }, [])
 
   return (
     <View style={[styles.container, style]} {...props}>
       {items.map((item, index) => {
         const isDisable = item.status == 'indeterminate'
-        const handleCheckPress = () => {
-          onCheckPress(index)
-        }
-        const handleChangeText = (label: string) => {
-          onLabelChange(index, label)
-        }
+        const handleCheckPress = () => onCheckPress(index)
+        const handleChangeText = (label: string) => onLabelChange(index, label)
         const handleDisablePress = () => onDisablePress(index)
-
         const handleDeletePress = () => onDeletePress(index)
-
-        const icon = isDisable ? 'plus' : 'minus'
-
-        const containerStyle: ViewStyle = {
-          opacity: isDisable ? 0.6 : undefined,
-        }
-
-        const editorStyle: TextStyle = {
-          textDecorationLine: isDisable ? 'line-through' : 'none',
-        }
-
         return (
           <Animated.View key={index} entering={FadeInDown} style={itemStyle}>
-            <Animated.View style={[styles.item_container, containerStyle]}>
+            <Animated.View style={styles.item_container}>
               <Checkbox.Android
                 status={item.status}
                 onPress={handleCheckPress}
               />
               <Input
                 value={item.label}
-                style={[styles.editor, editorStyle]}
+                style={[
+                  styles.editor,
+                  { textDecorationLine: isDisable ? 'line-through' : 'none' },
+                ]}
                 multiline
                 editable={!isDisable}
                 onChangeText={handleChangeText}
               />
-              <IconButton icon={icon} size={14} onPress={handleDisablePress} />
+              <IconButton
+                icon={isDisable ? 'plus' : 'minus'}
+                size={14}
+                onPress={handleDisablePress}
+              />
               <IconButton icon="cross" size={14} onPress={handleDeletePress} />
             </Animated.View>
           </Animated.View>
         )
       })}
-      <View style={[styles.input_container, inputContainerStyle]}>
+      <View
+        style={[
+          styles.input_container,
+          {
+            borderRadius: roundness * 3,
+            borderColor: colors.primaryContainer,
+          },
+        ]}
+      >
         <IconButton icon="plus" size={14} />
         <Input
+          value={text}
+          onChangeText={setText}
           placeholder="Add a new item"
           blurOnSubmit={false}
           style={styles.editor}
           onSubmitEditing={handleSubmit}
         />
+        <Button children="OK" onPress={handleSubmit} />
       </View>
     </View>
   )
 }
-
-export default TaskItemList
 
 const styles = StyleSheet.create({
   container: {
@@ -135,3 +114,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
 })
+
+export default TaskList

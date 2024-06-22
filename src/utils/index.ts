@@ -53,3 +53,48 @@ function createStateLessComponent<T extends ComponentType<any>>(
 }
 
 export { createStateLessComponent }
+
+export function timeAgo(date: Date, language: 'en' | 'vi' = 'en'): string {
+  const now = new Date()
+  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+
+  const intervals = [
+    { name: { en: 'year', vi: 'năm' }, seconds: 31536000 },
+    { name: { en: 'month', vi: 'tháng' }, seconds: 2592000 },
+    { name: { en: 'week', vi: 'tuần' }, seconds: 604800 },
+    { name: { en: 'day', vi: 'ngày' }, seconds: 86400 },
+    { name: { en: 'hour', vi: 'giờ' }, seconds: 3600 },
+    { name: { en: 'minute', vi: 'phút' }, seconds: 60 },
+  ]
+
+  if (seconds < 60) {
+    return language === 'en' ? '1 minute' : '1 phút'
+  }
+
+  const oneYearInSeconds = 31536000
+  if (seconds >= oneYearInSeconds) {
+    const day = date.getDate()
+    const month = date.getMonth() + 1
+    const year = date.getFullYear()
+    return language === 'en'
+      ? `${month}/${day}/${year}`
+      : `${day}/${month}/${year}`
+  }
+
+  for (const interval of intervals) {
+    const count = Math.floor(seconds / interval.seconds)
+    if (count >= 1) {
+      if (count === 1) {
+        return language === 'en'
+          ? `1 ${interval.name.en}`
+          : `1 ${interval.name.vi}`
+      } else {
+        return language === 'en'
+          ? `${count} ${interval.name.en}s`
+          : `${count} ${interval.name.vi}`
+      }
+    }
+  }
+
+  return language === 'en' ? 'just now' : 'vừa xong'
+}

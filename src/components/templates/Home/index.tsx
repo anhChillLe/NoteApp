@@ -1,6 +1,7 @@
 import { MasonryListRenderItem } from '@shopify/flash-list'
 import React, { FC, memo, useEffect, useMemo, useState } from 'react'
 import {
+  KeyboardAvoidingView,
   Platform,
   ScrollViewProps,
   StyleSheet,
@@ -58,10 +59,16 @@ const HomeScreenLayout: FC = () => {
         <View style={styles.container}>
           {mode === 'select' ? <HSelectionAppbar /> : <HHeader />}
 
-          <View style={styles.container}>
-            <HTagList />
-            <HContent />
-          </View>
+          <KeyboardAvoidingView
+            style={styles.container}
+            behavior="padding"
+            keyboardVerticalOffset={8}
+          >
+            <View style={styles.container}>
+              <HTagList />
+              <HContent />
+            </View>
+          </KeyboardAvoidingView>
 
           {mode !== 'search' &&
             (mode === 'select' ? <HActionBar /> : <HBottomAppBar />)}
@@ -90,6 +97,7 @@ const HTagList = memo(
         onTrashPress={openDeletedNote}
         onManagePress={openTagManager}
         dragable={true}
+        limit={6}
       />
     )
   },

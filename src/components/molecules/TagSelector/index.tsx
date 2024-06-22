@@ -1,14 +1,20 @@
-import { FC, useState } from 'react'
-import { Keyboard, StyleSheet, View, ViewStyle } from 'react-native'
+import { FC, useRef, useState } from 'react'
+import {
+  Keyboard,
+  TextInput as RNTextInput,
+  StyleSheet,
+  View,
+  ViewStyle,
+} from 'react-native'
 import { Button, Text, TextInput, useTheme } from 'react-native-paper'
-import Animated, { useAnimatedRef } from 'react-native-reanimated'
+import { useAnimatedRef } from 'react-native-reanimated'
 import { List } from 'realm'
 import { AnimatedPaper, AnimatedPressable } from '~/components/Animated'
 import { ActionSheet, Menu } from '~/components/atoms'
+import Shape from '~/components/atoms/Shape'
 import { useVisible } from '~/hooks'
 import { Tag } from '~/services/database/model'
 import { TagItem } from '..'
-import Shape from '~/components/atoms/Shape'
 
 interface Props {
   currents: Tag[]
@@ -26,13 +32,19 @@ const TagMenu: FC<Props> = ({
   onChange,
 }) => {
   const { colors, roundness } = useTheme()
+  const input = useRef<RNTextInput>(null)
   const [text, setText] = useState('')
   const tagsRef = useAnimatedRef<View>()
 
   const isEmpty = currents.length === 0
 
   const [tagVisbile, showTags, hideTags] = useVisible(false)
-  const [inputVisible, showInput, hide] = useVisible(false)
+  const [inputVisible, show, hide] = useVisible(false)
+
+  const showInput = () => {
+    show()
+    input.current?.focus()
+  }
 
   const hideInput = () => {
     hide()
@@ -99,11 +111,13 @@ const TagMenu: FC<Props> = ({
         <Shape style={styles.input_container} roundnessLevel={3}>
           <Text variant="titleLarge" children="Create tag" />
           <TextInput
+            ref={input}
             mode="outlined"
             placeholder="Tag name"
             value={text}
             outlineStyle={{ borderRadius: roundness * 3 }}
             onChangeText={setText}
+            onSubmitEditing={handleSubmit}
           />
           <View style={styles.action_container}>
             <Button mode="outlined" style={styles.action} onPress={hideInput}>

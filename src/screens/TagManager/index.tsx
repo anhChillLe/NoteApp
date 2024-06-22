@@ -6,6 +6,7 @@ import { TagManagerLayout } from '~/components/templates'
 import { useQuery } from '~/services/database'
 import { Tag } from '~/services/database/model'
 import useTagMangeState from './store'
+import useHomeState from '../Home/store'
 
 const TagManagerScreen: FC = () => {
   const { goBack } = useNavigation()
@@ -17,6 +18,14 @@ const TagManagerScreen: FC = () => {
     type: Tag,
     query: tags => tags.sorted('isPinned', true),
   })
+
+  const goBackWithTag = useCallback(
+    (tagId: string) => {
+      useHomeState.getState().setCurrentTagId(tagId)
+      goBack()
+    },
+    [goBack],
+  )
 
   const backHandler = useCallback(() => {
     const handler = () => {
@@ -30,7 +39,7 @@ const TagManagerScreen: FC = () => {
   useFocusEffect(backHandler)
 
   return (
-    <TagManagerProvider value={{ goBack, tags }}>
+    <TagManagerProvider value={{ goBack, goBackWithTag, tags }}>
       <TagManagerLayout />
     </TagManagerProvider>
   )

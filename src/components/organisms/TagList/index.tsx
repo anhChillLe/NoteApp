@@ -15,6 +15,7 @@ interface Props extends ViewProps {
   onManagePress?: () => void
   onTrashPress?: () => void
   dragable?: boolean
+  limit?: number
 }
 
 const TagList: FC<Props> = ({
@@ -24,6 +25,7 @@ const TagList: FC<Props> = ({
   onManagePress,
   onTrashPress,
   dragable = false,
+  limit,
   style,
   ...props
 }) => {
@@ -84,7 +86,6 @@ const TagList: FC<Props> = ({
             <TagItem
               icon="plus-small"
               label="Create tag"
-              isSelected
               onPress={onManagePress}
             />
           </View>
@@ -96,7 +97,7 @@ const TagList: FC<Props> = ({
               style={styles.header}
               onPress={() => onTagChange(null)}
             />
-            {data.map(renderItem)}
+            {data.slice(0, limit).map(renderItem)}
             <View style={styles.footer}>
               {onTrashPress && (
                 <TagItem label="Trash" icon="trash" onPress={onTrashPress} />

@@ -170,7 +170,7 @@ const ListItem = createTagItemWithCount(TagListItem)
 const TContent = memo(
   () => {
     const tags = useTagManager(state => state.tags)
-    const goBackWithTag = useTagManager(state => state.goBack)
+    const goBackWithTag = useTagManager(state => state.goBackWithTag)
     const { mode, select, selecteds } = useTagMangeState()
 
     const renderTag: ListRenderItem<Tag> = ({ item }) => {
@@ -178,7 +178,7 @@ const TContent = memo(
 
       const onPress = () => {
         if (mode === 'select') select(item)
-        else goBackWithTag()
+        else goBackWithTag(item.id)
       }
 
       const onLongPress = () => {

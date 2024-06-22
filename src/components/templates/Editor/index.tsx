@@ -11,10 +11,11 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useShallow } from 'zustand/react/shallow'
 import { Dialog, Input, Menu } from '~/components/atoms'
 import { MenuItem, TagSelector } from '~/components/molecules'
-import { TaskItemList } from '~/components/organisms'
+import { TaskList } from '~/components/organisms'
 import { useNoteEdit } from '~/components/Provider'
 import { useVisible } from '~/hooks'
 import useNoteEditor from '~/screens/Editor/store'
+import { timeAgo } from '~/utils'
 
 const EditorScreenLayout: FC = () => {
   const type = useNoteEditor(state => state.type)
@@ -25,9 +26,9 @@ const EditorScreenLayout: FC = () => {
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior="padding"
-        keyboardVerticalOffset={32}
+        keyboardVerticalOffset={16}
       >
-        <View style={styles.content_container}>
+        <View style={[styles.content_container]}>
           <TitleInput />
           <UpdateTime />
           {type === 'note' && <ContentInput />}
@@ -45,7 +46,7 @@ const UpdateTime: FC = () => {
     <View style={styles.divider_container}>
       <Divider style={styles.divider} />
       <Text variant="labelSmall" style={styles.time}>
-        {(data?.updateAt ?? new Date()).toLocaleString()}
+        {timeAgo(data?.updateAt ?? new Date())}
       </Text>
     </View>
   )
@@ -217,7 +218,7 @@ const TaskItemInput: FC = () => {
     })),
   )
 
-  return <TaskItemList {...inputProps} />
+  return <TaskList style={styles.task_list} {...inputProps} />
 }
 
 const styles = StyleSheet.create({
@@ -228,6 +229,7 @@ const styles = StyleSheet.create({
   content_container: {
     flex: 1,
     paddingHorizontal: 16,
+    overflow: 'hidden',
     gap: 8,
   },
   header: {
@@ -280,6 +282,9 @@ const styles = StyleSheet.create({
   info_action_container: {
     marginTop: 8,
     flexDirection: 'row-reverse',
+  },
+  task_list: {
+    flex: 1,
   },
 })
 

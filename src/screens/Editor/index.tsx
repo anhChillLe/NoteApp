@@ -31,12 +31,17 @@ const EditorScreen: FC = () => {
 
   const handleFormDataChange = useCallback(
     debounce((data: NoteEditData, prevData: NoteEditData) => {
-      if (!data.title && !data.content) return
+      if (data.type === 'note') {
+        if (!data.title && !data.content) return
+      } else {
+        if (!data.title && data.taskList.length === 0) return
+      }
 
       realm.write(() => {
         const note = realm.objectForPrimaryKey(Note, id)
         if (note) {
           const changes = getChanges(data, prevData)
+          if (changes === null) return
           note.update(changes)
         } else {
           const generatedData = Note.generate(data)
@@ -89,17 +94,19 @@ const EditorScreen: FC = () => {
 const getChanges = (
   data: NoteEditData,
   prevData: NoteEditData,
-): Partial<NoteEditData> => {
+): Partial<NoteEditData> | null => {
   const changes: Partial<NoteEditData> = {}
+  let hasChange = false
 
   for (const k in data) {
     const key = k as keyof NoteEditData
     if (data.hasOwnProperty(key) && data[key] !== prevData[key]) {
       changes[key] = data[key] as never
+      hasChange = true
     }
   }
 
-  return changes
+  return hasChange ? changes : null
 }
 
 export default EditorScreen

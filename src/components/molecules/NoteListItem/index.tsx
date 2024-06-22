@@ -3,7 +3,6 @@ import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native'
 import { Text, useTheme } from 'react-native-paper'
 import Animated, {
   AnimatedProps,
-  LinearTransition,
   useAnimatedProps,
   useAnimatedStyle,
 } from 'react-native-reanimated'
@@ -11,6 +10,7 @@ import { AnimatedPaper, AnimatedTouchableScale } from '~/components/Animated'
 import { Fade, TouchableScaleProps } from '~/components/atoms'
 import useMemoThemeStyle from '~/hooks/theme'
 import { Note, Tag, TaskItem } from '~/services/database/model'
+import { timeAgo } from '~/utils'
 
 type Props = AnimatedProps<TouchableScaleProps> & {
   data: Note
@@ -77,21 +77,13 @@ const NoteListItem = forwardRef<View, Props>(
           >
             {title.trim()}
           </AnimatedPaper.Text>
-          <Animated.View style={styles.date_row} layout={LinearTransition}>
-            <AnimatedPaper.Divider
-              style={styles.divider}
-              layout={LinearTransition}
-            />
-            <AnimatedPaper.Text
-              variant="labelSmall"
-              style={styles.date_label}
-              layout={LinearTransition}
-            >
-              {data.updateAt.toDateString()}
+          <Animated.View style={styles.date_row}>
+            <AnimatedPaper.Divider style={styles.divider} />
+            <AnimatedPaper.Text variant="labelSmall" style={styles.date_label}>
+              {timeAgo(data.updateAt)}
             </AnimatedPaper.Text>
             {data.isPinned && (
               <AnimatedPaper.Icon
-                layout={LinearTransition}
                 source="thumbtack"
                 size={10}
                 color={colors.primary}

@@ -6,11 +6,7 @@ import {
   View,
   ViewStyle,
 } from 'react-native'
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated'
+import { useSharedValue, withTiming } from 'react-native-reanimated'
 import { AnimatedPressable } from '../../Animated'
 
 interface Props extends PressableProps {
@@ -26,41 +22,39 @@ const TouchableScale = forwardRef<View, Props>(
       onPressOut,
       style,
       scaleValue = 0.9,
-      animationDuration = 100,
+      animationDuration: duration = 100,
       disabled,
       ...props
     },
     ref,
   ) => {
-    const isPressed = useSharedValue(false)
+    const scale = useSharedValue(1)
 
-    const handlePressIn = useCallback((e: GestureResponderEvent) => {
-      if (disabled) return
-      onPressIn?.(e)
-      isPressed.value = true
-    }, [])
+    const handlePressIn = useCallback(
+      (e: GestureResponderEvent) => {
+        if (disabled) return
+        scale.value = withTiming(scaleValue, { duration })
+        onPressIn?.(e)
+      },
+      [scaleValue, onPressIn, duration],
+    )
 
-    const handlePressOut = useCallback((e: GestureResponderEvent) => {
-      if (disabled) return
-      onPressOut?.(e)
-      isPressed.value = false
-    }, [])
-
-    const scaleStyle = useAnimatedStyle(() => {
-      const scale = withTiming(isPressed.value ? scaleValue : 1, {
-        duration: animationDuration,
-      })
-      return {
-        transform: [{ scale }],
-      }
-    })
+    const handlePressOut = useCallback(
+      (e: GestureResponderEvent) => {
+        if (disabled) return
+        scale.value = withTiming(1, { duration })
+        onPressOut?.(e)
+      },
+      [onPressOut, duration],
+    )
 
     return (
       <AnimatedPressable
         ref={ref}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
-        style={[scaleStyle, style]}
+        style={[{ transform: [{ scale }] }, style]}
+        disabled={disabled}
         {...props}
       />
     )

@@ -1,13 +1,11 @@
 import { FC } from 'react'
 import { StyleSheet, View, ViewProps } from 'react-native'
-import { Button, Text } from 'react-native-paper'
+import { Text } from 'react-native-paper'
 import { StorySet } from '~/assets/storyset'
 
-interface Props extends ViewProps {
-  onNewTagPress?: () => void
-}
+interface Props extends ViewProps {}
 
-const TagManagerEmpty: FC<Props> = ({ style, onNewTagPress, ...props }) => {
+const TagManagerEmpty: FC<Props> = ({ style, ...props }) => {
   return (
     <View style={[styles.container, style]} {...props}>
       <View>
@@ -23,12 +21,6 @@ const TagManagerEmpty: FC<Props> = ({ style, onNewTagPress, ...props }) => {
           variant="bodyMedium"
           style={styles.desc}
           children={strings.description}
-        />
-        <Button
-          mode="contained"
-          icon="plus-small"
-          onPress={onNewTagPress}
-          children="Create now"
         />
       </View>
     </View>

@@ -9,6 +9,7 @@ import {
 interface TagManagerScreenData {
   tags: OrderedCollection<Tag>
   goBack: () => void
+  goBackWithTag: (tagId: string) => void
 }
 
 const TagManagerContext = createContext<TagManagerScreenData>()
