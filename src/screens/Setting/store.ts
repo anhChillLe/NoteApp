@@ -20,7 +20,7 @@ type SettingState = SettingData & SettingActions
 
 const settingCreator: StateCreator<SettingState> = (set, get) => ({
   colorScheme: 'system',
-  themeIndex: 0,
+  themeIndex: 5,
   numOfColumns: 'auto',
   setNumOfColumn(numOfColumns) {
     set({ numOfColumns })

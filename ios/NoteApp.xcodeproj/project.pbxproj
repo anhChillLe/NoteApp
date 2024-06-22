@@ -19,6 +19,7 @@
 		8BED053CF1584ADD9F2746B0 /* Nunito-VariableFont_wght.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 53E14439CE1B40DB98497211 /* Nunito-VariableFont_wght.ttf */; };
 		A80DB5B4173B46D3879FADAB /* FlatIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 417072827C21487BB2EF591B /* FlatIcons.ttf */; };
 		E018D5B02BA5BD71004EFA71 /* MaterialCommunityIcons.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E018D5AF2BA5BC05004EFA71 /* MaterialCommunityIcons.ttf */; };
+		33F8D56A7E41405798C933F2 /* BootSplash.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = F43BBCB4980D42B1B93D1650 /* BootSplash.storyboard */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -56,6 +57,7 @@
 		E08C4A912BA15C1C003A7FC9 /* bundle.realm */ = {isa = PBXFileReference; lastKnownFileType = file; name = bundle.realm; path = ../src/services/database/bundle/bundle.realm; sourceTree = "<group>"; };
 		EC0DF29C290F4514AB22424B /* Nunito-Italic-VariableFont_wght.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Nunito-Italic-VariableFont_wght.ttf"; path = "../src/assets/fonts/Nunito-Italic-VariableFont_wght.ttf"; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
+		F43BBCB4980D42B1B93D1650 /* BootSplash.storyboard */ = {isa = PBXFileReference; name = "BootSplash.storyboard"; path = "NoteApp/BootSplash.storyboard"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -106,6 +108,7 @@
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB71A68108700A75B9A /* main.m */,
 				18913C336A7250B4A84E27A3 /* PrivacyInfo.xcprivacy */,
+				F43BBCB4980D42B1B93D1650 /* BootSplash.storyboard */,
 			);
 			name = NoteApp;
 			sourceTree = "<group>";
@@ -283,6 +286,7 @@
 				29D2759583DB4FBFBB528780 /* Nunito-Italic-VariableFont_wght.ttf in Resources */,
 				8BED053CF1584ADD9F2746B0 /* Nunito-VariableFont_wght.ttf in Resources */,
 				612EE16449EA8A152B7107EC /* PrivacyInfo.xcprivacy in Resources */,
+				33F8D56A7E41405798C933F2 /* BootSplash.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
