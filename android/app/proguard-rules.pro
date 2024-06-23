@@ -8,3 +8,11 @@
 #   http://developer.android.com/guide/developing/tools/proguard.html
 
 # Add any project specific keep options here:
+
+# From react-native-keychain
+-keep class com.facebook.crypto.** {
+   *;
+}
+
+# From realm
+-keep class io.realm.react.**
