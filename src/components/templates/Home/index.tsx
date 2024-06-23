@@ -1,8 +1,17 @@
 import { MasonryListRenderItem } from '@shopify/flash-list'
-import React, { FC, memo, useEffect, useMemo, useState } from 'react'
+import React, {
+  FC,
+  forwardRef,
+  memo,
+  RefAttributes,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 import {
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   ScrollViewProps,
   StyleSheet,
   useWindowDimensions,
@@ -19,12 +28,16 @@ import Animated, {
   FadeOutUp,
   LayoutAnimationConfig,
   runOnJS,
+  useAnimatedReaction,
+  useAnimatedRef,
   useAnimatedScrollHandler,
   useAnimatedStyle,
+  useScrollViewOffset,
   useSharedValue,
   withTiming,
   WithTimingConfig,
 } from 'react-native-reanimated'
+import { AnimatedScrollView } from 'react-native-reanimated/lib/typescript/reanimated2/component/ScrollView'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useShallow } from 'zustand/react/shallow'
 import useAppState from '~/app/store'
@@ -106,7 +119,7 @@ const HTagList = memo(
 
 const MemoNoteItem = memo(createDropableItem(NoteListItem))
 
-const NoteList: FC<Partial<ScrollViewProps>> = props => {
+const NoteList = forwardRef<ScrollView, ScrollViewProps>((props, ref) => {
   const notes = useHome(state => state.notes)
   const openEditor = useHome(state => state.openEditor)
 
@@ -127,13 +140,17 @@ const NoteList: FC<Partial<ScrollViewProps>> = props => {
 
   if (notes.isEmpty()) {
     return (
-      <Animated.ScrollView contentContainerStyle={{ flexGrow: 1 }} {...props}>
+      <Animated.ScrollView
+        ref={ref as never}
+        contentContainerStyle={{ flexGrow: 1 }}
+        {...props}
+      >
         <NoteListEmpty />
       </Animated.ScrollView>
     )
   }
 
-  const renderItem: MasonryListRenderItem<Note> = ({ item, columnIndex }) => {
+  const renderItem: MasonryListRenderItem<Note> = ({ item }) => {
     const onPress = () => {
       if (isInSelectMode) select(item)
       else openEditor(item)
@@ -172,6 +189,7 @@ const NoteList: FC<Partial<ScrollViewProps>> = props => {
 
   return (
     <AnimatedMasonryNoteList
+      ref={ref as never}
       data={notes}
       renderItem={renderItem}
       keyExtractor={keyExtractor}
@@ -182,7 +200,7 @@ const NoteList: FC<Partial<ScrollViewProps>> = props => {
       {...props}
     />
   )
-}
+})
 
 // Android Scrollview not support bounces
 const HomeContentAndroid: FC = () => {
@@ -191,19 +209,14 @@ const HomeContentAndroid: FC = () => {
   const [layout, onLayout] = useLayout()
   const height = layout?.height ?? 0
 
-  const scrollY = useSharedValue(0)
+  const ref = useAnimatedRef<AnimatedScrollView>()
+  const scrollY = useScrollViewOffset(ref)
 
-  const handler = useAnimatedScrollHandler(
-    {
-      onScroll: event => {
-        const offsetY = event.contentOffset.y
-        scrollY.value = offsetY
-        runOnJS(setActivePan)(offsetY <= 0)
-      },
-    },
-    [setActivePan],
+  useAnimatedReaction(
+    () => scrollY.value <= 0,
+    value => runOnJS(setActivePan)(value),
+    [],
   )
-
   const gesture = useMemo(
     () =>
       Gesture.Pan()
@@ -239,11 +252,7 @@ const HomeContentAndroid: FC = () => {
       />
       <GestureDetector gesture={gesture}>
         <Animated.View style={[styles.list, listStyle]}>
-          <NoteList
-            onScroll={handler}
-            onLayout={onLayout}
-            overScrollMode="never"
-          />
+          <NoteList ref={ref} onLayout={onLayout} overScrollMode="never" />
         </Animated.View>
       </GestureDetector>
     </Animated.View>
@@ -252,16 +261,14 @@ const HomeContentAndroid: FC = () => {
 
 const HomeContentIOS: FC = () => {
   const openPrivateNote = useHome(state => state.openPrivateNote)
-  const scrollY = useSharedValue(0)
-
   const [layout, onLayout] = useLayout()
   const height = layout?.height ?? 0
 
+  const ref = useAnimatedRef<AnimatedScrollView>()
+  const scrollY = useScrollViewOffset(ref)
+
   const handler = useAnimatedScrollHandler(
     {
-      onScroll: event => {
-        scrollY.value = event.contentOffset.y
-      },
       onEndDrag: event => {
         if (event.contentOffset.y <= -0.25 * height) {
           runOnJS(openPrivateNote)()
@@ -277,9 +284,9 @@ const HomeContentIOS: FC = () => {
         icon="lock"
         title="Open private"
         offset={scrollY}
-        activeRange={[50, 150]}
+        activeRange={[0.1 * height, 0.25 * height]}
       />
-      <NoteList onLayout={onLayout} onScroll={handler} />
+      <NoteList ref={ref} onLayout={onLayout} onScroll={handler} />
     </Animated.View>
   )
 }
