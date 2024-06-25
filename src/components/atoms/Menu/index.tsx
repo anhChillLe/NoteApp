@@ -1,27 +1,24 @@
-import React, { FC, useCallback, useEffect, useState } from 'react'
+import React, { FC, useCallback, useEffect } from 'react'
 import {
   LayoutChangeEvent,
   LayoutRectangle,
-  ModalProps,
   StyleSheet,
   ViewStyle,
   useWindowDimensions,
 } from 'react-native'
-import { trigger } from 'react-native-haptic-feedback'
 import { Portal, useTheme } from 'react-native-paper'
 import Animated, {
   AnimatedRef,
   Easing,
   MeasuredDimensions,
   measure,
-  runOnJS,
   runOnUI,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated'
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context'
-import { AnimatedPressable } from '~/components/Animated'
+import Modal, { ModalProps } from '../Modal'
 
 interface Props extends ModalProps {
   anchorRef: AnimatedRef<any>
@@ -30,17 +27,16 @@ interface Props extends ModalProps {
 }
 
 const Menu: FC<Props> = ({
-  children,
   anchorRef,
-  visible,
+  animationDuration = 250,
   safeArea = true,
+  children,
+  visible,
   style,
-  animationDuration: duration = 250,
-  onDismiss,
+  ...props
 }) => {
   const { colors, roundness } = useTheme()
   const progress = useSharedValue(0)
-  const [contentVisible, setContentVisible] = useState(false)
 
   const window = useWindowDimensions()
   const anchorMeasurement = useSharedValue<MeasuredDimensions | null>(null)
@@ -48,31 +44,24 @@ const Menu: FC<Props> = ({
   const insets = useSafeAreaInsets()
 
   const show = useCallback(() => {
-    trigger('effectTick')
-    runOnUI(() => {
-      anchorMeasurement.value = measure(anchorRef)
-      runOnJS(setContentVisible)(true)
-      progress.value = withTiming(1, { duration, easing })
-    })()
-  }, [setContentVisible, anchorRef.current])
+    runOnUI(() => (anchorMeasurement.value = measure(anchorRef)))()
+    progress.value = withTiming(1, { duration: animationDuration, easing })
+  }, [anchorRef.current])
 
   const hide = useCallback(() => {
-    progress.value = withTiming(0, { duration, easing }, () => {
-      runOnJS(setContentVisible)(false)
-    })
-  }, [setContentVisible])
+    progress.value = withTiming(0, { duration: animationDuration, easing })
+  }, [])
 
   useEffect(() => {
     if (visible) show()
     else hide()
   }, [visible, show, hide])
 
-  const onContentLayout = useCallback((e: LayoutChangeEvent) => {
+  const onContentLayout = (e: LayoutChangeEvent) => {
     contentLayout.value = e.nativeEvent.layout
-  }, [])
+  }
 
   const contentStyle = useAnimatedStyle<ViewStyle>(() => {
-    if (anchorMeasurement.value === null) return {}
     return {
       ...getPosition(
         anchorMeasurement.value,
@@ -87,45 +76,23 @@ const Menu: FC<Props> = ({
     }
   }, [colors, roundness, window, contentLayout])
 
-  const backdropStyle = useAnimatedStyle<ViewStyle>(() => {
-    return {
-      backgroundColor: colors.backdrop,
-      opacity: progress.value / 2,
-    }
-  })
-
   return (
-    <>
-      <Portal>
+    <Portal>
+      <Modal
+        visible={visible}
+        dismissable
+        dismissableBackButton
+        lazy={false}
+        {...props}
+      >
         <Animated.View
-          style={StyleSheet.absoluteFill}
-          accessibilityViewIsModal
-          accessibilityLiveRegion="polite"
-          onAccessibilityEscape={hide}
-          pointerEvents={contentVisible ? 'auto' : 'none'}
+          onLayout={onContentLayout}
+          style={[styles.content_container, contentStyle, style]}
         >
-          <AnimatedPressable
-            style={[backdropStyle, styles.backdrop]}
-            accessibilityRole="button"
-            importantForAccessibility="no"
-            onPress={onDismiss}
-          />
-          <Animated.View
-            onLayout={onContentLayout}
-            style={[
-              {
-                opacity: contentVisible ? 1 : 0,
-              },
-              styles.content_container,
-              contentStyle,
-              style,
-            ]}
-          >
-            {children}
-          </Animated.View>
+          {children}
         </Animated.View>
-      </Portal>
-    </>
+      </Modal>
+    </Portal>
   )
 }
 

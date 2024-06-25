@@ -73,14 +73,13 @@ const Appbar: FC<Props> = ({
             <Menu
               visible={visible}
               anchorRef={menuIcon}
-              onDismiss={hideMenu}
               onRequestClose={hideMenu}
               style={[
+                styles.menu,
                 {
                   borderRadius: roundness * 3,
                   backgroundColor: colors.background,
                 },
-                styles.menu,
               ]}
             >
               {unVisbileItem.map((item, index) => {

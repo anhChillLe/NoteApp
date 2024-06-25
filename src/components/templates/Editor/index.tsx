@@ -1,18 +1,15 @@
+import moment from 'moment'
 import React, { FC, memo } from 'react'
-import {
-  KeyboardAvoidingView,
-  ModalProps,
-  StyleSheet,
-  View,
-} from 'react-native'
-import { Button, Divider, IconButton, Text, useTheme } from 'react-native-paper'
+import { KeyboardAvoidingView, StyleSheet, View } from 'react-native'
+import { Button, Divider, IconButton, Text } from 'react-native-paper'
 import { useAnimatedRef } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useShallow } from 'zustand/react/shallow'
-import { Dialog, Input, Menu } from '~/components/atoms'
-import { MenuItem, TagSelector } from '~/components/molecules'
-import { TaskList } from '~/components/organisms'
 import { useNoteEdit } from '~/components/Provider'
+import { Input, Menu } from '~/components/atoms'
+import { ModalProps } from '~/components/atoms/Modal'
+import { Dialog, MenuItem, TagSelector } from '~/components/molecules'
+import { TaskList } from '~/components/organisms'
 import { useVisible } from '~/hooks'
 import useNoteEditor from '~/screens/Editor/store'
 import { timeAgo } from '~/utils'
@@ -100,14 +97,14 @@ const Appbar: FC = () => {
       <IconButton ref={menuIcon} icon="menu-dots-vertical" onPress={showMenu} />
       <InfoCard
         visible={infoVisible}
-        onDismiss={hideInfo}
+        dismissable
+        dismissableBackButton
         onRequestClose={hideInfo}
       />
       <Menu
         anchorRef={menuIcon}
         visible={menuVisible}
         onRequestClose={hideMenu}
-        onDismiss={hideMenu}
         style={styles.menu}
       >
         <MenuItem
@@ -139,35 +136,28 @@ const Appbar: FC = () => {
   )
 }
 
-const InfoCard: FC<ModalProps> = props => {
-  const { colors, roundness } = useTheme()
+const InfoCard: FC<Omit<ModalProps, 'children'>> = props => {
   const data = useNoteEdit(state => state.data)
-
   if (!data) return null
 
   return (
-    <Dialog
-      {...props}
-      contentContainerStyle={[
-        styles.info_card_content,
-        {
-          borderRadius: roundness * 4,
-          backgroundColor: colors.background,
-        },
-      ]}
-    >
-      <Text variant="titleLarge">Detail info</Text>
-      <View style={styles.info_item}>
-        <Text>Create at:</Text>
-        <Text>{data.createAt.toLocaleString()}</Text>
-      </View>
-      <View style={styles.info_item}>
-        <Text>Last update:</Text>
-        <Text>{data.updateAt.toLocaleString()}</Text>
-      </View>
-      <View style={styles.info_action_container}>
-        <Button onPress={props.onDismiss}>OK</Button>
-      </View>
+    <Dialog {...props}>
+      <Dialog.Title children="Detail info" />
+      <Dialog.Content>
+        <View style={styles.info_item}>
+          <Text style={styles.info_item_title}>Create at:</Text>
+          <Text>{moment(data.createAt).format('DD/MM/YYYY HH:mm:ss')}</Text>
+        </View>
+        <View style={styles.info_item}>
+          <Text style={styles.info_item_title}>Last update:</Text>
+          <Text>{moment(data.updateAt).format('DD/MM/YYYY HH:mm:ss')}</Text>
+        </View>
+      </Dialog.Content>
+      <Dialog.Actions>
+        <Button mode="contained-tonal" onPress={props.onRequestClose}>
+          OK
+        </Button>
+      </Dialog.Actions>
     </Dialog>
   )
 }
@@ -269,19 +259,12 @@ const styles = StyleSheet.create({
   fill: {
     flex: 1,
   },
-  info_card_content: {
-    padding: 16,
-    width: '80%',
-    gap: 8,
-    alignItems: 'stretch',
-  },
   info_item: {
     justifyContent: 'space-between',
     flexDirection: 'row',
   },
-  info_action_container: {
-    marginTop: 8,
-    flexDirection: 'row-reverse',
+  info_item_title: {
+    fontWeight: '600',
   },
   task_list: {
     flex: 1,

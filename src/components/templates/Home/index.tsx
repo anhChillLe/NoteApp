@@ -3,8 +3,7 @@ import React, {
   FC,
   forwardRef,
   memo,
-  RefAttributes,
-  useEffect,
+  useCallback,
   useMemo,
   useState,
 } from 'react'
@@ -19,6 +18,7 @@ import {
 } from 'react-native'
 import { Gesture, GestureDetector } from 'react-native-gesture-handler'
 import { trigger } from 'react-native-haptic-feedback'
+import { Button, Text } from 'react-native-paper'
 import Animated, {
   cancelAnimation,
   Easing,
@@ -33,16 +33,15 @@ import Animated, {
   useAnimatedScrollHandler,
   useAnimatedStyle,
   useScrollViewOffset,
-  useSharedValue,
   withTiming,
   WithTimingConfig,
 } from 'react-native-reanimated'
 import { AnimatedScrollView } from 'react-native-reanimated/lib/typescript/reanimated2/component/ScrollView'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { OrderedCollection } from 'realm'
 import { useShallow } from 'zustand/react/shallow'
-import useAppState from '~/app/store'
 import { AnimatedMasonryNoteList } from '~/components/Animated'
-import { NoteListItem, Toast } from '~/components/molecules'
+import { Dialog, NoteListItem, Toast } from '~/components/molecules'
 import {
   ActionBar,
   Activable,
@@ -58,37 +57,38 @@ import {
   useDrag,
   useHome,
 } from '~/components/Provider'
+import ToastProvider, { useToast } from '~/components/Provider/ToastProvider'
 import { useLayout, useVisible } from '~/hooks'
 import useHomeState from '~/screens/Home/store'
 import useSetting from '~/screens/Setting/store'
-import { Note, Tag } from '~/services/database/model'
+import { Note, Tag, TaskItem } from '~/services/database/model'
 
 const HomeScreenLayout: FC = () => {
   const mode = useHomeState(state => state.mode)
 
   return (
     <DragProvider>
-      <LayoutAnimationConfig skipEntering>
-        <View style={styles.container}>
-          {mode === 'select' ? <HSelectionAppbar /> : <HHeader />}
+      <ToastProvider>
+        <LayoutAnimationConfig skipEntering>
+          <View style={styles.container}>
+            {mode === 'select' ? <HSelectionAppbar /> : <HHeader />}
 
-          <KeyboardAvoidingView
-            style={styles.container}
-            behavior="padding"
-            keyboardVerticalOffset={8}
-          >
-            <View style={styles.container}>
-              <HTagList />
-              <HContent />
-            </View>
-          </KeyboardAvoidingView>
+            <KeyboardAvoidingView
+              style={styles.container}
+              behavior="padding"
+              keyboardVerticalOffset={8}
+            >
+              <View style={styles.container}>
+                <HTagList />
+                <HContent />
+              </View>
+            </KeyboardAvoidingView>
 
-          {mode !== 'search' &&
-            (mode === 'select' ? <HActionBar /> : <HBottomAppBar />)}
-        </View>
-        <HToastPrivate />
-        <HToastDelete />
-      </LayoutAnimationConfig>
+            {mode !== 'search' &&
+              (mode === 'select' ? <HActionBar /> : <HBottomAppBar />)}
+          </View>
+        </LayoutAnimationConfig>
+      </ToastProvider>
     </DragProvider>
   )
 }
@@ -118,25 +118,94 @@ const HTagList = memo(
 )
 
 const MemoNoteItem = memo(createDropableItem(NoteListItem))
+interface ExtraData {
+  isInSelectMode: boolean
+  selecteds: Note[] | OrderedCollection<Note>
+  extras: Tag
+  select: (item: Note) => void
+  openEditor: (item: Note) => void
+  addTagToNote: (note: Note, tag: Tag) => void
+  changeTaskItemStatus: (item: TaskItem) => void
+}
+const keyExtractor = (item: Note, index: number) => item?.id ?? index
+const renderItem: MasonryListRenderItem<Note> = ({ item, extraData }) => {
+  const {
+    isInSelectMode,
+    selecteds,
+    extras,
+    select,
+    openEditor,
+    addTagToNote,
+    changeTaskItemStatus,
+  } = extraData as ExtraData
 
+  const onPress = () => {
+    if (isInSelectMode) select(item)
+    else openEditor(item)
+  }
+
+  const onLongPress = () => {
+    trigger('effectTick')
+    select(item)
+  }
+
+  const submitDrop = () => {
+    if (extras) {
+      addTagToNote(item, extras)
+    }
+  }
+
+  const isSelected = selecteds.some(it => it.id === item.id)
+
+  return (
+    <MemoNoteItem
+      data={item}
+      isSelected={isSelected}
+      selectable={isInSelectMode}
+      style={styles.list_item}
+      maxLineOfContent={6}
+      maxLineOfTitle={1}
+      onPress={onPress}
+      onLongPress={onLongPress}
+      onTaskItemPress={changeTaskItemStatus}
+      onDropIn={submitDrop}
+    />
+  )
+}
 const NoteList = forwardRef<ScrollView, ScrollViewProps>((props, ref) => {
   const notes = useHome(state => state.notes)
   const openEditor = useHome(state => state.openEditor)
-
   const changeTaskItemStatus = useHomeState(state => state.changeTaskItemStatus)
   const addTagToNote = useHomeState(state => state.addTagToNote)
   const isInSelectMode = useHomeState(state => state.mode === 'select')
   const selecteds = useHomeState(state => state.selecteds)
   const select = useHomeState(state => state.select)
-
   const { extras } = useDrag<Tag>()
-
   const numOfColumns = useSetting(state => state.numOfColumns)
   const window = useWindowDimensions()
   const numColumns =
     numOfColumns === 'auto' ? Math.round(window.width / 200) : numOfColumns
 
-  const extraData = useMemo(() => ({}), [selecteds, extras])
+  const extraData = useMemo(
+    () => ({
+      isInSelectMode,
+      selecteds,
+      extras,
+      select,
+      openEditor,
+      addTagToNote,
+      changeTaskItemStatus,
+    }),
+    [
+      isInSelectMode,
+      selecteds,
+      extras,
+      select,
+      openEditor,
+      addTagToNote,
+      changeTaskItemStatus,
+    ],
+  )
 
   if (notes.isEmpty()) {
     return (
@@ -149,43 +218,6 @@ const NoteList = forwardRef<ScrollView, ScrollViewProps>((props, ref) => {
       </Animated.ScrollView>
     )
   }
-
-  const renderItem: MasonryListRenderItem<Note> = ({ item }) => {
-    const onPress = () => {
-      if (isInSelectMode) select(item)
-      else openEditor(item)
-    }
-
-    const onLongPress = () => {
-      trigger('effectTick')
-      select(item)
-    }
-
-    const submitDrop = () => {
-      if (extras) {
-        addTagToNote(item, extras)
-      }
-    }
-
-    const isSelected = selecteds.some(it => it.id === item.id)
-
-    return (
-      <MemoNoteItem
-        data={item}
-        isSelected={isSelected}
-        selectable={isInSelectMode}
-        style={styles.list_item}
-        maxLineOfContent={6}
-        maxLineOfTitle={1}
-        onPress={onPress}
-        onLongPress={onLongPress}
-        onTaskItemPress={changeTaskItemStatus}
-        onDropIn={submitDrop}
-      />
-    )
-  }
-
-  const keyExtractor = (item: Note, index: number) => item?.id ?? index
 
   return (
     <AnimatedMasonryNoteList
@@ -397,24 +429,13 @@ const HActionBar = memo(
     const { bottom } = useSafeAreaInsets()
 
     const isEmpty = useHomeState(state => state.selecteds.length === 0)
-    const isClonable = useHomeState(state => state.selecteds.length <= 10)
 
     const pinNotes = useHomeState(state => state.pinNotes)
     const deleteNotes = useHomeState(state => state.deleteNotes)
     const privateNotes = useHomeState(state => state.privateNotes)
-    const cloneNotes = useHomeState(state => state.cloneNotes)
 
-    const setFirstPrivate = useAppState(state => state.setFirstPrivate)
-    const setFirstDelete = useAppState(state => state.setFirstDelete)
-
-    const [visible, show, hide] = useVisible()
-
-    if (__DEV__) {
-      useEffect(() => {
-        setFirstPrivate(true)
-        setFirstDelete(true)
-      }, [setFirstPrivate])
-    }
+    const toast = useToast()
+    const [dialogVisible, showDialog, hideDialog] = useVisible()
 
     const actions = [
       { icon: 'thumbtack', label: 'Pin', onPress: pinNotes, disable: isEmpty },
@@ -422,8 +443,7 @@ const HActionBar = memo(
         icon: 'trash',
         label: 'Delete',
         onPress: () => {
-          deleteNotes()
-          setFirstDelete(false)
+          showDialog()
         },
         disable: isEmpty,
       },
@@ -432,14 +452,11 @@ const HActionBar = memo(
         label: 'Private',
         onPress: () => {
           privateNotes()
-          setFirstPrivate(false)
+          toast.show({
+            text: 'Notes has been hided. Pull down and hold to active private space.',
+            duration: 2500,
+          })
         },
-        disable: isEmpty,
-      },
-      {
-        icon: 'copy',
-        label: 'Clone',
-        onPress: isClonable ? cloneNotes : show,
         disable: isEmpty,
       },
     ]
@@ -452,64 +469,20 @@ const HActionBar = memo(
           exiting={FadeOutDown}
           style={{ paddingBottom: bottom }}
         />
-        <Toast
-          visible={visible}
-          onDismiss={hide}
-          children="Can't clone more than 10 items"
-          gravity={128}
-          duration={1200}
-        />
+        <Dialog visible={dialogVisible} onRequestClose={hideDialog}>
+          <Dialog.Title children="Confirm delete" />
+          <Dialog.Content>
+            <Text
+              variant="bodyMedium"
+              children="Confirm deletion of this notes."
+            />
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button mode="contained" children="Delete" onPress={deleteNotes} />
+            <Button mode="outlined" children="Cancel" onPress={hideDialog} />
+          </Dialog.Actions>
+        </Dialog>
       </>
-    )
-  },
-  () => true,
-)
-
-const HToastPrivate = memo(
-  () => {
-    const [visible, show, hide] = useVisible()
-
-    useEffect(() => {
-      const unsub = useAppState.subscribe((state, prevState) => {
-        if (!state.isFirstPrivate && prevState.isFirstPrivate) {
-          show()
-        }
-      })
-      return unsub
-    }, [show])
-
-    return (
-      <Toast
-        visible={visible}
-        children="Notes was moved to private, pull down list to show private notes."
-        gravity={128}
-        onDismiss={hide}
-      />
-    )
-  },
-  () => true,
-)
-
-const HToastDelete = memo(
-  () => {
-    const [visible, show, hide] = useVisible()
-
-    useEffect(() => {
-      const unsub = useAppState.subscribe((state, prevState) => {
-        if (!state.isFirstDelete && prevState.isFirstDelete) {
-          show()
-        }
-      })
-      return unsub
-    }, [show])
-
-    return (
-      <Toast
-        visible={visible}
-        children="Notes was moved to trash, it will be deleted affter 60 days."
-        gravity={128}
-        onDismiss={hide}
-      />
     )
   },
   () => true,
@@ -552,6 +525,11 @@ const styles = StyleSheet.create({
   taglist_container: {
     paddingVertical: 8,
     paddingHorizontal: 16,
+  },
+  dialog_checkbox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
 })
 

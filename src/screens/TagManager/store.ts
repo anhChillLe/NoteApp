@@ -2,6 +2,7 @@ import { StateCreator, create } from 'zustand'
 import { Tag } from '~/services/database/model'
 import Realm, { OrderedCollection } from 'realm'
 import { realmConfig } from '~/services/database'
+import useHomeState from '../Home/store'
 
 type Mode = 'select' | 'default'
 
@@ -63,6 +64,13 @@ const creator: StateCreator<Selection> = (set, get) => ({
         .then(realm => {
           realm.write(() => {
             realm.delete(state.selecteds)
+            if (
+              state.selecteds.some(
+                it => it.id === useHomeState.getState().currentTagId,
+              )
+            ) {
+              useHomeState.getState().setCurrentTagId(null)
+            }
           })
         })
         .catch(console.log)

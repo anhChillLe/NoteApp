@@ -1,5 +1,6 @@
 import React, { FC, memo, useState } from 'react'
 import { ListRenderItem, StyleSheet, View } from 'react-native'
+import { Button } from 'react-native-paper'
 import Animated, {
   FadeInDown,
   FadeInUp,
@@ -11,7 +12,8 @@ import Animated, {
 } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTagManager } from '~/components/Provider'
-import { InputSheet, TagListItem } from '~/components/molecules'
+import { RoundedTextInput } from '~/components/atoms'
+import { Dialog, TagListItem } from '~/components/molecules'
 import {
   ActionBar,
   Appbar,
@@ -81,6 +83,10 @@ const TAppbar: FC = memo(
       },
     ]
 
+    const submit = () => {
+      createTag(inputText)
+    }
+
     return (
       <>
         <Appbar
@@ -91,15 +97,29 @@ const TAppbar: FC = memo(
           actions={actions}
           style={{ paddingTop: insets.top }}
         />
-        <InputSheet
-          title="Enter a tag name"
-          onSubmit={createTag}
+        <Dialog
           visible={inputVisible}
-          text={inputText}
-          onChangeText={setInputText}
-          onDismiss={hideInput}
+          dismissable
+          dismissableBackButton
           onRequestClose={hideInput}
-        />
+          style={styles.dialog}
+        >
+          <Dialog.Title children="Create tag" />
+          <Dialog.Content>
+            <RoundedTextInput
+              mode="outlined"
+              value={inputText}
+              onChangeText={setInputText}
+              placeholder="Tag name"
+              onSubmitEditing={submit}
+              autoFocus
+            />
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button mode="contained" children="OK" onPress={submit} />
+            <Button mode="outlined" children="Cancel" onPress={hideInput} />
+          </Dialog.Actions>
+        </Dialog>
       </>
     )
   },
@@ -142,6 +162,10 @@ const TActionBar = memo(
       },
     ]
 
+    const submit = () => {
+      renameTag(inputText)
+    }
+
     return (
       <>
         <ActionBar
@@ -150,15 +174,29 @@ const TActionBar = memo(
           actions={actions}
           style={{ paddingBottom: insets.bottom }}
         />
-        <InputSheet
-          title="Enter a tag name"
-          onSubmit={renameTag}
+        <Dialog
           visible={inputVisible}
-          text={inputText}
-          onChangeText={setInputText}
-          onDismiss={hideInput}
+          dismissable
+          dismissableBackButton
           onRequestClose={hideInput}
-        />
+          style={styles.dialog}
+        >
+          <Dialog.Title children="Create tag" />
+          <Dialog.Content>
+            <RoundedTextInput
+              mode="outlined"
+              value={inputText}
+              onChangeText={setInputText}
+              placeholder="Tag name"
+              onSubmitEditing={submit}
+              autoFocus
+            />
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button mode="contained" children="OK" onPress={submit} />
+            <Button mode="outlined" children="Cancel" onPress={hideInput} />
+          </Dialog.Actions>
+        </Dialog>
       </>
     )
   },
@@ -229,6 +267,9 @@ const styles = StyleSheet.create({
   },
   item: {
     flex: 1,
+  },
+  dialog: {
+    justifyContent: 'flex-end',
   },
 })
 

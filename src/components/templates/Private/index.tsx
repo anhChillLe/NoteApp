@@ -1,7 +1,7 @@
 import { MasonryListRenderItem } from '@shopify/flash-list'
 import { FC, memo, useMemo } from 'react'
 import { StyleSheet, View, useWindowDimensions } from 'react-native'
-import { Text } from 'react-native-paper'
+import { Button, Checkbox, Text } from 'react-native-paper'
 import Animated, {
   FadeInDown,
   FadeInUp,
@@ -14,7 +14,10 @@ import Animated, {
 } from 'react-native-reanimated'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useShallow } from 'zustand/react/shallow'
-import { AnimatedMasonryNoteList } from '~/components/Animated'
+import {
+  AnimatedMasonryNoteList,
+  AnimatedPressable,
+} from '~/components/Animated'
 import {
   ContentScrollProvider,
   DragProvider,
@@ -23,7 +26,7 @@ import {
   useDrag,
   usePrivateNote,
 } from '~/components/Provider'
-import { ConfirmDialog, NoteListItem } from '~/components/molecules'
+import { Dialog, NoteListItem } from '~/components/molecules'
 import {
   ActionBar,
   Appbar,
@@ -311,19 +314,6 @@ const PActionBar: FC = memo(
       },
     ]
 
-    const diablogActions = [
-      {
-        title: 'Delete',
-        onPress: deleteItems,
-        primary: true,
-      },
-      {
-        title: 'Cancel',
-        onPress: hide,
-        primary: false,
-      },
-    ]
-
     return (
       <>
         <ActionBar
@@ -332,14 +322,28 @@ const PActionBar: FC = memo(
           exiting={FadeOutDown.duration(200)}
           style={{ paddingBottom: insets.bottom }}
         />
-        <ConfirmDialog
+        <Dialog
           visible={visible}
           onRequestClose={hide}
-          onDismiss={hide}
-          title="Confirm delete"
-          content="Private notes will not be moved to trash, confirm to permanently delete this note."
-          actions={diablogActions}
-        />
+          dismissable
+          dismissableBackButton
+        >
+          <Dialog.Title children="Confirm delete" />
+          <Dialog.Content>
+            <Text
+              variant="bodyMedium"
+              children="Private notes will not be moved to trash, confirm to permanently delete this note."
+            />
+            <AnimatedPressable style={styles.dialog_checkbox}>
+              <Checkbox.Android status="checked" />
+              <Text children="Don't show again" />
+            </AnimatedPressable>
+          </Dialog.Content>
+          <Dialog.Actions>
+            <Button mode="contained" children="Delete" onPress={deleteItems} />
+            <Button mode="outlined" children="Cancel" onPress={hide} />
+          </Dialog.Actions>
+        </Dialog>
       </>
     )
   },
@@ -392,6 +396,11 @@ const styles = StyleSheet.create({
   header_title: {
     height: HEADER_HEIGHT,
     justifyContent: 'center',
+  },
+  dialog_checkbox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
 })
 

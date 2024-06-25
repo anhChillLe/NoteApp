@@ -154,7 +154,6 @@ const ColorSchemeSection: FC = () => {
       <Menu
         anchorRef={section}
         visible={visible}
-        onDismiss={hide}
         onRequestClose={hide}
         style={{ borderRadius: roundness * 3, overflow: 'hidden' }}
       >
@@ -207,7 +206,6 @@ const NumOfColumnsSection: FC = () => {
       <Menu
         anchorRef={section}
         visible={visible}
-        onDismiss={hide}
         onRequestClose={hide}
         style={{ borderRadius: roundness * 3, overflow: 'hidden' }}
       >

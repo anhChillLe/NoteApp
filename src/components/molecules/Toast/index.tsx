@@ -1,97 +1,59 @@
-import { FC, useCallback, useEffect } from 'react'
-import { ModalProps, StyleSheet, View } from 'react-native'
-import { trigger } from 'react-native-haptic-feedback'
-import { Button, Portal, Text, useTheme } from 'react-native-paper'
+import { FC, PropsWithChildren, useEffect } from 'react'
+import { StyleSheet, View } from 'react-native'
+import { Portal, Text, useTheme } from 'react-native-paper'
 import Animated, {
-  Easing,
-  runOnJS,
-  runOnUI,
+  FadeInDown,
+  FadeOutDown,
   useAnimatedStyle,
-  useSharedValue,
-  withTiming,
 } from 'react-native-reanimated'
 
-interface ToastProps extends ModalProps {
-  animationDuration?: number
+interface ToastProps {
+  visible: boolean
+  onRequestClose: () => void
   duration?: number
   gravity?: number
-  onDismiss: () => void
+  animationDuration?: number
 }
 
-const Toast: FC<ToastProps> = ({
+const Toast: FC<PropsWithChildren<ToastProps>> = ({
   children,
   visible,
-  style,
   duration = 3000,
-  gravity = 0,
-  onDismiss,
-  animationDuration = 250,
+  gravity = 128,
+  onRequestClose,
+  animationDuration = 160,
 }) => {
   const { colors, roundness } = useTheme()
-  const progress = useSharedValue(0)
-
-  const show = useCallback(() => {
-    trigger('effectTick')
-    runOnUI(() => {
-      progress.value = withTiming(1, {
-        duration: animationDuration,
-        easing: Easing.in(Easing.ease),
-      })
-    })()
-  }, [])
-
-  const hide = useCallback(() => {
-    progress.value = withTiming(
-      0,
-      {
-        duration: animationDuration,
-        easing: Easing.in(Easing.ease),
-      },
-      () => {
-        runOnJS(onDismiss)()
-      },
-    )
-  }, [])
 
   useEffect(() => {
     if (visible) {
-      show()
-    } else {
-      hide()
-    }
-  }, [show, hide, visible])
-
-  const contentStyle = useAnimatedStyle(() => {
-    return {
-      borderRadius: roundness * 2,
-      backgroundColor: colors.primaryContainer,
-      opacity: progress.value,
-      bottom: gravity,
-    }
-  }, [gravity, colors, roundness])
-
-  useEffect(() => {
-    if (visible) {
-      const id = setTimeout(() => {
-        hide()
-      }, duration)
-
+      const id = setTimeout(onRequestClose, duration)
       return () => clearTimeout(id)
     }
-  }, [visible, hide])
+  }, [visible, onRequestClose])
 
   return (
     <Portal>
-      <View
-        style={[styles.container, style]}
-        pointerEvents="none"
-        accessibilityViewIsModal
-        accessibilityLiveRegion="polite"
-        onAccessibilityEscape={hide}
-      >
-        <Animated.View style={[styles.content_container, contentStyle]}>
-          <Text style={{ color: colors.onPrimaryContainer }}>{children}</Text>
-        </Animated.View>
+      <View style={styles.container} pointerEvents="none">
+        {visible && (
+          <Animated.View
+            entering={FadeInDown.duration(animationDuration)}
+            exiting={FadeOutDown.duration(animationDuration)}
+            style={[
+              styles.content_container,
+              {
+                borderRadius: roundness * 2,
+                backgroundColor: colors.surfaceVariant,
+                bottom: gravity,
+              },
+            ]}
+          >
+            <Text
+              style={{ color: colors.onSurfaceVariant }}
+              children={children}
+            />
+          </Animated.View>
+        )}
       </View>
     </Portal>
   )

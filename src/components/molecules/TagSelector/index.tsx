@@ -6,15 +6,15 @@ import {
   View,
   ViewStyle,
 } from 'react-native'
-import { Button, Text, TextInput, useTheme } from 'react-native-paper'
+import { Button, useTheme } from 'react-native-paper'
 import { useAnimatedRef } from 'react-native-reanimated'
 import { List } from 'realm'
 import { AnimatedPaper, AnimatedPressable } from '~/components/Animated'
-import { ActionSheet, Menu } from '~/components/atoms'
+import { Menu, RoundedTextInput } from '~/components/atoms'
 import Shape from '~/components/atoms/Shape'
 import { useVisible } from '~/hooks'
 import { Tag } from '~/services/database/model'
-import { TagItem } from '..'
+import { Dialog, TagItem } from '..'
 
 interface Props {
   currents: Tag[]
@@ -24,7 +24,7 @@ interface Props {
   maxItems?: number
 }
 
-const TagMenu: FC<Props> = ({
+const TagSelector: FC<Props> = ({
   currents,
   tags,
   maxItems = 3,
@@ -94,7 +94,7 @@ const TagMenu: FC<Props> = ({
       </AnimatedPressable>
       <Menu
         visible={tagVisbile}
-        onDismiss={hideTags}
+        onRequestClose={hideTags}
         anchorRef={tagsRef}
         style={styles.tag_menu}
       >
@@ -103,36 +103,29 @@ const TagMenu: FC<Props> = ({
           <TagItem icon="plus" label="New tag" onPress={showInput} />
         </Shape>
       </Menu>
-      <ActionSheet
+      <Dialog
         visible={inputVisible}
+        dismissable
+        dismissableBackButton
         onRequestClose={hideInput}
-        onDismiss={hideInput}
+        style={styles.dialog}
       >
-        <Shape style={styles.input_container} roundnessLevel={3}>
-          <Text variant="titleLarge" children="Create tag" />
-          <TextInput
-            ref={input}
+        <Dialog.Title children="Create tag" />
+        <Dialog.Content>
+          <RoundedTextInput
             mode="outlined"
-            placeholder="Tag name"
             value={text}
-            outlineStyle={{ borderRadius: roundness * 3 }}
             onChangeText={setText}
+            placeholder="Tag name"
             onSubmitEditing={handleSubmit}
+            autoFocus
           />
-          <View style={styles.action_container}>
-            <Button mode="outlined" style={styles.action} onPress={hideInput}>
-              Cancel
-            </Button>
-            <Button
-              mode="contained"
-              style={styles.action}
-              onPress={handleSubmit}
-            >
-              OK
-            </Button>
-          </View>
-        </Shape>
-      </ActionSheet>
+        </Dialog.Content>
+        <Dialog.Actions>
+          <Button mode="contained" children="OK" onPress={handleSubmit} />
+          <Button mode="outlined" children="Cancel" onPress={hideInput} />
+        </Dialog.Actions>
+      </Dialog>
     </>
   )
 }
@@ -155,29 +148,14 @@ const styles = StyleSheet.create({
     gap: 16,
     alignItems: 'stretch',
   },
-  input_container: {
-    marginHorizontal: 16,
-    padding: 24,
-    gap: 16,
-    alignItems: 'stretch',
-  },
-  title: {
-    textAlign: 'center',
-    fontWeight: '600',
-  },
   tag_container: {
     flexDirection: 'row',
     alignItems: 'center',
     flexWrap: 'wrap',
     gap: 8,
   },
-  action_container: {
-    flexDirection: 'row',
-    justifyContent: 'space-evenly',
-    gap: 8,
-  },
-  action: {
-    flex: 1,
+  dialog: {
+    justifyContent: 'flex-end',
   },
 })
 
@@ -190,4 +168,4 @@ const getTagsString = (tags: Tag[], maxItems: number) => {
   return isOver ? str + `,...` : str
 }
 
-export default TagMenu
+export default TagSelector
