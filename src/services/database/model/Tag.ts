@@ -46,18 +46,13 @@ export class Tag extends Realm.Object<Tag, 'name'> {
     })
   }
 
-  update(data: TagData) {
-    let k: keyof TagData
-    let hasChanged = false
-    for (k in data) {
-      const value = data[k]
-      if (value !== this[k]) {
-        this[k] = value as never
-        hasChanged = true
-      }
-    }
-    if (hasChanged) {
-      this.updateAt = new Date()
-    }
+  update({ isPinned, name }: TagData) {
+    this.name = name
+    this.isPinned = isPinned
+    this.updateAt = new Date()
+  }
+
+  equals(tag: Tag) {
+    return this.id === tag.id
   }
 }

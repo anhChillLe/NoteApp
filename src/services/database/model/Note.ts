@@ -1,8 +1,7 @@
-import { BSON, Object, ObjectSchema, PropertiesTypes } from 'realm'
+import { BSON, Object, ObjectSchema, PropertiesTypes, Realm } from 'realm'
 import { Tag, TaskItem } from '~/services/database/model'
-import { TaskItemData } from './TaskItem'
 import { normalize } from '../utils'
-import { Realm } from 'realm'
+import { TaskItemData } from './TaskItem'
 
 export type NoteData = {
   type: NoteType
@@ -46,6 +45,27 @@ export class Note extends Object<Note> {
     normalizedContent: { type: 'string', indexed: 'full-text', default: '' },
   }
 
+  // https://www.mongodb.com/docs/atlas/device-sdks/sdk/react-native/model-data/define-a-realm-object-model/#typescript-and-required-properties
+  constructor(
+    realm: Realm,
+    { type, title, content, taskList, isPinned, isPrivate, tags }: NoteData,
+  ) {
+    super(realm, {
+      _id: new BSON.UUID(),
+      updateAt: new Date(),
+      createAt: new Date(),
+      normalizedTitle: normalize(title),
+      normalizedContent: normalize(content),
+      type,
+      title,
+      content,
+      taskList: taskList as TaskItem[],
+      isPinned,
+      isPrivate,
+      tags,
+    })
+  }
+
   static readonly schema: ObjectSchema = {
     name: 'Note',
     primaryKey: '_id',
@@ -63,7 +83,7 @@ export class Note extends Object<Note> {
       content: this.content,
       createAt: this.createAt,
       updateAt: this.updateAt,
-      tags: this.tags,
+      tags: [...this.tags],
       taskList: this.taskList.map(it => it.data),
       isPinned: this.isPinned,
       isPrivate: this.isPrivate,
@@ -72,23 +92,27 @@ export class Note extends Object<Note> {
   }
 
   update(data: NoteData) {
-    let k: keyof NoteData
-    let hasChanged = false
-    for (k in data) {
-      if (data[k] !== this[k]) {
-        this[k] = data[k] as never
-        if (k === 'title') {
-          this.normalizedTitle = normalize(data[k])
-        }
-        if (k === 'content') {
-          this.normalizedContent = normalize(data[k])
-        }
-        hasChanged = true
-      }
-    }
-    if (hasChanged) {
-      this.updateAt = new Date()
-    }
+    const {
+      title,
+      content,
+      isDeleted,
+      isPinned,
+      isPrivate,
+      tags,
+      taskList,
+      type,
+    } = data
+    this.title = title
+    this.normalizedTitle = normalize(title)
+    this.content = content
+    this.normalizedContent = normalize(content)
+    this.isDeleted = isDeleted
+    this.isPinned = isPinned
+    this.isPrivate = isPrivate
+    this.tags = tags
+    this.taskList = taskList as TaskItem[]
+    this.type = type
+    this.updateAt = new Date()
   }
 
   static create(

@@ -202,7 +202,6 @@ const TaskItemInput: FC = () => {
       items: state.taskList,
       onCheckPress: state.changeTaskItemStatus,
       onDeletePress: state.removeTaskItem,
-      onDisablePress: state.disableTaskItem,
       onLabelChange: state.setTaskItemLabel,
       onNewItem: state.addTaskItem,
     })),

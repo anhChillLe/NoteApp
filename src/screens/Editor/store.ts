@@ -1,20 +1,10 @@
-import { temporal } from 'zundo'
+import Realm, { BSON } from 'realm'
 import { StateCreator, create } from 'zustand'
-import { Note, Tag } from '~/services/database/model'
-import { TaskItemData } from '~/services/database/model/TaskItem'
-import Realm, { BSON, open } from 'realm'
+import { subscribeWithSelector } from 'zustand/middleware'
 import { realmConfig } from '~/services/database'
-
-interface NoteData {
-  type: NoteType
-  title: string
-  content: string
-  taskList: TaskItemData[]
-  tags: Tag[]
-  isPinned: boolean
-  isPrivate: boolean
-  isDeleted: boolean
-}
+import { Note, Tag } from '~/services/database/model'
+import { NoteData } from '~/services/database/model/Note'
+import { TaskItemData } from '~/services/database/model/TaskItem'
 
 interface InitialParams {
   type: NoteType
@@ -24,12 +14,16 @@ interface InitialParams {
 }
 
 interface NoteEditData extends NoteData {
+  isInited: boolean
+  id: BSON.UUID
+}
+
+interface NoteEditAction {
   setTitle: (text: string) => void
   setContent: (text: string) => void
   addTaskItem: (label: string) => void
   setTaskItemLabel: (index: number, label: string) => void
   changeTaskItemStatus: (index: number) => void
-  disableTaskItem: (index: number) => void
   removeTaskItem: (index: number) => void
   setTags: (tags: Tag[]) => void
   setIsPinned: (bool: boolean) => void
@@ -38,9 +32,13 @@ interface NoteEditData extends NoteData {
   createTag: (name: string) => void
   init: (params: InitialParams) => void
   reset: () => void
+  getData: () => NoteData
+  saveOrUpdate: () => void
 }
 
-const initialData: NoteData = {
+const initialData: NoteEditData = {
+  isInited: false,
+  id: new BSON.UUID(),
   type: 'note',
   title: '',
   content: '',
@@ -51,7 +49,7 @@ const initialData: NoteData = {
   isDeleted: false,
 }
 
-const creator: StateCreator<NoteEditData> = (set, get) => {
+const creator: StateCreator<NoteEditData & NoteEditAction> = (set, get) => {
   return {
     ...initialData,
     setTitle(title) {
@@ -62,43 +60,24 @@ const creator: StateCreator<NoteEditData> = (set, get) => {
     },
     addTaskItem(label) {
       set(state => ({
-        taskList: [...state.taskList, { status: 'unchecked', label }],
+        taskList: [...state.taskList, { isChecked: false, label }],
       }))
     },
     setTaskItemLabel(index, label) {
       set(state => {
         const newList = [...state.taskList]
-        newList[index].label = label
+        newList[index] = { ...newList[index], label }
         return {
           taskList: newList,
         }
       })
     },
-    disableTaskItem(index) {
-      set(state => {
-        const newList = [...state.taskList]
-        const item = newList[index]
-        item.status =
-          item.status === 'indeterminate' ? 'unchecked' : 'indeterminate'
-        return {
-          taskList: newList,
-        }
-      })
-    },
+
     changeTaskItemStatus(index) {
       set(state => {
         const newList = [...state.taskList]
         const item = newList[index]
-        newList[index].status = (() => {
-          switch (item.status) {
-            case 'checked':
-              return 'unchecked'
-            case 'unchecked':
-              return 'checked'
-            case 'indeterminate':
-              return item.status
-          }
-        })()
+        newList[index].isChecked = !item.isChecked
         return {
           taskList: newList,
         }
@@ -131,11 +110,15 @@ const creator: StateCreator<NoteEditData> = (set, get) => {
       })
     },
     init({ type, id, tagId, isPrivate }) {
+      if (get().isInited) return
       Realm.open(realmConfig).then(realm => {
         if (id) {
-          const note = realm.objectForPrimaryKey(Note, new BSON.UUID(id))
+          const uuid = new BSON.UUID(id)
+          set({ id: uuid })
+          const note = realm.objectForPrimaryKey(Note, uuid)
+          if (note === null) return
           const { title, content, isPinned, taskList, isPrivate, tags } =
-            note?.data || {}
+            note.data
 
           set({
             title,
@@ -154,16 +137,57 @@ const creator: StateCreator<NoteEditData> = (set, get) => {
           set({ isPrivate })
         }
 
-        set({ type })
+        set({ type, isInited: true })
       })
     },
     reset() {
       set(initialData)
     },
+    getData() {
+      const {
+        type,
+        title,
+        content,
+        taskList,
+        tags,
+        isPinned,
+        isPrivate,
+        isDeleted,
+      } = get()
+
+      // Array at last to optimize compare function
+      return {
+        type,
+        title,
+        content,
+        isPinned,
+        isPrivate,
+        isDeleted,
+        tags,
+        taskList,
+      }
+    },
+    saveOrUpdate() {
+      Realm.open(realmConfig).then(realm => {
+        if (!get().isInited) return
+        const data = get().getData()
+        const id = get().id
+        if (!Note.isValidData(data)) return
+        const note = realm.objectForPrimaryKey(Note, id)
+        realm.write(() => {
+          if (note) {
+            note.update(data)
+          } else {
+            const results = Note.create(realm, data)
+            set({ id: results._id })
+          }
+        })
+      })
+    },
   }
 }
 
-const useNoteEditor = create(temporal(creator))
+const useNoteEditor = create(subscribeWithSelector(creator))
 
 export default useNoteEditor
 export type { NoteEditData }

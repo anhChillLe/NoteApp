@@ -156,15 +156,13 @@ type TaskItemProps = AnimatedProps<TouchableScaleProps> & {
 
 const TaskListItem: FC<TaskItemProps> = ({ data, style, ...props }) => {
   const { colors } = useTheme()
-  const { label, status } = data
-  const isDisable = status === 'indeterminate'
-  const isSlected = status === 'checked'
+  const { label, isChecked } = data
 
   const iconProps = useAnimatedProps(() => {
     return {
-      color: isSlected ? colors.primary : colors.onBackground,
+      color: isChecked ? colors.primary : colors.onBackground,
     }
-  }, [colors, isSlected])
+  }, [colors, isChecked])
 
   return (
     <AnimatedTouchableScale
@@ -174,7 +172,7 @@ const TaskListItem: FC<TaskItemProps> = ({ data, style, ...props }) => {
       {...props}
     >
       <AnimatedPaper.Icon
-        source={icons[status]}
+        source={isChecked ? 'checkbox' : 'square'}
         size={16}
         animatedProps={iconProps}
       />
@@ -185,7 +183,7 @@ const TaskListItem: FC<TaskItemProps> = ({ data, style, ...props }) => {
         style={[
           styles.task_item_label,
           {
-            textDecorationLine: isDisable ? 'line-through' : 'none',
+            textDecorationLine: isChecked ? 'line-through' : 'none',
           },
         ]}
       >
@@ -193,12 +191,6 @@ const TaskListItem: FC<TaskItemProps> = ({ data, style, ...props }) => {
       </Text>
     </AnimatedTouchableScale>
   )
-}
-
-const icons: Record<TaskItemStatus, string> = {
-  checked: 'checkbox',
-  unchecked: 'square',
-  indeterminate: 'square',
 }
 
 const styles = StyleSheet.create({

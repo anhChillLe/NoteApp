@@ -1,63 +1,51 @@
 import { useNavigation } from '@react-navigation/native'
-import React, { FC, useCallback, useEffect, useState } from 'react'
-import { BSON } from 'realm'
+import { isEqual } from 'lodash'
+import React, { FC, useEffect } from 'react'
 import { NoteEditProvider } from '~/components/Provider'
 import { EditorScreenLayout } from '~/components/templates'
 import { useRootRoute } from '~/navigation/Root/hook'
 import useNoteEditor from '~/screens/Editor/store'
-import { useObject, useQuery, useRealm } from '~/services/database'
+import { useObject, useQuery } from '~/services/database'
 import { Note, Tag } from '~/services/database/model'
-import { NoteData } from '~/services/database/model/Note'
 import { debounce } from '~/utils'
 
 const EditorScreen: FC = () => {
-  const realm = useRealm()
   const navigation = useNavigation()
   const route = useRootRoute<'editor'>()
 
+  const id = useNoteEditor(state => state.id)
   const tags = useQuery({ type: Tag })
-  const [id, setId] = useState(new BSON.UUID(route.params.id!))
   const note = useObject({ type: Note, primaryKey: id })
 
-  const handleFormDataChange = useCallback(
-    debounce((data: NoteData) => {
-      if (!Note.isValidData(data)) return
-      const note = realm.objectForPrimaryKey(Note, id)
-      realm.write(() => {
-        if (note) {
-          note.update(data)
-        } else {
-          const results = Note.create(realm, data)
-          setId(results._id)
-        }
-      })
-    }, 300),
-    [realm, id, setId],
-  )
+  // Auto save
+  useEffect(() => {
+    const saveOrUpdate = useNoteEditor.getState().saveOrUpdate
+    const unsub = useNoteEditor.subscribe(
+      state => ({ isInited: state.isInited, data: state.getData() }),
+      (state, prevState) => {
+        if (state.isInited === false) return
+        if (state.isInited !== prevState.isInited) return
+        debounce(saveOrUpdate, 300)()
+      },
+      { equalityFn: isEqual },
+    )
+    return unsub
+  }, [])
 
   // Init form
   useEffect(() => {
     useNoteEditor.getState().init(route.params)
+    return useNoteEditor.getState().reset
   }, [route.params])
-
-  // Auto save
-  useEffect(() => {
-    const unsub = useNoteEditor.subscribe(handleFormDataChange)
-    return unsub
-  }, [handleFormDataChange])
 
   // Back on delete
   useEffect(() => {
-    const unsub = useNoteEditor.subscribe(({ isDeleted }) => {
-      if (isDeleted) {
-        navigation.goBack()
-      }
-    })
+    const unsub = useNoteEditor.subscribe(
+      state => state.isDeleted,
+      isDeleted => isDeleted && navigation.goBack(),
+    )
     return unsub
   }, [navigation])
-
-  // Clear form state
-  useEffect(() => useNoteEditor.getState().reset, [])
 
   return (
     <NoteEditProvider

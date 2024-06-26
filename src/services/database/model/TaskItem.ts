@@ -1,16 +1,16 @@
 import { Object, ObjectSchema, PropertiesTypes } from 'realm'
 import { normalize } from '../utils'
 
-export type TaskItemData = { label: string; status: TaskItemStatus }
+export type TaskItemData = { label: string; isChecked: boolean }
 
 export class TaskItem extends Object<TaskItem> {
   label!: string
-  status!: TaskItemStatus
+  isChecked!: boolean
 
   private static properties: PropertiesTypes = {
     label: { type: 'string' },
     normalizedLabel: { type: 'string', indexed: 'full-text', default: '' },
-    status: { type: 'string', default: '' },
+    isChecked: { type: 'bool', default: false },
   }
 
   static readonly schema: ObjectSchema = {
@@ -22,7 +22,7 @@ export class TaskItem extends Object<TaskItem> {
   get data() {
     return {
       label: this.label,
-      status: this.status,
+      isChecked: this.isChecked,
     }
   }
 
@@ -34,15 +34,10 @@ export class TaskItem extends Object<TaskItem> {
   }
 
   changeStatus() {
-    switch (this.status) {
-      case 'checked':
-        this.status = 'unchecked'
-        break
-      case 'unchecked':
-        this.status = 'checked'
-        break
-      case 'indeterminate':
-        return
-    }
+    this.isChecked = !this.isChecked
+  }
+
+  equals(item: TaskItem) {
+    return this.label === item.label && this.isChecked === item.isChecked
   }
 }
