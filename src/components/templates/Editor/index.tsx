@@ -56,7 +56,6 @@ const Appbar: FC = () => {
 
   const onBackPress = useNoteEdit(state => state.onBackPress)
   const tags = useNoteEdit(state => state.tags)
-  const onNewTagSubmit = useNoteEdit(state => state.onNewTagSubmit)
   const data = useNoteEdit(state => state.data)
 
   const currentTags = useNoteEditor(state => state.tags)
@@ -65,6 +64,7 @@ const Appbar: FC = () => {
   const setIsDeleted = useNoteEditor(state => state.setIsDeleted)
   const setIsPrivate = useNoteEditor(state => state.setIsPrivate)
   const setIsPinned = useNoteEditor(state => state.setIsPinned)
+  const createTag = useNoteEditor(state => state.createTag)
   const setTags = useNoteEditor(state => state.setTags)
 
   const deleteNote = () => setIsDeleted(true)
@@ -92,7 +92,7 @@ const Appbar: FC = () => {
         tags={tags}
         currents={currentTags}
         onChange={setTags}
-        onNewTagSubmit={onNewTagSubmit}
+        onNewTagSubmit={createTag}
       />
       <IconButton ref={menuIcon} icon="menu-dots-vertical" onPress={showMenu} />
       <InfoCard

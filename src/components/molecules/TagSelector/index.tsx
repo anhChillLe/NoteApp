@@ -8,7 +8,7 @@ import {
 } from 'react-native'
 import { Button, useTheme } from 'react-native-paper'
 import { useAnimatedRef } from 'react-native-reanimated'
-import { List } from 'realm'
+import { List, OrderedCollection } from 'realm'
 import { AnimatedPaper, AnimatedPressable } from '~/components/Animated'
 import { Menu, RoundedTextInput } from '~/components/atoms'
 import Shape from '~/components/atoms/Shape'
@@ -18,7 +18,7 @@ import { Dialog, TagItem } from '..'
 
 interface Props {
   currents: Tag[]
-  tags: Tag[] | List<Tag>
+  tags: Tag[] | OrderedCollection<Tag>
   onChange: (tags: Tag[]) => void
   onNewTagSubmit?: (text: string) => void
   maxItems?: number

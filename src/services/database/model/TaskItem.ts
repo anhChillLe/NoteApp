@@ -1,4 +1,5 @@
 import { Object, ObjectSchema, PropertiesTypes } from 'realm'
+import { normalize } from '../utils'
 
 export type TaskItemData = { label: string; status: TaskItemStatus }
 
@@ -7,8 +8,9 @@ export class TaskItem extends Object<TaskItem> {
   status!: TaskItemStatus
 
   private static properties: PropertiesTypes = {
-    label: { type: 'string', indexed: 'full-text' },
-    status: 'string',
+    label: { type: 'string' },
+    normalizedLabel: { type: 'string', indexed: 'full-text', default: '' },
+    status: { type: 'string', default: '' },
   }
 
   static readonly schema: ObjectSchema = {
@@ -17,23 +19,17 @@ export class TaskItem extends Object<TaskItem> {
     properties: this.properties,
   }
 
-  static generate({
-    label,
-    status = 'unchecked',
-  }: {
-    label: string
-    status?: TaskItemStatus
-  }) {
-    return {
-      label,
-      status,
-    }
-  }
-
   get data() {
     return {
       label: this.label,
       status: this.status,
+    }
+  }
+
+  static generate(data: TaskItemData) {
+    return {
+      ...data,
+      normalizedLabel: normalize(data.label),
     }
   }
 

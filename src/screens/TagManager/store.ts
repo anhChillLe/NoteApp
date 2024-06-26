@@ -84,7 +84,7 @@ const creator: StateCreator<Selection> = (set, get) => ({
     Realm.open(realmConfig)
       .then(realm => {
         realm.write(() => {
-          realm.create(Tag, Tag.generate({ name }))
+          Tag.create(realm, { name, isPinned: false })
         })
       })
       .catch(console.log)

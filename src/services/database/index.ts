@@ -1,9 +1,9 @@
 import { createRealmContext } from '@realm/react'
 import Realm, { Configuration } from 'realm'
-import { Note, Style, Tag, TaskItem } from './model'
+import { Note, Tag, TaskItem } from './model'
 
 export const realmConfig: Configuration = {
-  schema: [Tag, Note, Style, TaskItem],
+  schema: [Tag, Note, TaskItem],
   path: 'bundle.realm',
 }
 

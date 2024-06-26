@@ -1,50 +1,49 @@
 import { BSON, Object, ObjectSchema, PropertiesTypes } from 'realm'
-import { Style, Tag, TaskItem } from '~/services/database/model'
+import { Tag, TaskItem } from '~/services/database/model'
 import { TaskItemData } from './TaskItem'
+import { normalize } from '../utils'
+import { Realm } from 'realm'
 
 export type NoteData = {
   type: NoteType
-  title?: string
-  content?: string
-  taskList?: TaskItemData[]
-  isPrivate?: boolean
-  isPinned?: boolean
-  isDeleted?: boolean
-  tags?: Tag[]
-  style?: Style | null
+  title: string
+  content: string
+  taskList: TaskItemData[]
+  isPrivate: boolean
+  isPinned: boolean
+  isDeleted: boolean
+  tags: Tag[]
 }
 
 export class Note extends Object<Note> {
   _id!: BSON.UUID
   title!: string
+  normalizedTitle?: string
   type!: NoteType
   content!: string
+  normalizedContent?: string
   taskList!: TaskItem[]
   createAt!: Date
   updateAt!: Date
   isPinned!: boolean
   isPrivate!: boolean
   isDeleted!: boolean
-  tags: Tag[] = []
-  style: Style | null = null
+  tags!: Tag[]
 
   private static properties: PropertiesTypes = {
-    _id: 'uuid',
+    _id: { type: 'uuid' },
     type: { type: 'string', default: 'note' },
-
-    title: { type: 'string', indexed: 'full-text', default: '' },
-    content: { type: 'string', indexed: 'full-text', default: '' },
-    taskList: 'TaskItem[]',
-
+    title: { type: 'string', default: '' },
+    content: { type: 'string', default: '' },
+    taskList: { type: 'list', objectType: 'TaskItem', default: [] },
     isPinned: { type: 'bool', indexed: true, default: false },
     isPrivate: { type: 'bool', indexed: true, default: false },
     isDeleted: { type: 'bool', indexed: true, default: false },
-
-    createAt: 'date',
-    updateAt: 'date',
-
-    tags: 'Tag[]',
-    style: 'Style?',
+    tags: { type: 'list', objectType: 'Tag', default: [] },
+    createAt: { type: 'date' },
+    updateAt: { type: 'date' },
+    normalizedTitle: { type: 'string', indexed: 'full-text', default: '' },
+    normalizedContent: { type: 'string', indexed: 'full-text', default: '' },
   }
 
   static readonly schema: ObjectSchema = {
@@ -53,75 +52,8 @@ export class Note extends Object<Note> {
     properties: this.properties,
   }
 
-  static generate({
-    type,
-    title = '',
-    content = '',
-    taskList = [],
-    isPinned = false,
-    isPrivate = false,
-    tags = [],
-    style = null,
-  }: NoteData) {
-    return {
-      _id: new BSON.UUID(),
-      type,
-      title,
-      content,
-      taskList: taskList as TaskItem[],
-      isPinned,
-      isPrivate,
-      createAt: new Date(),
-      updateAt: new Date(),
-      tags,
-      style,
-    }
-  }
-
-  update({
-    title,
-    content,
-    taskList,
-    tags,
-    isPrivate,
-    isPinned,
-    isDeleted,
-    style,
-  }: {
-    title?: string
-    content?: string
-    taskList?: TaskItemData[]
-    isPrivate?: boolean
-    isPinned?: boolean
-    isDeleted?: boolean
-    tags?: Tag[]
-    style?: Style | null
-  }) {
-    if (title !== undefined) {
-      this.title = title
-    }
-    if (content !== undefined) {
-      this.content = content
-    }
-    if (taskList !== undefined) {
-      this.taskList = taskList as TaskItem[]
-    }
-    if (isPinned !== undefined) {
-      this.isPinned = isPinned
-    }
-    if (isPrivate !== undefined) {
-      this.isPrivate = isPrivate
-    }
-    if (isDeleted !== undefined) {
-      this.isDeleted = isDeleted
-    }
-    if (tags !== undefined) {
-      this.tags = tags
-    }
-    if (style !== undefined) {
-      this.style = style
-    }
-    this.updateAt = new Date()
+  get id() {
+    return this._id.toString()
   }
 
   get data() {
@@ -133,14 +65,57 @@ export class Note extends Object<Note> {
       updateAt: this.updateAt,
       tags: this.tags,
       taskList: this.taskList.map(it => it.data),
-      style: this.style,
       isPinned: this.isPinned,
       isPrivate: this.isPrivate,
       isDeleted: this.isDeleted,
     }
   }
 
-  get id() {
-    return this._id.toString()
+  update(data: NoteData) {
+    let k: keyof NoteData
+    let hasChanged = false
+    for (k in data) {
+      if (data[k] !== this[k]) {
+        this[k] = data[k] as never
+        if (k === 'title') {
+          this.normalizedTitle = normalize(data[k])
+        }
+        if (k === 'content') {
+          this.normalizedContent = normalize(data[k])
+        }
+        hasChanged = true
+      }
+    }
+    if (hasChanged) {
+      this.updateAt = new Date()
+    }
+  }
+
+  static create(
+    realm: Realm,
+    { type, title, content, taskList, isPinned, isPrivate, tags }: NoteData,
+  ) {
+    return realm.create(Note, {
+      _id: new BSON.UUID(),
+      updateAt: new Date(),
+      createAt: new Date(),
+      normalizedTitle: normalize(title),
+      normalizedContent: normalize(content),
+      type,
+      title,
+      content,
+      taskList: taskList as TaskItem[],
+      isPinned,
+      isPrivate,
+      tags,
+    })
+  }
+
+  static isValidData({ type, title, content, taskList }: NoteData): boolean {
+    if (type === 'note') {
+      return !!title || !!content
+    } else {
+      return !!title || taskList.length !== 0
+    }
   }
 }

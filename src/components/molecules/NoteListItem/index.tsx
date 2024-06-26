@@ -14,7 +14,6 @@ import { timeAgo } from '~/utils'
 
 type Props = AnimatedProps<TouchableScaleProps> & {
   data: Note
-  emptyContent?: string
   style?: StyleProp<ViewStyle>
   contentContainerStyle?: StyleProp<ViewStyle>
   maxLineOfTitle?: number
@@ -29,7 +28,6 @@ const NoteListItem = forwardRef<View, Props>(
     {
       data,
       contentContainerStyle,
-      emptyContent = 'Empty text',
       maxLineOfTitle = 1,
       maxLineOfContent = 6,
       isSelected = false,
@@ -49,10 +47,11 @@ const NoteListItem = forwardRef<View, Props>(
       }
     }, [colors, roundness])
 
-    const { title, content } = getContentTitle(data, emptyContent)
+    const { title, content } = data
     const hasTag = data.tags.length !== 0
     const hasTask = data.type == 'task'
-    const hasContent = data.type == 'note' || data.taskList.length === 0
+    const hasTitle = !!data.title
+    const hasContent = data.type == 'note'
 
     return (
       <AnimatedTouchableScale
@@ -65,23 +64,22 @@ const NoteListItem = forwardRef<View, Props>(
           style={[styles.container, containerStyle, contentContainerStyle]}
           pointerEvents={selectable ? 'none' : 'auto'}
         >
-          <Fade
-            isActive={isSelected}
-            color={
-              isSelected ? colors.elevation.level5 : colors.elevation.level2
-            }
-          />
-          <AnimatedPaper.Text
-            variant="titleMedium"
-            numberOfLines={maxLineOfTitle}
-          >
-            {title.trim()}
-          </AnimatedPaper.Text>
+          <Fade isActive={isSelected} color={colors.elevation.level5} />
+          {hasTitle && (
+            <AnimatedPaper.Text
+              variant="titleMedium"
+              numberOfLines={maxLineOfTitle}
+              children={title.trim()}
+            />
+          )}
           <Animated.View style={styles.date_row}>
             <AnimatedPaper.Divider style={styles.divider} />
-            <AnimatedPaper.Text variant="labelSmall" style={styles.date_label}>
-              {timeAgo(data.updateAt)}
-            </AnimatedPaper.Text>
+            <AnimatedPaper.Text
+              variant="labelSmall"
+              style={styles.date_label}
+              children={timeAgo(data.updateAt)}
+            />
+
             {data.isPinned && (
               <AnimatedPaper.Icon
                 source="thumbtack"
@@ -201,18 +199,6 @@ const icons: Record<TaskItemStatus, string> = {
   checked: 'checkbox',
   unchecked: 'square',
   indeterminate: 'square',
-}
-
-const getContentTitle = (data: Note, emptyContent: string) => {
-  if (data.title && data.content) return data
-  else if (data.title) return { title: data.title, content: emptyContent }
-  else {
-    const contents = data.content.split('\n')
-    const [title, ...resContent] = contents
-    const content =
-      resContent.length !== 0 ? resContent.join('\n') : emptyContent
-    return { title, content }
-  }
 }
 
 const styles = StyleSheet.create({

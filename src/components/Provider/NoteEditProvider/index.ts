@@ -1,3 +1,4 @@
+import { OrderedCollection } from 'realm'
 import {
   ContextSelector,
   createContext,
@@ -7,9 +8,8 @@ import { Note, Tag } from '~/services/database/model'
 
 interface NoteEditData {
   data: Note | null
-  tags: Tag[]
+  tags: Tag[] | OrderedCollection<Tag>
   onBackPress: () => void
-  onNewTagSubmit: (title: string) => void
 }
 const NoteEditContext = createContext<NoteEditData>()
 

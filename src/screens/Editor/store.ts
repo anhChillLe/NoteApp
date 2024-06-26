@@ -35,6 +35,7 @@ interface NoteEditData extends NoteData {
   setIsPinned: (bool: boolean) => void
   setIsPrivate: (bool: boolean) => void
   setIsDeleted: (bool: boolean) => void
+  createTag: (name: string) => void
   init: (params: InitialParams) => void
   reset: () => void
 }
@@ -123,6 +124,11 @@ const creator: StateCreator<NoteEditData> = (set, get) => {
     },
     setIsPrivate(isPrivate) {
       set({ isPrivate })
+    },
+    createTag(name) {
+      Realm.open(realmConfig).then(realm => {
+        Tag.create(realm, { name, isPinned: false })
+      })
     },
     init({ type, id, tagId, isPrivate }) {
       Realm.open(realmConfig).then(realm => {

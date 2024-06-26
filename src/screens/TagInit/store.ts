@@ -50,7 +50,7 @@ const creator: StateCreator<TagInitState> = (set, get) => {
         .then(realm => {
           realm.write(() => {
             selecteds.forEach(item => {
-              realm.create(Tag, Tag.generate({ name: item.name }))
+              Tag.create(realm, { name: item.name, isPinned: false })
             })
           })
         })

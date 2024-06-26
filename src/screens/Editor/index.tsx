@@ -4,9 +4,10 @@ import { BSON } from 'realm'
 import { NoteEditProvider } from '~/components/Provider'
 import { EditorScreenLayout } from '~/components/templates'
 import { useRootRoute } from '~/navigation/Root/hook'
-import useNoteEditor, { NoteEditData } from '~/screens/Editor/store'
+import useNoteEditor from '~/screens/Editor/store'
 import { useObject, useQuery, useRealm } from '~/services/database'
 import { Note, Tag } from '~/services/database/model'
+import { NoteData } from '~/services/database/model/Note'
 import { debounce } from '~/utils'
 
 const EditorScreen: FC = () => {
@@ -18,35 +19,16 @@ const EditorScreen: FC = () => {
   const [id, setId] = useState(new BSON.UUID(route.params.id!))
   const note = useObject({ type: Note, primaryKey: id })
 
-  const handleNewTag = useCallback(
-    (text: string) => {
-      if (text) {
-        realm.write(() => {
-          realm.create(Tag, Tag.generate({ name: text }))
-        })
-      }
-    },
-    [realm],
-  )
-
   const handleFormDataChange = useCallback(
-    debounce((data: NoteEditData, prevData: NoteEditData) => {
-      if (data.type === 'note') {
-        if (!data.title && !data.content) return
-      } else {
-        if (!data.title && data.taskList.length === 0) return
-      }
-
+    debounce((data: NoteData) => {
+      if (!Note.isValidData(data)) return
+      const note = realm.objectForPrimaryKey(Note, id)
       realm.write(() => {
-        const note = realm.objectForPrimaryKey(Note, id)
         if (note) {
-          const changes = getChanges(data, prevData)
-          if (changes === null) return
-          note.update(changes)
+          note.update(data)
         } else {
-          const generatedData = Note.generate(data)
-          const { _id } = realm.create(Note, generatedData)
-          setId(_id)
+          const results = Note.create(realm, data)
+          setId(results._id)
         }
       })
     }, 300),
@@ -81,32 +63,12 @@ const EditorScreen: FC = () => {
     <NoteEditProvider
       value={{
         data: note,
-        tags: tags.map(it => it),
+        tags,
         onBackPress: navigation.goBack,
-        onNewTagSubmit: handleNewTag,
       }}
     >
       <EditorScreenLayout />
     </NoteEditProvider>
   )
 }
-
-const getChanges = (
-  data: NoteEditData,
-  prevData: NoteEditData,
-): Partial<NoteEditData> | null => {
-  const changes: Partial<NoteEditData> = {}
-  let hasChange = false
-
-  for (const k in data) {
-    const key = k as keyof NoteEditData
-    if (data.hasOwnProperty(key) && data[key] !== prevData[key]) {
-      changes[key] = data[key] as never
-      hasChange = true
-    }
-  }
-
-  return hasChange ? changes : null
-}
-
 export default EditorScreen

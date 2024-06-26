@@ -8,12 +8,14 @@ interface SettingData {
   colorScheme: ColorScheme
   themeIndex: number
   numOfColumns: number | 'auto'
+  autoSave: boolean
 }
 
 interface SettingActions {
   setColorScheme: (scheme: ColorScheme) => void
   setThemeIndex: (index: number) => void
   setNumOfColumn: (numOfColumns: number | 'auto') => void
+  setAutoSave: (autoSave: boolean) => void
 }
 
 type SettingState = SettingData & SettingActions
@@ -22,6 +24,7 @@ const settingCreator: StateCreator<SettingState> = (set, get) => ({
   colorScheme: 'system',
   themeIndex: 5,
   numOfColumns: 'auto',
+  autoSave: true,
   setNumOfColumn(numOfColumns) {
     set({ numOfColumns })
   },
@@ -30,6 +33,9 @@ const settingCreator: StateCreator<SettingState> = (set, get) => ({
   },
   setThemeIndex(themeIndex) {
     set({ themeIndex })
+  },
+  setAutoSave(autoSave) {
+    set({ autoSave })
   },
 })
 
@@ -40,6 +46,7 @@ const persistOptions: PersistOptions<SettingState, SettingData> = {
     colorScheme: state.colorScheme,
     themeIndex: state.themeIndex,
     numOfColumns: state.numOfColumns,
+    autoSave: state.autoSave,
   }),
 }
 

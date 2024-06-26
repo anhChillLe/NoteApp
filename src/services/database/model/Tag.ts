@@ -1,5 +1,10 @@
 import { BSON, ObjectSchema, PropertiesTypes, Realm } from 'realm'
 
+interface TagData {
+  name: string
+  isPinned: boolean
+}
+
 export class Tag extends Realm.Object<Tag, 'name'> {
   _id!: BSON.UUID
   name!: string
@@ -21,20 +26,8 @@ export class Tag extends Realm.Object<Tag, 'name'> {
     properties: this.properties,
   }
 
-  static generate({
-    name,
-    isPinned = false,
-  }: {
-    name: string
-    isPinned?: boolean
-  }) {
-    return {
-      _id: new BSON.UUID(),
-      name,
-      isPinned,
-      createAt: new Date(),
-      updateAt: new Date(),
-    }
+  get id() {
+    return this._id.toString()
   }
 
   get data() {
@@ -44,7 +37,27 @@ export class Tag extends Realm.Object<Tag, 'name'> {
     }
   }
 
-  get id() {
-    return this._id.toString()
+  static create(realm: Realm, data: TagData) {
+    return realm.create(Tag, {
+      ...data,
+      _id: new BSON.UUID(),
+      createAt: new Date(),
+      updateAt: new Date(),
+    })
+  }
+
+  update(data: TagData) {
+    let k: keyof TagData
+    let hasChanged = false
+    for (k in data) {
+      const value = data[k]
+      if (value !== this[k]) {
+        this[k] = value as never
+        hasChanged = true
+      }
+    }
+    if (hasChanged) {
+      this.updateAt = new Date()
+    }
   }
 }

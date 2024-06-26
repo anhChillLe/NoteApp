@@ -1,12 +1,12 @@
 import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import React, { FC, useCallback, useEffect, useState } from 'react'
-import { BackHandler } from 'react-native'
+import { BackHandler, InteractionManager } from 'react-native'
 import Realm, { BSON, Results, SortDescriptor } from 'realm'
 import { HomeProvider } from '~/components/Provider'
 import { HomeScreenLayout } from '~/components/templates'
 import { useObject, useQuery } from '~/services/database'
 import { Note, Tag } from '~/services/database/model'
-import { combineQuery } from '~/services/database/utils'
+import { combineQuery, normalize } from '~/services/database/utils'
 import { debounce } from '~/utils'
 import useHomeState from './store'
 
@@ -83,6 +83,12 @@ const HomeScreen: FC = () => {
 
   useFocusEffect(handler)
 
+  useEffect(() => {
+    navigation.addListener('blur', () => {
+      useHomeState.getState().setMode('default')
+    })
+  }, [navigation])
+
   const value = {
     notes,
     tags,
@@ -130,8 +136,8 @@ const queryByText = (text: string | null) => {
     if (text === null || text.trim() === '') return collection
 
     return collection.filtered(
-      'title TEXT $0 OR content TEXT $0 OR taskList.label TEXT $0',
-      text.replace(/[^a-zA-Z0-9 ]/g, ''),
+      'normalizedTitle TEXT $0 OR normalizedContent TEXT $0 OR taskList.normalizedLabel TEXT $0',
+      normalize(text),
     )
   }
 }
