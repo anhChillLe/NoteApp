@@ -1,6 +1,7 @@
 import { MasonryListRenderItem } from '@shopify/flash-list'
 import { FC, memo, useMemo } from 'react'
 import { StyleSheet, View, useWindowDimensions } from 'react-native'
+import { trigger } from 'react-native-haptic-feedback'
 import { Button, Checkbox, Text, TextInput } from 'react-native-paper'
 import Animated, {
   FadeInDown,
@@ -229,17 +230,10 @@ const TActionBar: FC = memo(
       },
     ]
 
-    const dialogActions = [
-      {
-        title: 'Delete',
-        type: 'primary' as 'primary',
-        onPress: deleteNotes,
-      },
-      {
-        title: 'Cancel',
-        onPress: hide,
-      },
-    ]
+    const handleDelete = () => {
+      deleteNotes()
+      trigger('effectTick')
+    }
 
     return (
       <>
@@ -261,13 +255,9 @@ const TActionBar: FC = memo(
               variant="bodyMedium"
               children="Confirm permanent deletion of this notes."
             />
-            <AnimatedPressable style={styles.dialog_checkbox}>
-              <Checkbox.Android status="checked" />
-              <Text children="Don't show again" />
-            </AnimatedPressable>
           </Dialog.Content>
           <Dialog.Actions>
-            <Button mode="contained" children="Delete" onPress={deleteNotes} />
+            <Button mode="contained" children="Delete" onPress={handleDelete} />
             <Button mode="outlined" children="Cancel" onPress={hide} />
           </Dialog.Actions>
         </Dialog>

@@ -152,6 +152,7 @@ const renderItem: MasonryListRenderItem<Note> = ({ item, extraData }) => {
   const submitDrop = () => {
     if (extras) {
       addTagToNote(item, extras)
+      trigger('effectTick')
     }
   }
 
@@ -379,11 +380,17 @@ const HBottomAppBar = memo(
       {
         icon: 'plus-small',
         primary: true,
-        onPress: openNewNoteEditor,
+        onPress: () => {
+          openNewNoteEditor()
+          trigger('effectTick')
+        },
       },
       {
         icon: 'checkbox',
-        onPress: openNewTaskEditor,
+        onPress: () => {
+          openNewTaskEditor()
+          trigger('effectTick')
+        },
       },
     ]
 
@@ -437,6 +444,11 @@ const HActionBar = memo(
     const toast = useToast()
     const [dialogVisible, showDialog, hideDialog] = useVisible()
 
+    const handleDelete = () => {
+      deleteNotes()
+      trigger('effectTick')
+    }
+
     const actions = [
       { icon: 'thumbtack', label: 'Pin', onPress: pinNotes, disable: isEmpty },
       {
@@ -478,7 +490,7 @@ const HActionBar = memo(
             />
           </Dialog.Content>
           <Dialog.Actions>
-            <Button mode="contained" children="Delete" onPress={deleteNotes} />
+            <Button mode="contained" children="Delete" onPress={handleDelete} />
             <Button mode="outlined" children="Cancel" onPress={hideDialog} />
           </Dialog.Actions>
         </Dialog>

@@ -64,16 +64,16 @@ const creator: StateCreator<Selection> = (set, get) => ({
         .then(realm => {
           realm.write(() => {
             realm.delete(state.selecteds)
-            if (
-              state.selecteds.some(
-                it => it.id === useHomeState.getState().currentTagId,
-              )
-            ) {
-              useHomeState.getState().setCurrentTagId(null)
-            }
           })
         })
         .catch(console.log)
+      if (
+        state.selecteds.some(
+          it => it.id === useHomeState.getState().currentTagId,
+        )
+      ) {
+        useHomeState.getState().setCurrentTagId(null)
+      }
       return {
         mode: 'default',
         selecteds: [],

@@ -1,5 +1,6 @@
 import React, { FC, memo, useState } from 'react'
 import { ListRenderItem, StyleSheet, View } from 'react-native'
+import { trigger } from 'react-native-haptic-feedback'
 import { Button } from 'react-native-paper'
 import Animated, {
   FadeInDown,
@@ -85,6 +86,7 @@ const TAppbar: FC = memo(
 
     const submit = () => {
       createTag(inputText)
+      hideInput()
     }
 
     return (
@@ -148,7 +150,10 @@ const TActionBar = memo(
         icon: 'trash',
         label: 'Delete',
         disable: selecteds.length === 0,
-        onPress: deleteTags,
+        onPress: () => {
+          deleteTags()
+          trigger('effectTick')
+        },
       },
       {
         icon: 'edit',
@@ -164,6 +169,7 @@ const TActionBar = memo(
 
     const submit = () => {
       renameTag(inputText)
+      hideInput()
     }
 
     return (
@@ -221,6 +227,7 @@ const TContent = memo(
 
       const onLongPress = () => {
         select(item)
+        trigger('effectTick')
       }
 
       return (

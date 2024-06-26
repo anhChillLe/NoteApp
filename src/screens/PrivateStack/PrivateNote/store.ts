@@ -58,7 +58,6 @@ const creator: StateCreator<Selection> = (set, get) => ({
         })
       })
       .catch(console.log)
-    trigger('effectTick')
   },
   removeFromPrivate() {
     set(state => {
@@ -71,7 +70,6 @@ const creator: StateCreator<Selection> = (set, get) => ({
           })
         })
         .catch(console.log)
-      trigger('effectTick')
       return {
         selecteds: [],
         mode: 'default',
@@ -87,7 +85,6 @@ const creator: StateCreator<Selection> = (set, get) => ({
           })
         })
         .catch(console.log)
-      trigger('effectTick')
       return {
         selecteds: [],
         mode: 'default',

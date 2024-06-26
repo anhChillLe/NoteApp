@@ -1,6 +1,7 @@
 import { MasonryListRenderItem } from '@shopify/flash-list'
 import { FC, memo, useMemo } from 'react'
 import { StyleSheet, View, useWindowDimensions } from 'react-native'
+import { trigger } from 'react-native-haptic-feedback'
 import { Button, Checkbox, Text } from 'react-native-paper'
 import Animated, {
   FadeInDown,
@@ -13,6 +14,7 @@ import Animated, {
   useAnimatedStyle,
 } from 'react-native-reanimated'
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
+import { OrderedCollection } from 'realm'
 import { useShallow } from 'zustand/react/shallow'
 import {
   AnimatedMasonryNoteList,
@@ -59,6 +61,59 @@ const PrivateScreenLayout: FC = () => {
   )
 }
 
+interface ExtraData {
+  isInSelectMode: boolean
+  openEditor: (item: Note) => void
+  extras: Tag
+  selecteds: Note[] | OrderedCollection<Note>
+  select: (item: Note) => void
+  addTagToNote: (tag: Tag, note: Note) => void
+}
+
+const renderItem: MasonryListRenderItem<Note> = ({ item, extraData }) => {
+  const {
+    isInSelectMode,
+    openEditor,
+    extras,
+    selecteds,
+    select,
+    addTagToNote,
+  } = extraData as ExtraData
+
+  const onPress = () => {
+    if (isInSelectMode) select(item)
+    else openEditor(item)
+  }
+
+  const onLongPress = () => {
+    select(item)
+    trigger('effectTick')
+  }
+
+  const onDropIn = () => {
+    if (extras) {
+      addTagToNote(extras, item)
+      trigger('effectTick')
+    }
+  }
+
+  const isSelected = selecteds.some(it => it.id === item.id)
+
+  return (
+    <MemoNoteItem
+      data={item}
+      style={styles.list_item}
+      maxLineOfContent={6}
+      maxLineOfTitle={1}
+      selectable={isInSelectMode}
+      isSelected={isSelected}
+      onPress={onPress}
+      onLongPress={onLongPress}
+      onDropIn={onDropIn}
+    />
+  )
+}
+
 const ContentList: FC = memo(
   () => {
     const notes = usePrivateNote(state => state.notes)
@@ -74,7 +129,6 @@ const ContentList: FC = memo(
     )
 
     const { event } = useContentScroll()
-
     const scrollHandler = useAnimatedScrollHandler(e => {
       event.value = e.contentOffset
     }, [])
@@ -83,9 +137,17 @@ const ContentList: FC = memo(
 
     const window = useWindowDimensions()
     const numColumns = notes.length === 0 ? 1 : Math.round(window.width / 200)
+
     const extraData = useMemo(
-      () => ({ selecteds, extras, numColumns }),
-      [selecteds, extras, numColumns],
+      () => ({
+        isInSelectMode,
+        openEditor,
+        extras,
+        selecteds,
+        select,
+        addTagToNote,
+      }),
+      [isInSelectMode, openEditor, extras, selecteds, select, addTagToNote],
     )
 
     if (notes.isEmpty()) {
@@ -96,39 +158,6 @@ const ContentList: FC = memo(
         >
           <NoteListEmpty style={styles.list_empty} />
         </Animated.ScrollView>
-      )
-    }
-
-    const renderItem: MasonryListRenderItem<Note> = ({ item, columnIndex }) => {
-      const onPress = () => {
-        if (isInSelectMode) select(item)
-        else openEditor(item)
-      }
-
-      const onLongPress = () => {
-        select(item)
-      }
-
-      const onDropIn = () => {
-        if (extras) {
-          addTagToNote(extras, item)
-        }
-      }
-
-      const isSelected = selecteds.some(it => it.id === item.id)
-
-      return (
-        <MemoNoteItem
-          data={item}
-          style={styles.list_item}
-          maxLineOfContent={6}
-          maxLineOfTitle={1}
-          selectable={isInSelectMode}
-          isSelected={isSelected}
-          onPress={onPress}
-          onLongPress={onLongPress}
-          onDropIn={onDropIn}
-        />
       )
     }
 
@@ -212,11 +241,17 @@ const PBottomAppbar: FC = memo(
       {
         icon: 'plus-small',
         primary: true,
-        onPress: openNoteEditor,
+        onPress: () => {
+          openNoteEditor()
+          trigger('effectTick')
+        },
       },
       {
         icon: 'checkbox',
-        onPress: openTaskEditor,
+        onPress: () => {
+          openTaskEditor()
+          trigger('effectTick')
+        },
       },
     ]
 
@@ -314,6 +349,11 @@ const PActionBar: FC = memo(
       },
     ]
 
+    const handleDelete = () => {
+      deleteItems()
+      trigger('effectTick')
+    }
+
     return (
       <>
         <ActionBar
@@ -334,13 +374,9 @@ const PActionBar: FC = memo(
               variant="bodyMedium"
               children="Private notes will not be moved to trash, confirm to permanently delete this note."
             />
-            <AnimatedPressable style={styles.dialog_checkbox}>
-              <Checkbox.Android status="checked" />
-              <Text children="Don't show again" />
-            </AnimatedPressable>
           </Dialog.Content>
           <Dialog.Actions>
-            <Button mode="contained" children="Delete" onPress={deleteItems} />
+            <Button mode="contained" children="Delete" onPress={handleDelete} />
             <Button mode="outlined" children="Cancel" onPress={hide} />
           </Dialog.Actions>
         </Dialog>
