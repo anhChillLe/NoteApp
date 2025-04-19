@@ -9,6 +9,7 @@ import { FC, useEffect, useMemo, useState } from 'react'
 import { MD3Theme, useTheme } from 'react-native-chill-ui'
 import { BSON } from 'realm'
 import RootNavigation from '~/navigation/root'
+import BootSplash from 'react-native-bootsplash'
 
 export const navigationRef = createNavigationContainerRef()
 
@@ -25,6 +26,7 @@ const AppNavigation: FC = () => {
       ref={navigationRef}
       theme={navTheme}
       initialState={{ routes }}
+      onReady={BootSplash.hide}
     />
   )
 }

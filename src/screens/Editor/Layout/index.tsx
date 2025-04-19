@@ -1,19 +1,13 @@
 import { FC, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  FlatList,
-  KeyboardAvoidingView,
-  TextInput as RNTextInput,
-  StyleSheet,
-  View,
-} from 'react-native'
+import { FlatList, KeyboardAvoidingView, StyleSheet, View } from 'react-native'
 import {
   Divider,
   IconButton,
-  TextInput,
   Menu,
   Text,
   TextField,
+  TextInput,
 } from 'react-native-chill-ui'
 import { useAnimatedRef } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -185,7 +179,6 @@ const ContentInput: FC = () => {
 const TaskItemInput: FC = () => {
   const { t } = useTranslation()
   const list = useRef<FlatList>(null)
-  const input = useRef<RNTextInput>(null)
   const [text, setText] = useState('')
 
   const {
@@ -215,7 +208,6 @@ const TaskItemInput: FC = () => {
         onLabelChange={setTaskItemLabel}
       />
       <TextField
-        ref={input}
         mode="outlined"
         value={text}
         style={styles.input}

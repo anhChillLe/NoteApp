@@ -7,7 +7,7 @@ import {
   useQuery,
   useRealm,
 } from 'note-app-database'
-import { FC, useEffect, useState } from 'react'
+import { FC, useCallback, useEffect, useState } from 'react'
 import { BSON, Realm } from 'realm'
 import { useDebounce } from '~/hooks'
 import EditorScreenLayout from './Layout'
@@ -83,19 +83,25 @@ const EditorScreen: FC<Props> = ({ route }) => {
 
   const debouncedData = useDebounce(data, 300)
 
+  const saveOrUpdate = useCallback(
+    (data: NoteEditData) => {
+      realm.write(() => {
+        if (id) {
+          const note = realm.objectForPrimaryKey(Note, id)
+          note?.update(data)
+        } else {
+          const result = Note.create(realm, data)
+          setId(result._id)
+        }
+      })
+    },
+    [id, realm],
+  )
+
   useEffect(() => {
     if (!Note.isValidData(debouncedData)) return
-    const note = realm.objectForPrimaryKey(Note, id)
-
-    realm.write(() => {
-      if (note) {
-        note.update(debouncedData)
-      } else {
-        const result = Note.create(realm, debouncedData)
-        setId(result._id)
-      }
-    })
-  }, [debouncedData, id, realm])
+    saveOrUpdate(debouncedData)
+  }, [debouncedData, saveOrUpdate])
 
   return (
     <NoteEditProvider

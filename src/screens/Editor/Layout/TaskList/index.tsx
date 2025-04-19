@@ -6,12 +6,7 @@ import {
   ScrollViewProps,
   StyleSheet,
 } from 'react-native'
-import {
-  Checkbox,
-  IconButton,
-  TextField,
-  TextInput,
-} from 'react-native-chill-ui'
+import { Checkbox, IconButton, TextInput } from 'react-native-chill-ui'
 import Animated, { FadeInDown, LinearTransition } from 'react-native-reanimated'
 import { TaskItemDataWithId } from '~/screens/Editor/Provider'
 

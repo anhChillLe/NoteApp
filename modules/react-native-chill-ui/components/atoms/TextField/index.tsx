@@ -103,7 +103,7 @@ const TextFieldIcon: FC<TextFieldIconProps> = ({ ref, icon, ...props }) => {
   const { colors } = useTheme()
   return (
     <TouchableOpacity ref={ref} {...props}>
-      <Icon name={icon} size={16} color={colors.onSurface} />
+      <Icon name={icon} size={24} color={colors.onSurface} />
     </TouchableOpacity>
   )
 }
@@ -116,11 +116,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     alignItems: 'center',
     flexDirection: 'row',
-    gap: 16,
+    gap: 8,
     borderRadius: 16,
   },
   input: {
-    height: '100%',
+    flex: 1,
   },
 })
 

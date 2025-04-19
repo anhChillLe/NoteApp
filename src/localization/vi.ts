@@ -2,7 +2,7 @@ import { TranslationKeys } from './en'
 
 // prettier-ignore
 const language: Partial<TranslationKeys> = {
-  app_name: 'Chill Note',
+  app_name: 'Note',
   onboarding: {
     welcome: {
       title: 'Chào mừng đến với $t(app_name)',

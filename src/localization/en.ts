@@ -1,7 +1,7 @@
 // prettier-ignore
 // Remember, the separator between parameters is ";", not ",". I lost 6 hours because of it.
 const language = {
-  app_name: 'Chill Note',
+  app_name: 'Note',
   onboarding: {
     welcome: {
       title: 'Welcome to $t(app_name)',

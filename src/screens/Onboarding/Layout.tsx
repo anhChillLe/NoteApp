@@ -51,11 +51,17 @@ const OnboardingScreenLayout: FC<Props> = ({ onSkip, onStart }) => {
   )
 
   const previous = () => {
-    scrollViewRef.current?.scrollTo()
+    if (layout) {
+      const scrollOffset = (progress.value - 1) * layout.width
+      scrollViewRef.current?.scrollTo({ x: scrollOffset, y: 0 })
+    }
   }
 
   const next = () => {
-    scrollViewRef.current?.scrollTo()
+    if (layout) {
+      const scrollOffset = (progress.value + 1) * layout.width
+      scrollViewRef.current?.scrollTo({ x: scrollOffset, y: 0 })
+    }
   }
 
   return (
